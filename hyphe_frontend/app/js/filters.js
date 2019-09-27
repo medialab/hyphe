@@ -454,5 +454,16 @@ angular.module('hyphe.filters', [])
       return arr.toString().replace(/,/g, ', ')
     }
   }])
+
+
+  //A filter that handles accents and other characters
+    .filter('nonSensitiveFilter', ['autocompletion', function(autocompletion){
+      return function(list, query) {
+        var searchableQuery = autocompletion.searchable(query)
+        return list.filter(function (elem) {
+          return ~autocompletion.searchable(elem.name).indexOf(searchableQuery)
+        })
+      }
+    }])
 ;
 
