@@ -94,14 +94,22 @@
                       <div style="padding: 8px; margin-top: 16px" md-colors="{'background': 'default-background-200'}">
                         <dl class="key-value-pairs">
 
+                          <dt>Linked to</dt>
+                          <dd>{{webentity.undirected_degree | no}} other entit{{webentity.undirected_degree | y_ies}}</dd>
+
+                          <dt>Cited by</dt>
+                          <dd>{{webentity.indegree | no}} other entit{{webentity.indegree | y_ies}}</dd>
+
+                          <div ng-show="webentity.crawled">
+                            <dt>Citing</dt>
+                            <dd>{{webentity.outdegree | no}} other entit{{webentity.outdegree | y_ies}}</dd>
+                          </div>
+                          
                           <dt>Created {{webentity['creation_date']|prettyDate}}</dt>
                           <dd>{{webentity['creation_date']|date}}</dd>
                           
                           <dt>Last modified {{webentity['last_modification_date']|prettyDate}}</dt>
                           <dd>{{webentity['last_modification_date']|date}}</dd>
-                          
-                          <dt>Cited by</dt>
-                          <dd>{{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</dd>
                           
                         </dl>
                       </div>
