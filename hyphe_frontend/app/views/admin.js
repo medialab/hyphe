@@ -50,6 +50,10 @@ angular.module('hyphe.adminController', [])
       destroyCorpus(id)
     }
 
+    $scope.backupCorpus = function(id){
+      backupCorpus(id)
+    }
+
     $scope.resetCorpus = function(id){
       resetCorpus(id)
     }
@@ -124,18 +128,29 @@ angular.module('hyphe.adminController', [])
     }
 
 
-    function startCorpus(id, password){
-    api.startCorpus({
-      id: id
-      ,password: password
-    }, function(){
+    function startCorpus(id, password, callback){
+      api.startCorpus({
+        id: id
+        ,password: password
+      }, function(){
+        refresh()
+        if (callback){
+          api.pingCorpus({
+            id: id
+            ,timeout: 15
+          },function(){
+            callback(id)
 
-      refresh()
-      // openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
+          }, function(){
 
-    },function(data, status, headers, config){
-      alert('Error: possibly a wrong password')
-    })
+            alert('Error starting corpus '+id)
+
+          })
+        }
+
+      },function(data, status, headers, config){
+        alert('Error: possibly a wrong password')
+      })
     }
 
     function stopCorpus(id){
@@ -185,4 +200,36 @@ angular.module('hyphe.adminController', [])
         loadCorpusList()
     }
 
+    function simpleBackup(id){
+      api.backupCorpus({
+        id: id
+      }, function () {
+        refresh()
+      }, function (data, status, headers, config) {
+        alert('Error')
+      })
+    }
+
+    function simpleBackupWithStop(id){
+      api.backupCorpus({
+        id: id
+      }, function () {
+        refresh()
+        stopCorpus(id)
+      }, function (data, status, headers, config) {
+        alert('Error')
+      })
+    }
+
+    function backupCorpus(id) {
+      if ($scope.corpusList_byId[id].status==='stopped') {
+        startCorpus(id, $scope.password, simpleBackupWithStop)
+      }
+      else if ($scope.corpusList_byId[id].status==='ready'){
+        simpleBackup(id)
+      }
+      else{
+        alert('this corpus does not feel so good...')
+      }
+    }
   }])

@@ -94,7 +94,7 @@
         </md-checkbox>
       </div>
         <md-divider></md-divider>
-      <md-button class="md-raised md-primary" ng-click="api.backupCorpus()">
+      <md-button class="md-raised md-primary" ng-click="backupCorpus(corpus.corpus_id)">
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
         <md-icon>backup</md-icon>
         &nbsp;Backup
@@ -142,7 +142,7 @@
                 <div><em>TOTAL</em></div>
               </div>
               <div style="width: 160px; text-align: right"><em>
-                <md-button  class="md-raised" ng-click="api.backupCorpus(corpus)">
+                <md-button  class="md-raised" ng-click="backupCorpus(corpus.corpus_id)">
                   <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
                   <md-icon>backup</md-icon>
                 </md-button></em>
