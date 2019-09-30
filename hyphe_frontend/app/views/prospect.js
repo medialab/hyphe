@@ -450,14 +450,17 @@ angular.module('hyphe.prospectController', [])
     // Init
     $scope.applySettings()
 
-    $scope.$on('$locationChangeStart', function( event ) {
-      var toIn = $scope.setToIn
-      if(toIn){
-        var answer = confirm("You have set as IN "+toIn+" web entit" + (toIn > 1 ? "ies" : "y") + " which you should probably crawl. Do you really want to leave this page?")
-        if (!answer) {
-          event.preventDefault();
-        } else {
-          $window.onbeforeunload = null;
+    $scope.$on('$locationChangeStart', function(event, newUrl) {
+        console.log(newUrl)
+      if ( !newUrl.endsWith("/prepareCrawls")){
+        var toIn = $scope.setToIn
+        if (toIn) {
+          var answer = confirm("You have set as IN " + toIn + " web entit" + (toIn > 1 ? "ies" : "y") + " which you should probably crawl. Do you really want to leave this page?")
+          if (!answer) {
+            event.preventDefault();
+          } else {
+            $window.onbeforeunload = null;
+          }
         }
       }
     })
