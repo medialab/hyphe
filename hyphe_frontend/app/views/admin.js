@@ -50,6 +50,10 @@ angular.module('hyphe.adminController', [])
       destroyCorpus(id)
     }
 
+    $scope.destroyAll = function(id){
+      destroyAll(id)
+    }
+
     $scope.backupCorpus = function(id){
       backupCorpus(id)
     }
@@ -78,7 +82,7 @@ angular.module('hyphe.adminController', [])
           }
           // a must be equal to b
           return 0;
-        })
+        });
         // console.log('list',list)
 
       },function(data, status, headers, config){
@@ -170,9 +174,27 @@ angular.module('hyphe.adminController', [])
         refresh()
 
       },function(data, status, headers, config){
-        alert('Error')
+        alert('Error, corpus not destroyed')
       })
     }
+
+    function destroyAll(){
+      var password = prompt("This action is about to destroy every corpora. Are you sure ? Type your password to confirm.");
+      if (password === $scope.password){
+        console.log('All corpora deleted.')
+        for (var corpus in $scope.corpusList_byId){
+          if (corpus.status !== 'ready'){
+            startCorpus(corpus, $scope.password, destroyCorpus)
+          }
+          else {
+            destroyCorpus(corpus)
+          }
+        }
+      }
+      else
+        event.preventDefault();
+    }
+
 
     function resetCorpus(id){
       api.resetCorpus({
@@ -200,15 +222,6 @@ angular.module('hyphe.adminController', [])
         loadCorpusList()
     }
 
-    function simpleBackup(id){
-      api.backupCorpus({
-        id: id
-      }, function () {
-        refresh()
-      }, function (error) {
-        alert('Error calling backup_corpus on ' + id + ': ' + error)
-      })
-    }
 
     function simpleBackupWithStop(id){
       api.backupCorpus({
