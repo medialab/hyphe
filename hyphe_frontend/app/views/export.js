@@ -329,7 +329,9 @@ angular.module('hyphe.exportController', [])
         api.backupCorpus({
           id: $scope.corpusId
         }, function(){
-        }, function(){})
+        }, function(){
+          $scope.status = {message: 'Error during backup of '+ id, background:'danger'}
+        })
       }
 
       // Gather necessary webentities
