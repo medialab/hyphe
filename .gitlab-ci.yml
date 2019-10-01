@@ -5,9 +5,9 @@ stages:
   - deploy
 
 variables:
-  FRONTEND_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_frontend:$CI_COMMIT_REF_SLUG
-  BACKEND_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_backend:$CI_COMMIT_REF_SLUG
-  CRAWLER_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_crawler:$CI_COMMIT_REF_SLUG
+  FRONTEND_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_frontend:$CI_COMMIT_TAG
+  BACKEND_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_backend:$CI_COMMIT_TAG
+  CRAWLER_IMAGE_NAME: $CI_REGISTRY/scpomedialab/hyphe_crawler:$CI_COMMIT_TAG
 
 build_backend_image:
   stage: build
