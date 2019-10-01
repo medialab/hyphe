@@ -747,6 +747,24 @@ angular.module('hyphe.service_utils', [])
       }
     }
 
+
+    ns.waiter = function(obj, worker, callback, errback){
+        var array = Object.keys(obj)
+        var i = -1;
+        function doTheWork(){
+            i++;
+            if( i >= array.length )
+                return callback()
+            var item = array[i]
+            worker(item, function(){
+                return doTheWork();
+            })
+            return errback
+        }
+        return doTheWork();
+
+      }
+
     return ns
 
   }])

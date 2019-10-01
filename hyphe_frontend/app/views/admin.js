@@ -58,6 +58,9 @@ angular.module('hyphe.adminController', [])
       backupCorpus(id)
     }
 
+    $scope.backupAll = function(){
+      backupAll()
+    }
     $scope.resetCorpus = function(id){
       resetCorpus(id)
     }
@@ -144,7 +147,6 @@ angular.module('hyphe.adminController', [])
             ,timeout: 15
           },function(){
             callback(id)
-
           }, function(){
 
             alert('Error starting corpus '+id)
@@ -157,10 +159,13 @@ angular.module('hyphe.adminController', [])
       })
     }
 
-    function stopCorpus(id){
+    function stopCorpus(id, callback){
       api.stopCorpus({
         id: id
-      }, refresh
+      }, refresh,
+          function(){
+        callback()
+          }
       ,function(data, status, headers, config){
         alert('Error')
       })
@@ -223,26 +228,43 @@ angular.module('hyphe.adminController', [])
     }
 
 
-    function simpleBackupWithStop(id){
+    function simpleBackup(id, stop, callback){
       api.backupCorpus({
         id: id
-      }, function () {
+      },
+      function () {
         refresh()
-        stopCorpus(id)
-      }, function (error) {
-        alert('Error calling backup_corpus on ' + id + ': ' + error)
+        if (stop){
+          stopCorpus(id)
+        }
+        callback()
+      },
+      function (data, status, headers, config) {
+        alert('Error during backup of '+id)
       })
     }
 
-    function backupCorpus(id) {
-      if ($scope.corpusList_byId[id].status==='stopped') {
-        startCorpus(id, $scope.password, simpleBackupWithStop)
+    function backupCorpus(id, callback) {
+      if ($scope.corpusList_byId[id].status==='stopped'){
+        startCorpus(id, $scope.password, function() {
+          simpleBackup(id, true, callback)
+        })
       }
       else if ($scope.corpusList_byId[id].status==='ready'){
-        simpleBackup(id)
+        simpleBackup(id, false, callback)
       }
       else{
         alert('this corpus does not feel so good...')
       }
+    }
+
+    function backupAll(){
+      console.log($scope.corpusList_byId)
+      utils.waiter($scope.corpusList_byId,
+          backupCorpus,
+          function () { alert('All corpora successfully backed up !')
+      }, function () {  console.log('Error in backup')
+
+      })
     }
   }])
