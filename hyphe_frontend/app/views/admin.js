@@ -27,44 +27,49 @@ angular.module('hyphe.adminController', [])
       }, function(){
         refresh()
         $scope.loop = setInterval(refresh, 2500)
-        $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
+        $scope.$on('$destroy', function(){
+          clearInterval($scope.loop);
+        });
       }, function(data, status, headers, config){
         $scope.passwordError = "Wrong password, redirecting you to home"
         $timeout($scope.cancel, 700)
-      })
+      });
     }
 
     $scope.startCorpus = function(id){
-      startCorpus(id, $scope.password)
+      startCorpus(id, $scope.password);
     }
 
     $scope.stopCorpus = function(id){
-      stopCorpus(id)
+      stopCorpus(id);
     }
 
     $scope.openCorpus = function(id, name){
-      openCorpus(id, name)
+      openCorpus(id, name);
     }
 
     $scope.destroyCorpus = function(id){
-      destroyCorpus(id)
+      destroyCorpus(id);
     }
 
     $scope.destroyAll = function(id){
-      destroyAll(id)
+      destroyAll(id);
     }
 
     $scope.backupCorpus = function(id){
-      backupCorpus(id)
+      backupCorpus(id);
     }
 
     $scope.backupAll = function(){
-      backupAll()
-    }
-    $scope.resetCorpus = function(id){
-      resetCorpus(id)
+      backupAll();
     }
 
+    $scope.triggerLinks = function(id){
+      triggerLinks(id);
+    }
+    $scope.resetCorpus = function(id){
+      resetCorpus(id);
+    }
 
     function loadCorpusList(){
       if ($scope.loadingList) return;
@@ -92,7 +97,7 @@ angular.module('hyphe.adminController', [])
         $scope.loadingList = false
         $scope.corpusList = ''
         console.error('Error loading corpus list')
-      })
+      });
     }
 
     function openCorpus(id, name){
@@ -112,10 +117,9 @@ angular.module('hyphe.adminController', [])
         $scope.starting = false
         $scope.new_project_message = 'Error starting corpus'
 
-      })
+      });
       
     }
-
 
       //Search
     $scope.autoComplete = function(query){
@@ -133,7 +137,6 @@ angular.module('hyphe.adminController', [])
         res.sort(function(a,b){return a.localeCompare(b) })
         return res
     }
-
 
     function startCorpus(id, password, callback){
       api.startCorpus({
@@ -186,7 +189,6 @@ angular.module('hyphe.adminController', [])
     function destroyAll(){
       var password = prompt("This action is about to destroy every corpora. Are you sure ? Type your password to confirm.");
       if (password === $scope.password){
-        console.log('All corpora deleted.')
         for (var corpus in $scope.corpusList_byId){
           if (corpus.status !== 'ready'){
             startCorpus(corpus, $scope.password, destroyCorpus)
@@ -234,10 +236,10 @@ angular.module('hyphe.adminController', [])
       },
       function () {
         refresh()
-        if (stop){
-          stopCorpus(id)
-        }
-        callback()
+        if (stop)
+          stopCorpus(id);
+        if (callback)
+          callback();
       },
       function (data, status, headers, config) {
         alert('Error during backup of '+id)
@@ -266,5 +268,20 @@ angular.module('hyphe.adminController', [])
       }, function () {  console.log('Error in backup')
 
       })
+    }
+
+    function triggerLinks(id) {
+      var sure = confirm('This might take some time, are you sure you want to re-index all links of this corpus ?')
+      if(sure){
+        api.triggerLinks({id
+        }, function(){
+
+        refresh()
+
+        },function(data, status, headers, config){
+          alert('Error during re-indexation of links')
+        })
+      }
+
     }
   }])

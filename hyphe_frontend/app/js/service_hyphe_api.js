@@ -92,6 +92,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_TEST                                 = 'test_corpus'
     API.CORPUS_PING                                 = 'ping'
     API.CORPUS_STATISTICS                           = 'store.get_webentities_stats'
+    API.CORPUS_TRIGGER_LINKS                        = 'store.trigger_links_build'
 
     ns.getWebentities = buildApiCall(
         API.WEBENTITY_LIST_GET
@@ -586,6 +587,15 @@ angular.module('hyphe.service_hyphe_api', [])
             return [
               settings.id
             ]
+          }
+      )
+
+      ns.triggerLinks = buildApiCall(
+          API.CORPUS_TRIGGER_LINKS
+          ,function (settings) {
+              return [
+                  settings.id
+              ]
           }
       )
 
