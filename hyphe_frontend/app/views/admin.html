@@ -235,6 +235,7 @@
             ng-if="corpus.ready"
             flex
           >
+            <md-tooltip md-direction="down">Reset this corpus, all data will be lost</md-tooltip>
             <md-icon>delete</md-icon>
             RESET
           </md-button>
@@ -264,16 +265,18 @@
             ng-if="corpus.ready"
             flex
           >
+            <md-tooltip md-direction="down">Stop this corpus</md-tooltip>
             <md-icon>stop</md-icon>
             STOP
           </md-button>
-          
+
           <md-button
             class="md-primary"
             ng-click="openCorpus(corpus.corpus_id, corpus.name)"
             ng-if="corpus.ready"
             flex
           >
+            <md-tooltip md-direction="down">Open this corpus</md-tooltip>
             <md-icon>arrow_forward</md-icon>
             OPEN
           </md-button>

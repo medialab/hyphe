@@ -173,29 +173,41 @@ angular.module('hyphe.adminController', [])
         alert('Error')
       })
     }
-    
-    function destroyCorpus(id){
+
+    $scope.destroyWarning =function (id){
+      var sure = confirm('This will completely destroy this corpus, are you sure ?')
+      if (sure){
+        destroyCorpus(id)
+      }
+    }
+    function simpleDestroy(id){
       api.destroyCorpus({
         id: id
-      }, function(){
+      }, function () {
 
         refresh()
 
-      },function(data, status, headers, config){
+      }, function (data, status, headers, config) {
         alert('Error, corpus not destroyed')
       })
+    }
+
+    function destroyCorpus(id){
+      if ($scope.corpusList_byId[id].status!=='ready') {
+        startCorpus(id, $scope.password, function () {
+          simpleDestroy(id)
+        })
+      }
+      else{
+        simpleDestroy(id)
+      }
     }
 
     function destroyAll(){
       var password = prompt("This action is about to destroy every corpora. Are you sure ? Type your password to confirm.");
       if (password === $scope.password){
         for (var corpus in $scope.corpusList_byId){
-          if (corpus.status !== 'ready'){
-            startCorpus(corpus, $scope.password, destroyCorpus)
-          }
-          else {
-            destroyCorpus(corpus)
-          }
+          destroyCorpus(corpus)
         }
       }
       else
@@ -204,12 +216,15 @@ angular.module('hyphe.adminController', [])
 
 
     function resetCorpus(id){
-      api.resetCorpus({
-        id: id
-      }, loadCorpusList
-      ,function(data, status, headers, config){
-        alert('Error')
-      })
+      var sure = confirm('All data of this corpus will be lost, are you sure ?')
+      if(sure) {
+        api.resetCorpus({
+              id: id
+            }, loadCorpusList
+            , function (data, status, headers, config) {
+              alert('Error')
+            })
+      }
     }
 
     function getStatus(){
