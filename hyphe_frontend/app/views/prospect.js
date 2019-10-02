@@ -451,7 +451,6 @@ angular.module('hyphe.prospectController', [])
     $scope.applySettings()
 
     $scope.$on('$locationChangeStart', function(event, newUrl) {
-        console.log(newUrl)
       if ( !newUrl.endsWith("/prepareCrawls")){
         var toIn = $scope.setToIn
         if (toIn) {

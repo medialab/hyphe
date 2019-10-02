@@ -611,7 +611,7 @@ angular.module('hyphe.monitorcrawlsController', [])
             })
 
             var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
-            saveAs(blob, $scope.projectName + ".csv", true);
+            saveAs(blob, $scope.corpusName + "_crawls.csv", true);
 
             $scope.status = {}
           }

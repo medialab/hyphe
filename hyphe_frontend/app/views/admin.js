@@ -10,7 +10,7 @@ angular.module('hyphe.adminController', [])
     $scope.globalStatus
     $scope.loadingStatus = false
     $scope.loadingList = false
-    $scope.reverse = false
+    $scope.reverse = true
     $scope.currentSort='name'
 
 
@@ -165,10 +165,11 @@ angular.module('hyphe.adminController', [])
     function stopCorpus(id, callback){
       api.stopCorpus({
         id: id
-      }, refresh,
-          function(){
-        callback()
-          }
+      }, function(){
+        refresh()
+        if (callback)
+          callback()
+      }
       ,function(data, status, headers, config){
         alert('Error')
       })
@@ -180,6 +181,7 @@ angular.module('hyphe.adminController', [])
         destroyCorpus(id)
       }
     }
+
     function simpleDestroy(id){
       api.destroyCorpus({
         id: id
@@ -211,7 +213,7 @@ angular.module('hyphe.adminController', [])
         }
       }
       else
-        event.preventDefault();
+        alert('Wrong password')
     }
 
 
@@ -252,9 +254,9 @@ angular.module('hyphe.adminController', [])
       function () {
         refresh()
         if (stop)
-          stopCorpus(id);
-        if (callback)
-          callback();
+          stopCorpus(id, callback);
+        else
+          callback()
       },
       function (data, status, headers, config) {
         alert('Error during backup of '+id)
@@ -280,8 +282,6 @@ angular.module('hyphe.adminController', [])
       utils.waiter($scope.corpusList_byId,
           backupCorpus,
           function () { alert('All corpora successfully backed up !')
-      }, function () {  console.log('Error in backup')
-
       })
     }
 

@@ -97,7 +97,7 @@
       <md-button class="md-raised md-primary" ng-click="backupAll()">
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
         <md-icon>backup</md-icon>
-        &nbsp;Backup
+        &nbsp;BACKUP ALL
       </md-button>
       <md-button
               class="md-warn md-raised md-primary"
@@ -106,7 +106,7 @@
       >
         <md-tooltip md-direction="right">Destroy everything</md-tooltip>
         <md-icon>delete_forever</md-icon>
-        DESTROY
+        DESTROY ALL
       </md-button>
 
     </div>
@@ -114,7 +114,7 @@
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | nonSensitiveFilter:query"
+      ng-repeat="corpus in corpusList  | sortByField:currentSort:reverse | nonSensitiveFilter:query"
     >
       <md-card
         style="background-color: #FFF"
