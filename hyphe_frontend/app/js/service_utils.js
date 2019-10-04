@@ -748,18 +748,16 @@ angular.module('hyphe.service_utils', [])
     }
 
 
-    ns.waiter = function(obj, worker, callback, errback){
-        var array = Object.keys(obj)
+    ns.waiter = function(array, worker, callback){
         var i = -1;
         function doTheWork(){
             i++;
             if( i >= array.length )
                 return callback()
-            var item = array[i]
+            var item = array[i]['corpus_id']
             worker(item, function(){
                 return doTheWork();
             })
-            return errback
         }
         return doTheWork();
 

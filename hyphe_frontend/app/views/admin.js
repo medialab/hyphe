@@ -2,8 +2,8 @@
 
 angular.module('hyphe.adminController', [])
 
-  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus', 'autocompletion',
-  function($scope, api, utils, $location, $timeout, corpus, autocompletion) {
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout','$window', 'corpus', 'autocompletion',
+  function($scope, api, utils, $location, $timeout, $window, corpus, autocompletion) {
     $scope.currentPage = 'admin'
     $scope.corpusList
     $scope.corpusList_byId = {}
@@ -60,8 +60,8 @@ angular.module('hyphe.adminController', [])
       backupCorpus(id);
     }
 
-    $scope.backupAll = function(){
-      backupAll();
+    $scope.backupAll = function(currentSort, reverse){
+      backupAll(currentSort, reverse);
     }
 
     $scope.triggerLinks = function(id){
@@ -110,13 +110,12 @@ angular.module('hyphe.adminController', [])
 
         $scope.starting = false
         corpus.setName(name)
-        $location.path('/project/'+id+'/overview')
-      
+        $location.path('/project/'+id+'/overview');
       }, function(){
 
         $scope.starting = false
         $scope.new_project_message = 'Error starting corpus'
-
+        return false
       });
       
     }
@@ -185,11 +184,8 @@ angular.module('hyphe.adminController', [])
     function simpleDestroy(id){
       api.destroyCorpus({
         id: id
-      }, function () {
-
-        refresh()
-
-      }, function (data, status, headers, config) {
+      },refresh
+      , function (data, status, headers, config) {
         alert('Error, corpus not destroyed')
       })
     }
@@ -224,7 +220,7 @@ angular.module('hyphe.adminController', [])
               id: id
             }, loadCorpusList
             , function (data, status, headers, config) {
-              alert('Error')
+              alert('Error while resetting corpus')
             })
       }
     }
@@ -255,8 +251,8 @@ angular.module('hyphe.adminController', [])
         refresh()
         if (stop)
           stopCorpus(id, callback);
-        else
-          callback()
+        else if (callback)
+            callback()
       },
       function (data, status, headers, config) {
         alert('Error during backup of '+id)
@@ -277,9 +273,29 @@ angular.module('hyphe.adminController', [])
       }
     }
 
-    function backupAll(){
-      console.log($scope.corpusList_byId)
-      utils.waiter($scope.corpusList_byId,
+    var sortByField = function(array, field, asc){
+      var result = array
+      var i = -1
+      result.sort(function(a,b){
+        i++;
+        if (typeof(a[field])==='string'){
+          var alc = autocompletion.searchable(a[field]),
+              blc = autocompletion.searchable(b[field])
+          if (alc < blc) return -1
+          if (alc > blc) return 1
+          return 0
+        }
+        return a[field]-b[field]
+      })
+
+      if (asc) return result
+      return result.reverse()
+    }
+
+
+    function backupAll(currentSort, reverse){
+      var corpusListOrdered = sortByField($scope.corpusList, currentSort, reverse)
+      utils.waiter( corpusListOrdered ,
           backupCorpus,
           function () { alert('All corpora successfully backed up !')
       })
@@ -289,11 +305,8 @@ angular.module('hyphe.adminController', [])
       var sure = confirm('This might take some time, are you sure you want to re-index all links of this corpus ?')
       if(sure){
         api.triggerLinks({id
-        }, function(){
-
-        refresh()
-
-        },function(data, status, headers, config){
+        },refresh
+        ,function(data, status, headers, config){
           alert('Error during re-indexation of links')
         })
       }
