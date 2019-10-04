@@ -33,7 +33,10 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.status = {message: 'Loading'}
 
     $scope.CSVfields = {
-      _id: {
+      webentity_name: {
+      type: 'string'
+      }
+      ,_id: {
         type: 'string'
       }
       ,crawljob_id: {
@@ -41,9 +44,6 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
       ,webentity_id: {
         type: 'number'
-      }
-      ,webentity_name: {
-        type: 'string'
       }
       ,max_depth: {
         type: 'number'
@@ -582,10 +582,15 @@ angular.module('hyphe.monitorcrawlsController', [])
       api.getCrawlJobs(
           {id_list: []}
           , function (listCrawls) {
+            console.log(listCrawls)
             // Build Headline
             var headline = Object.keys($scope.CSVfields)
             // Build Table Content
-            var tableContent = listCrawls.map(utils.consolidateRichJob).map(function (crawl) {
+           // var tableContent = listCrawls.map(utils.consolidateRichJob).map(function (crawl) {
+            var tableContent = listCrawls.map(function (crawl) {
+              crawl = utils.consolidateRichJob(crawl)
+              loadRequiredWebentities(0,listCrawls.length)
+              crawl.webentity_name = $scope.webentityIndex[crawl.webentity_id].name
               return headline.map(function(field){
                 var value = crawl[field]
                 let type = $scope.CSVfields[field].type
