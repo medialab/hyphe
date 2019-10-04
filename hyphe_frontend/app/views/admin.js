@@ -110,7 +110,10 @@ angular.module('hyphe.adminController', [])
 
         $scope.starting = false
         corpus.setName(name)
-        $location.path('/project/'+id+'/overview');
+        //$location.path('/project/'+id+'/overview');
+        //console.log($location.host());
+        console.log(window.location);
+        $window.open(window.location.origin+window.location.pathname+'#/project/'+id+'/overview', '_blank');
       }, function(){
 
         $scope.starting = false
@@ -181,32 +184,39 @@ angular.module('hyphe.adminController', [])
       }
     }
 
-    function simpleDestroy(id){
+    function simpleDestroy(id, callback){
       api.destroyCorpus({
         id: id
-      },refresh
+      },
+          function(){
+        refresh();
+        if (callback) callback()
+          }
       , function (data, status, headers, config) {
-        alert('Error, corpus not destroyed')
+        alert('Error, could not destroy the corpus '+id)
       })
     }
 
-    function destroyCorpus(id){
+    function destroyCorpus(id, callback){
       if ($scope.corpusList_byId[id].status!=='ready') {
         startCorpus(id, $scope.password, function () {
-          simpleDestroy(id)
+          simpleDestroy(id, callback)
         })
       }
       else{
-        simpleDestroy(id)
+        simpleDestroy(id, callback)
       }
     }
 
-    function destroyAll(){
+    function destroyAll(currentSort, reverse){
       var password = prompt("This action is about to destroy every corpora. Are you sure ? Type your password to confirm.");
       if (password === $scope.password){
-        for (var corpus in $scope.corpusList_byId){
-          destroyCorpus(corpus)
-        }
+        var corpusListOrdered = sortByField($scope.corpusList, currentSort, !reverse)
+        console.log(corpusListOrdered)
+        utils.waiter( corpusListOrdered ,
+            destroyCorpus,
+            function () { alert('Everything has been erased...')
+            })
       }
       else
         alert('Wrong password')
@@ -251,8 +261,7 @@ angular.module('hyphe.adminController', [])
         refresh()
         if (stop)
           stopCorpus(id, callback);
-        else if (callback)
-            callback()
+        else if (callback) callback()
       },
       function (data, status, headers, config) {
         alert('Error during backup of '+id)
@@ -275,9 +284,7 @@ angular.module('hyphe.adminController', [])
 
     var sortByField = function(array, field, asc){
       var result = array
-      var i = -1
       result.sort(function(a,b){
-        i++;
         if (typeof(a[field])==='string'){
           var alc = autocompletion.searchable(a[field]),
               blc = autocompletion.searchable(b[field])
