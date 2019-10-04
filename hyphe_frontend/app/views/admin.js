@@ -160,7 +160,7 @@ angular.module('hyphe.adminController', [])
         }
 
       },function(data, status, headers, config){
-        alert('Error: possibly a wrong password')
+        alert('Error: could not open corpus, something might be wrong: ' + data)
       })
     }
 
@@ -177,8 +177,8 @@ angular.module('hyphe.adminController', [])
       })
     }
 
-    $scope.destroyWarning =function (id){
-      var sure = confirm('This will completely destroy this corpus, are you sure ?')
+    $scope.destroyWarning = function (id){
+      var sure = confirm('This will completely destroy this corpus, are you sure?')
       if (sure){
         destroyCorpus(id)
       }
@@ -209,7 +209,7 @@ angular.module('hyphe.adminController', [])
     }
 
     function destroyAll(currentSort, reverse){
-      var password = prompt("This action is about to destroy every corpora. Are you sure ? Type your password to confirm.");
+      var password = prompt("This action is about to destroy every corpora. Are you sure? Type your password to confirm.");
       if (password === $scope.password){
         var corpusListOrdered = sortByField($scope.corpusList, currentSort, !reverse)
         console.log(corpusListOrdered)
@@ -224,7 +224,7 @@ angular.module('hyphe.adminController', [])
 
 
     function resetCorpus(id){
-      var sure = confirm('All data of this corpus will be lost, are you sure ?')
+      var sure = confirm('All data of this corpus will be lost, are you sure?')
       if(sure) {
         api.resetCorpus({
               id: id
@@ -309,7 +309,7 @@ angular.module('hyphe.adminController', [])
     }
 
     function triggerLinks(id) {
-      var sure = confirm('This might take some time, are you sure you want to re-index all links of this corpus ?')
+      var sure = confirm('This might take some time, are you sure you want to re-index all links of this corpus?')
       if(sure){
         api.triggerLinks({id
         },refresh
