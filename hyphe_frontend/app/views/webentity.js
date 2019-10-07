@@ -50,6 +50,7 @@ angular.module('hyphe.webentityController', [])
 
     $scope.disableEditMode = function(){
       $scope.identityEditMode = false
+      $scope.status = {}
     }
 
     $scope.crawlDetails = function(job){
@@ -82,7 +83,7 @@ angular.module('hyphe.webentityController', [])
     $scope.saveWebEntity = function(){
       var homepageValid = checkWebEntityHomepage($scope.webentityEdit_homepage)
       if (!homepageValid) {
-        $scope.homepageErrorMessage = 'This page seems not to be a valid URL.'
+        $scope.homepageErrorMessage = 'This page does not seem like a valid URL.'
         return;
       } else {
         $scope.homepageErrorMessage = ''
