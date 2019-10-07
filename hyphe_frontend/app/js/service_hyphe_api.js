@@ -459,7 +459,9 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getCorpusList = buildApiCall(
         API.CORPUS_LIST_GET
         ,function(settings){
-            return []
+            return [
+              settings.light
+            ]
           }
       )
 

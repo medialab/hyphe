@@ -197,33 +197,53 @@
             </div>
             <div flex="40" layout="column" style="padding: 0px 8px 0px 8px">
               <div>
-                Created
-                <span>
+                Created:
+                <b>
                   <md-tooltip md-direction="right">{{corpus.created_at|date}}</md-tooltip>
                   {{corpus.created_at|prettyDate}}
-                </span>
+                </b>
               </div>
               <div>
-                Last activity
-                <span>
+                Last activity:
+                <b>
                   <md-tooltip md-direction="right">{{corpus.last_activity|date}}</md-tooltip>
                   {{corpus.last_activity|prettyDate}}
-                </span>
+                </b>
               </div>
               <div>
-                Last index
-                <span>
+                Last index:
+                <b>
                   <md-tooltip md-direction="right">{{corpus.last_index_loop|date}}</md-tooltip>
                   {{corpus.last_index_loop|prettyDate}}
-                </span>
+                </b>
+              </div>
+              <div>
+                Links duration:
+                <b>
+                  <md-tooltip md-direction="right">{{corpus.links_duration|number}} s</md-tooltip>
+                  {{corpus.links_duration|number}}s
+                </b>
+              </div>
+              <div ng-show="corpus.last_links_loop">
+                Last links:
+                <b>
+                  <md-tooltip md-direction="right">{{corpus.last_links_loop*1000|date}}</md-tooltip>
+                  {{corpus.last_links_loop*1000|prettyDate}}
+                </b>
               </div>
             </div>
             <div flex="30" layout="column">
               <div>
-                {{corpus.total_crawls|number}} crawls
+                Default rule:
+                <b>
+                  {{corpus.options.defaultCreationRule}}
+                </b>
               </div>
               <div>
-                {{corpus.total_pages_crawled|number}} crawled pages
+                {{corpus.total_crawls|number}} crawls <b ng-show="corpus.crawls_running + corpus.crawls_pending">({{corpus.crawls_running|number}} running/{{corpus.crawls_pending|number}} pending)</b>
+              </div>
+              <div>
+                {{corpus.total_pages_crawled|number}} crawled pages <b ng-show="corpus.total_pages_queued">({{corpus.total_pages_queued|number}} unindexed yet)</b>
               </div>
               <div>
                 {{corpus.total_pages|number}} pages

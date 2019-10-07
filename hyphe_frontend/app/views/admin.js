@@ -74,7 +74,7 @@ angular.module('hyphe.adminController', [])
     function loadCorpusList(){
       if ($scope.loadingList) return;
       $scope.loadingList = true
-      api.getCorpusList({}, function(list){
+      api.getCorpusList({light: false}, function(list){
         $scope.loadingList = false
         $scope.corpusList = []
         for(var id in list){
