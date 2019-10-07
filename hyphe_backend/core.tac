@@ -87,15 +87,18 @@ class Core(customJSONRPC):
         return format_result(res)
 
     @inlineCallbacks
-    def jsonrpc_list_corpus(self):
+    def jsonrpc_list_corpus(self, light=True):
         """Returns the list of all existing corpora with metas."""
-        res = {}
-        corpora = yield self.db.list_corpus(projection=[
+        fields = [
           "name", "password",
           "total_crawls", "total_pages", "total_pages_crawled", "total_webentities",
           "webentities_in", "webentities_out", "webentities_undecided", "webentities_discovered",
           "created_at", "last_activity"
-        ])
+        ]
+        if not light:
+            fields += ["crawls_pending", "crawls_running", "total_pages_queued", "last_index_loop", "last_links_loop", "links_duration", "options"]
+        res = {}
+        corpora = yield self.db.list_corpus(projection=fields)
         for corpus in corpora:
             corpus["password"] = (corpus["password"] != "")
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
