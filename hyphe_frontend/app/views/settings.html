@@ -23,11 +23,41 @@
             <spinner class="center" text="''"/>
           </div>
 
+          <!-- Loaded: empty -->
+
+
           <!-- Loaded: action -->
           <div ng-if="!loading">
             <md-button
+                    class="md-raised md-primary"
+                    ng-click="editSettings()"
+                    ng-show="!corpusNotEmpty && !corpusSettingsEditMode"
+            >
+              <md-icon>settings_applications</md-icon>
+              Edit settings
+            </md-button>
+
+            <md-button
+                    class="md-raised md-primary"
+                    ng-click="editSettings(true)"
+                    ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+            >
+              <md-icon>settings_applications</md-icon>
+            Save Settings
+            </md-button>
+
+            <md-button
+                    class="md-raised md-warn"
+                    ng-click="editSettings(false)"
+                    ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+            >
+              <md-icon>clear</md-icon>
+              Exit Without Saving
+            </md-button>
+            <md-button
               class="md-raised md-warn"
               ng-click="resetCorpus()"
+              ng-show="corpusNotEmpty && !corpusSettingsEditMode"
             >
               <md-icon>delete</md-icon>
               RESET
@@ -36,29 +66,35 @@
             <md-button
               class="md-raised md-warn"
               ng-click="destroy()"
+              ng-show="!corpusSettingsEditMode"
             >
               <md-icon>delete_forever</md-icon>
               DESTROY CORPUS
             </md-button>
           </div>
 
-          <!-- Loaded: info -->
-          <div style="padding: 4px" layout-wrap layout="row" ng-if="!loading">
+          <!-- EDIT MODE -->
+          <form style="padding: 4px" layout-wrap layout="row" ng-show="!loading && corpusSettingsEditMode">
             
             <!-- Crawling -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" >
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">CRAWLING</h3>
                 <dl class="key-value-pairs">
-
                   <dt>Maximum Depth</dt>
-                  <dd>{{options.max_depth}}</dd>
+                  <md-input-container>
+                    <input ng-model="ed_max_depth" aria-label="editMaxDepth">
+                  </md-input-container>
 
-                  <dt>Startpages mode</dt>
-                  <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>
-
+                  <div layout = "column">
+                    <dt style="margin-bottom: 18px">Startpages mode</dt>
+                    <div flex="50" ng-repeat="item in allStartpagesMode">
+                      <md-checkbox ng-checked="ed_defaultStartpagesMode.includes(item)" ng-click="toggle(item, ed_defaultStartpagesMode)" aria-label="StartPagesCheckbox">
+                        {{item}}
+                      </md-checkbox>
+                    </div>
+                  </div>
                 </dl>
-
               </md-content>
             </div>
 
@@ -69,10 +105,14 @@
                 <dl class="key-value-pairs">
 
                   <dt>Host</dt>
-                  <dd>{{options.proxy.host}}</dd>
+                  <md-input-container>
+                    <input ng-model="ed_proxy_host" aria-label="editHost">
+                  </md-input-container>
 
                   <dt>Port</dt>
-                  <dd>{{options.proxy.port}}</dd>
+                  <md-input-container>
+                    <input ng-model="ed_proxy_port" aria-label="editPort">
+                  </md-input-container>
 
                 </dl>
 
@@ -86,13 +126,19 @@
                 <dl class="key-value-pairs">
 
                   <dt>Timeout</dt>
-                  <dd>{{options.phantom.timeout}}</dd>
+                  <md-input-container>
+                    <input ng-model="ed_timeout" aria-label="editTimeout">
+                  </md-input-container>
 
                   <dt>Ajax Timeout</dt>
-                  <dd>{{options.phantom.ajax_timeout}}</dd>
-                  
+                  <md-input-container>
+                    <input ng-model="ed_ajax_timeout" aria-label="editAjaxTimeout">
+                  </md-input-container>
+
                   <dt>Idle Timeout</dt>
-                  <dd>{{options.phantom.idle_timeout}}</dd>
+                  <md-input-container>
+                    <input ng-model="ed_idle_timeout" aria-label="editIdleTimeout">
+                  </md-input-container>
 
                 </dl>
 
@@ -105,7 +151,7 @@
                 <h3 style="margin:0px">CAUTIOUS DOMAINS</h3>
 
                 <dl class="key-value-pairs" ng-if="options.phantom.whitelist_domains.length>0">
-                  <dd ng-repeat="domain in options.phantom.whitelist_domains" >{{domain}}</dd>
+                  <dd ng-repeat="domain in ed_whitelist" >{{domain}}</dd>
                 </dl>
 
                 <dl class="key-value-pairs" ng-if="!options.phantom.whitelist_domains.length>0">
@@ -119,10 +165,15 @@
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">REDIRECTION DOMAINS</h3>
-                <dl class="key-value-pairs" ng-if="options.follow_redirects.length>0">
-                  <dd ng-repeat="domain in options.follow_redirects" >{{domain}}</dd>
-                </dl>
-
+                    <md-chips
+                            ng-model = "ed_follow_redirects"
+                            type = "text"
+                            readonly = false
+                            md-removable = true
+                            aria-label = "editRedirectionDomains"
+                            placeholder="Add a domain"
+                    >
+                    </md-chips>
                 <dl class="key-value-pairs" ng-if="!options.follow_redirects.length>0">
                   <dd><em>None</em></dd>
                 </dl>
@@ -135,18 +186,125 @@
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">WEBENTITY CREATION RULES</h3>
                 <dl class="key-value-pairs" ng-if="creationrules.length>0">
-                  <dd ng-repeat="rule in creationrules" >{{rule.domain}} : {{rule.type}}{{rule.https ? ' (https)' : ''}}</dd>
-                </dl>
-
-                <dl class="key-value-pairs" ng-if="!creationrules.length>0">
-                  <dd><em>None</em></dd>
+                  <dt style="margin-bottom:18px">Change the default creation rule:</dt>
+                  <md-radio-group ng-model="ed_defaultCreationRule" class="md-primary">
+                    <md-radio-button value="domain" class="md-primary">domain</md-radio-button>
+                    <md-radio-button value="subdomain" class="md-primary">subdomain</md-radio-button>
+                    <md-radio-button value="page" class="md-primary">page</md-radio-button>
+                  </md-radio-group>
                 </dl>
 
               </md-content>
             </div>
+          </form>
 
+        <!-- Show -->
+        <div style="padding: 4px" layout-wrap layout="row" ng-show="!loading && !corpusSettingsEditMode">
+
+          <!-- Crawling -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" >
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">CRAWLING</h3>
+              <dl class="key-value-pairs">
+
+                <dt>Maximum Depth</dt>
+                <dd>{{options.max_depth}}</dd>
+
+                <dt>Startpages mode</dt>
+                <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>
+
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- Proxy -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-if="options.proxy.host">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">PROXY</h3>
+              <dl class="key-value-pairs">
+
+                <dt>Host</dt>
+                <dd>{{options.proxy.host}}</dd>
+
+                <dt>Port</dt>
+                <dd>{{options.proxy.port}}</dd>
+
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- Cautious Crawl -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">CAUTIOUS CRAWL</h3>
+              <dl class="key-value-pairs">
+
+                <dt>Timeout</dt>
+                <dd>{{options.phantom.timeout}}</dd>
+
+                <dt>Ajax Timeout</dt>
+                <dd>{{options.phantom.ajax_timeout}}</dd>
+
+                <dt>Idle Timeout</dt>
+                <dd>{{options.phantom.idle_timeout}}</dd>
+
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- CAUTIOUS DOMAINS -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">CAUTIOUS DOMAINS</h3>
+
+              <dl class="key-value-pairs" ng-if="options.phantom.whitelist_domains.length>0">
+                <dd ng-repeat="domain in options.phantom.whitelist_domains" >{{domain}}</dd>
+              </dl>
+
+              <dl class="key-value-pairs" ng-if="!options.phantom.whitelist_domains.length>0">
+                <dd><em>None</em></dd>
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- REDIRECTION DOMAINS -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">REDIRECTION DOMAINS</h3>
+              <dl class="key-value-pairs" ng-if="options.follow_redirects.length>0">
+                <dd ng-repeat="domain in options.follow_redirects" >{{domain}}</dd>
+              </dl>
+
+              <dl class="key-value-pairs" ng-if="!options.follow_redirects.length>0">
+                <dd><em>None</em></dd>
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- WEBENTITY CREATION RULES -->
+          <div flex="100" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">WEBENTITY CREATION RULES</h3>
+              <dl class="key-value-pairs" ng-if="creationrules.length>0">
+                <dt>Default Creation Rule</dt>
+                <dd>{{options.defaultCreationRule}}</dd>
+                <dt>Creation Rules</dt>
+                <dd ng-repeat="rule in creationrules" ng-if="$index>0">{{rule.domain}} : {{rule.type}}{{rule.https ? ' (https)' : ''}}</dd>
+              </dl>
+
+              <dl class="key-value-pairs" ng-if="!creationrules.length>0">
+                <dd><em>None</em></dd>
+              </dl>
+
+            </md-content>
           </div>
         </div>
+      </div>
 
         <!-- Content: destroying -->
         <div
