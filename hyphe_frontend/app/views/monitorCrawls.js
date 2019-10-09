@@ -33,12 +33,13 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.status = {message: 'Loading'}
 
     $scope.CSVfields = {
-      webentity_name: {
+     _id: {
       type: 'string'
       }
-      ,_id: {
-        type: 'string'
+      ,webentity_name: {
+      type: 'string'
       }
+
       ,crawljob_id: {
         type: 'string'
       }
@@ -200,7 +201,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     }
 
-    function loadRequiredWebentities(minIndex, maxIndex){
+    function loadRequiredWebentities(minIndex, maxIndex, callback){
 
       minIndex = minIndex || 0 // Inclusive
       maxIndex = maxIndex || $scope.crawlJobs.length // Exclusive
@@ -226,7 +227,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         webentityId_list = utils.extractCases(webentityId_list)
 
         // Batch query them!
-        loadWebentities(webentityId_list)
+        loadWebentities(webentityId_list, callback)
     }
 
     function updateSingleCrawlJobs(jobId){
@@ -322,6 +323,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       $scope.crawlJobs.forEach(function(job){
         $scope.crawljobsIndex[job._id] = deepmerge(job, $scope.crawljobsIndex[job._id] || {})
       })
+
     }
 
     function populateWebEntityNames(){
@@ -333,7 +335,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       updateCrawlJobsIndex()
     }
 
-    function loadWebentities(list) {
+    function loadWebentities(list, callback) {
       if(list.length > 0){
         $scope.status = {message: 'Loading'}
         api.getWebentities(
@@ -346,14 +348,17 @@ angular.module('hyphe.monitorcrawlsController', [])
             webentities.forEach(function(we){
               $scope.webentityIndex[we.id] = we
             })
-            populateWebEntityNames()
+            populateWebEntityNames();
+            if (callback){
+              callback()
+            }
           }, function(){
             $scope.status = {message: 'Error loading web entities', background:'danger'}
           }
         )
       } else {
         $scope.status = {}
-        populateWebEntityNames()
+        populateWebEntityNames(callback)
       }
     }
 
@@ -582,43 +587,41 @@ angular.module('hyphe.monitorcrawlsController', [])
       api.getCrawlJobs(
           {id_list: []}
           , function (listCrawls) {
-            console.log(listCrawls)
             // Build Headline
             var headline = Object.keys($scope.CSVfields)
-            // Build Table Content
-           // var tableContent = listCrawls.map(utils.consolidateRichJob).map(function (crawl) {
-            var tableContent = listCrawls.map(function (crawl) {
-              crawl = utils.consolidateRichJob(crawl)
-              loadRequiredWebentities(0,listCrawls.length)
-              crawl.webentity_name = $scope.webentityIndex[crawl.webentity_id].name
-              return headline.map(function(field){
-                var value = crawl[field]
-                let type = $scope.CSVfields[field].type
-                if (type == 'date' && value) {
-                  value = new Date(+value).toISOString()
-                } else if (type == 'array of string') {
-                  value = value.sort().join(' ')
-                }
-                return value;
+            loadRequiredWebentities(0,listCrawls.length, function () {
+              // Build Table Content
+              var tableContent = listCrawls.map(function (crawl) {
+                crawl = utils.consolidateRichJob(crawl)
+                crawl.webentity_name = $scope.webentityIndex[crawl.webentity_id].name
+                return headline.map(function(field){
+                  var value = crawl[field]
+                  let type = $scope.CSVfields[field].type
+                  if (type == 'date' && value) {
+                    value = new Date(+value).toISOString()
+                  } else if (type == 'array of string') {
+                    value = value.sort().join(' ')
+                  }
+                  return value;
+                })
               })
-            })
-
-            // Parsing
-            var fileContent = []
-              ,csvElement = function(txt){
+              // Parsing
+              var fileContent = []
+                  ,csvElement = function(txt){
                 txt = ''+txt //cast
                 return '"'+txt.replace(/"/gi, '""')+'"'
               }
+              if (tableContent){
+                fileContent.push(headline.join(','))
+                tableContent.forEach(function (row) {
+                  fileContent.push('\n' + row.map(csvElement).join(','))
+                })
+                var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
+                saveAs(blob, $scope.corpusName + "_crawls.csv", true);
 
-            fileContent.push(headline.join(','))
-            tableContent.forEach(function (row) {
-              fileContent.push('\n' + row.map(csvElement).join(','))
+                $scope.status = {}
+              }
             })
-
-            var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
-            saveAs(blob, $scope.corpusName + "_crawls.csv", true);
-
-            $scope.status = {}
           }
           , function (data, status, headers, config) {
             // API call fail
