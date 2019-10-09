@@ -5,7 +5,7 @@ angular.module('hyphe.adminController', [])
   .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout','$window', 'corpus', 'autocompletion',
   function($scope, api, utils, $location, $timeout, $window, corpus, autocompletion) {
     $scope.currentPage = 'admin'
-    $scope.corpusList
+    $scope.corpusList = []
     $scope.corpusList_byId = {}
     $scope.globalStatus
     $scope.loadingStatus = false
@@ -60,8 +60,8 @@ angular.module('hyphe.adminController', [])
       backupCorpus(id);
     }
 
-    $scope.backupAll = function(currentSort, reverse){
-      backupAll(currentSort, reverse);
+    $scope.backupAll = function(){
+      backupAll();
     }
 
     $scope.triggerLinks = function(id){
@@ -211,7 +211,7 @@ angular.module('hyphe.adminController', [])
     function destroyAll(currentSort, reverse){
       var password = prompt("This action is about to destroy every corpora. Are you sure? Type your password to confirm.");
       if (password === $scope.password){
-        var corpusListOrdered = sortByField($scope.corpusList, currentSort, !reverse)
+        var corpusListOrdered = utils.sortByField($scope.corpusList, currentSort, !reverse)
         console.log(corpusListOrdered)
         utils.waiter( corpusListOrdered ,
             destroyCorpus,
@@ -282,26 +282,11 @@ angular.module('hyphe.adminController', [])
       }
     }
 
-    var sortByField = function(array, field, asc){
-      var result = array
-      result.sort(function(a,b){
-        if (typeof(a[field])==='string'){
-          var alc = autocompletion.searchable(a[field]),
-              blc = autocompletion.searchable(b[field])
-          if (alc < blc) return -1
-          if (alc > blc) return 1
-          return 0
-        }
-        return a[field]-b[field]
-      })
 
-      if (asc) return result
-      return result.reverse()
-    }
-
-
-    function backupAll(currentSort, reverse){
-      var corpusListOrdered = sortByField($scope.corpusList, currentSort, reverse)
+    function backupAll(){
+      console.log($scope.currentSort, $scope.reverse)
+      var corpusListOrdered = utils.sortByField($scope.corpusList,$scope.currentSort, $scope.reverse)
+      corpusListOrdered.map(function(c){return c.corpus_id})
       utils.waiter( corpusListOrdered ,
           backupCorpus,
           function () { alert('All corpora successfully backed up !')

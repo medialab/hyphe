@@ -3,7 +3,7 @@
   layout="column"
   layout-align="center center"
   layout-fill
-  ng-if="!corpusList"
+  ng-if="!corpusList.length"
 >
   <!-- If password error -->
   <div ng-if="passwordError" md-colors="{'background':'default-warn'}" style="padding: 8px">
@@ -40,7 +40,7 @@
 <div
   layout="row"
   layout-fill
-  ng-if="corpusList"
+  ng-show="corpusList.length"
 >
 
   <!-- Left column -->
@@ -95,7 +95,7 @@
       </div>
         <md-divider></md-divider>
       <md-button class="md-raised md-primary"
-                 ng-click="backupAll(currentSort, reverse)"
+                 ng-click="backupAll()"
                  flex
                  ng-disabled=query>
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>

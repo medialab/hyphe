@@ -197,24 +197,8 @@ angular.module('hyphe.filters', [])
     }
   }])
 
-  .filter('sortByField', ['autocompletion', function(autocompletion){
-    return function(list, field, asc){
-      var result = list.slice(0)
-      
-      result.sort(function(a,b){
-        if (typeof(a[field])==='string'){
-          var alc = autocompletion.searchable(a[field]),
-              blc = autocompletion.searchable(b[field])
-          if (alc < blc) return -1
-          if (alc > blc) return 1
-          return 0
-        }
-        return a[field]-b[field]
-      })
-
-      if (asc) return result
-      return result.reverse()
-    }
+  .filter('sortByField', ['utils', function(utils){
+    return utils.sortByField;
   }])
 
   .filter('toSortedKeysArray', [function(){

@@ -7,7 +7,7 @@ angular.module('hyphe.service_utils', [])
   utils = angular.element(document.body).injector().get('utils')
   */
 
-  .factory('utils', ['api', '$routeParams', function(api, $routeParams){
+  .factory('utils', ['api', '$routeParams', 'autocompletion', function(api, $routeParams, autocompletion){
     var ns = {} // Namespace
 
     ns.readWebentityIdFromRoute = function(){
@@ -763,6 +763,22 @@ angular.module('hyphe.service_utils', [])
 
       }
 
+      ns.sortByField = function(array, field, asc){
+          var result = array.slice();
+          result.sort(function(a,b) {
+              if (typeof(a[field])==='string'){
+                  let alc = autocompletion.searchable(a[field]),
+                      blc = autocompletion.searchable(b[field]);
+                  if (alc < blc) return -1;
+                  if (alc > blc) return 1;
+                  return 0
+              }
+              return a[field]-b[field]
+          });
+          if (asc)
+              return result;
+          else
+              return result.reverse()
+      };
     return ns
-
   }])
