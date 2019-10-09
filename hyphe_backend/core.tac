@@ -118,7 +118,7 @@ class Core(customJSONRPC):
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
-            check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
+            check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True, globalconf=config)
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
