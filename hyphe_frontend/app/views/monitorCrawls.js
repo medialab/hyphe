@@ -348,16 +348,15 @@ angular.module('hyphe.monitorcrawlsController', [])
               $scope.webentityIndex[we.id] = we
             })
             populateWebEntityNames();
-            if (callback){
-              callback()
-            }
+            if (callback) callback();
           }, function(){
             $scope.status = {message: 'Error loading web entities', background:'danger'}
           }
         )
       } else {
         $scope.status = {}
-        populateWebEntityNames(callback)
+        populateWebEntityNames();
+        if (callback) callback();
       }
     }
 
@@ -610,16 +609,14 @@ angular.module('hyphe.monitorcrawlsController', [])
                 txt = ''+txt //cast
                 return '"'+txt.replace(/"/gi, '""')+'"'
               }
-              if (tableContent){
-                fileContent.push(headline.join(','))
-                tableContent.forEach(function (row) {
-                  fileContent.push('\n' + row.map(csvElement).join(','))
-                })
-                var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
-                saveAs(blob, $scope.corpusName + "_crawls.csv", true);
+              fileContent.push(headline.join(','))
+              tableContent.forEach(function (row) {
+                fileContent.push('\n' + row.map(csvElement).join(','))
+              })
+              var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
+              saveAs(blob, $scope.corpusName + "_crawls.csv", true);
 
-                $scope.status = {}
-              }
+              $scope.status = {}
             })
           }
           , function (data, status, headers, config) {
