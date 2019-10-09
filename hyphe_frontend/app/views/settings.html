@@ -11,7 +11,7 @@
       >
         
         <!-- Content (except destroy and reset) -->
-        <div layout-fill layout="column" ng-if="!destroying && !resetting">
+        <div layout-fill layout="column" ng-show="!destroying && !resetting">
           <div class="page-header">
             <h1>
               SETTINGS
@@ -83,7 +83,7 @@
                 <dl class="key-value-pairs">
                   <dt>Maximum Depth</dt>
                   <md-input-container>
-                    <input ng-model="ed_max_depth" aria-label="editMaxDepth">
+                    <input type="number" min="0" max="{{maxmax_depth}}" ng-model="ed_max_depth" aria-label="editMaxDepth">
                   </md-input-container>
 
                   <div layout = "column">
@@ -99,7 +99,7 @@
             </div>
 
             <!-- Proxy -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-if="options.proxy.host">
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-show="options.proxy.host">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">PROXY</h3>
                 <dl class="key-value-pairs">
@@ -111,7 +111,7 @@
 
                   <dt>Port</dt>
                   <md-input-container>
-                    <input ng-model="ed_proxy_port" aria-label="editPort">
+                    <input type="number" min="0" ng-model="ed_proxy_port" aria-label="editPort">
                   </md-input-container>
 
                 </dl>
@@ -127,17 +127,17 @@
 
                   <dt>Timeout</dt>
                   <md-input-container>
-                    <input ng-model="ed_timeout" aria-label="editTimeout">
+                    <input type="number" min="1" ng-model="ed_timeout" aria-label="editTimeout">
                   </md-input-container>
 
                   <dt>Ajax Timeout</dt>
                   <md-input-container>
-                    <input ng-model="ed_ajax_timeout" aria-label="editAjaxTimeout">
+                    <input type="number" min="1" ng-model="ed_ajax_timeout" aria-label="editAjaxTimeout">
                   </md-input-container>
 
                   <dt>Idle Timeout</dt>
                   <md-input-container>
-                    <input ng-model="ed_idle_timeout" aria-label="editIdleTimeout">
+                    <input type="number" min="1" ng-model="ed_idle_timeout" aria-label="editIdleTimeout">
                   </md-input-container>
 
                 </dl>
@@ -167,7 +167,7 @@
                 <h3 style="margin:0px">REDIRECTION DOMAINS</h3>
                     <md-chips
                             ng-model = "ed_follow_redirects"
-                            type = "text"
+                            type = "url"
                             readonly = false
                             md-removable = true
                             aria-label = "editRedirectionDomains"
@@ -185,7 +185,7 @@
             <div flex="100" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">WEBENTITY CREATION RULES</h3>
-                <dl class="key-value-pairs" ng-if="creationrules.length>0">
+                <dl class="key-value-pairs" ng-show="creationrules.length>0">
                   <dt style="margin-bottom:18px">Change the default creation rule:</dt>
                   <md-radio-group ng-model="ed_defaultCreationRule" class="md-primary">
                     <md-radio-button value="domain" class="md-primary">domain</md-radio-button>

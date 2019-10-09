@@ -13,7 +13,8 @@ angular.module('hyphe.settingsController', [])
     $scope.loading = true
     $scope.destroying = false
     $scope.resetting = false;
-    $scope.allStartpagesMode=['homepage', 'prefixes', 'pages-5', 'startpages'];
+    $scope.allStartpagesMode = ['homepage', 'prefixes', 'pages-5'];
+
 
     $scope.destroy = function(){
       if (confirm('Are you sure you want to PERMANENTLY destroy this corpus?')) {
@@ -43,6 +44,15 @@ angular.module('hyphe.settingsController', [])
       }
     };
 
+    function checkValid(){
+      if ( $scope.ed_defaultStartpagesMode.length < 1 ){
+        $scope.status = {message:'You need to select at least one Startpages Mode', background:'danger'}
+        return false;
+      }
+      else
+        return true;
+    }
+
     $scope.toggle = function(item, list){
       var index = list.indexOf(item);
       if (index > -1){
@@ -51,6 +61,47 @@ angular.module('hyphe.settingsController', [])
       else{
         list.push(item);
       }
+    };
+
+    $scope.editSettings = function(save){
+      if (save && checkValid()) {
+        $scope.saving = true;
+        $scope.status = {message:'Saving new settings'}
+        $scope.options.max_depth                 = $scope.ed_max_depth;
+        $scope.options.defaultStartpagesMode     = $scope.ed_defaultStartpagesMode;
+        $scope.options.proxy.host                = $scope.ed_proxy_host;
+        $scope.options.proxy.port                = $scope.ed_proxy_port;
+        $scope.options.phantom.timeout           = $scope.ed_timeout;
+        $scope.options.phantom.ajax_timeout      = $scope.ed_ajax_timeout ;
+        $scope.options.phantom.idle_timeout      = $scope.ed_idle_timeout;
+        $scope.options.phantom.whitelist_domains = $scope.ed_whitelist;
+        $scope.options.follow_redirects          = $scope.ed_follow_redirects;
+        $scope.options.defaultCreationRule       = $scope.ed_defaultCreationRule;
+
+        api.setCorpusOptions({
+              id: $scope.corpusId,
+              options: $scope.options
+        }, function (options) {
+          $scope.options = options;
+          $scope.status = {};
+          console.log("Settings successfully updated");
+        },function(){
+          $scope.saving = false;
+          $scope.status = {message:'Could not save new settings.', background:'danger'}
+          console.error("Settings could not be updated");
+        });
+      }
+      $scope.ed_max_depth             = parseInt($scope.options.max_depth);
+      $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
+      $scope.ed_proxy_host            = $scope.options.proxy.host+"";
+      $scope.ed_proxy_port            = $scope.options.proxy.port+0;
+      $scope.ed_timeout               = $scope.options.phantom.timeout+0;
+      $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout+0;
+      $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout+0;
+      $scope.ed_whitelist             = $scope.options.phantom.whitelist_domains.slice();
+      $scope.ed_follow_redirects      = $scope.options.follow_redirects.slice();
+      $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule+"";
+      $scope.corpusSettingsEditMode   = !$scope.corpusSettingsEditMode;
     };
 
 
@@ -62,6 +113,7 @@ angular.module('hyphe.settingsController', [])
           $scope.corpus_status=corpus_status;
           $scope.corpusNotEmpty=$scope.corpus_status.corpus.traph.webentities.total;
           $scope.options = corpus_status.corpus.options;
+          $scope.maxmax_depth = corpus_status.hyphe.max_depth;
           $scope.options.follow_redirects.sort();
           $scope.creationrules = corpus_status.corpus.creation_rules.map(function(rule){
             return {
@@ -73,32 +125,6 @@ angular.module('hyphe.settingsController', [])
           $scope.loading = false
           $scope.status = {};
 
-
-          $scope.editSettings = function(save){
-            if (save) {
-              $scope.options.max_depth = $scope.ed_max_depth;
-              $scope.options.defaultStartpagesMode = $scope.ed_defaultStartpagesMode;
-              $scope.options.proxy.host = $scope.ed_proxy_host;
-              $scope.options.proxy.port = $scope.ed_proxy_port;
-              $scope.options.phantom.timeout = $scope.ed_timeout;
-              $scope.options.phantom.ajax_timeout = $scope.ed_ajax_timeout ;
-              $scope.options.phantom.idle_timeout = $scope.ed_idle_timeout;
-              $scope.options.phantom.whitelist_domains = $scope.ed_whitelist;
-              $scope.options.follow_redirects = $scope.ed_follow_redirects;
-              $scope.options.defaultCreationRule = $scope.ed_defaultCreationRule;
-            }
-            $scope.ed_max_depth = $scope.options.max_depth+0;
-            $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
-            $scope.ed_proxy_host = $scope.options.proxy.host+"";
-            $scope.ed_proxy_port = $scope.options.proxy.port+0;
-            $scope.ed_timeout = $scope.options.phantom.timeout+0;
-            $scope.ed_ajax_timeout = $scope.options.phantom.ajax_timeout+0;
-            $scope.ed_idle_timeout = $scope.options.phantom.idle_timeout+0;
-            $scope.ed_whitelist = $scope.options.phantom.whitelist_domains.slice();
-            $scope.ed_follow_redirects = $scope.options.follow_redirects.slice();
-            $scope.ed_defaultCreationRule = $scope.options.defaultCreationRule+"";
-            $scope.corpusSettingsEditMode = !$scope.corpusSettingsEditMode;
-          };
 
         },function(data, status, headers, config){
           
