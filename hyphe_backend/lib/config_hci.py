@@ -87,6 +87,8 @@ def validateStartpagesMode(modes):
         m = m.lower()
         if not VALID_STARTPAGES_MODES.match(m):
             return False
+    if not modes:
+        return False
     return True
 
 GLOBAL_CONF_SCHEMA = {
