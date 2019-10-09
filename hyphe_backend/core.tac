@@ -591,7 +591,8 @@ class Core(customJSONRPC):
           'hyphe': {
             'corpus_running': self.traphs.total_running(),
             'crawls_running': sum([c['crawls_running'] for c in self.corpora.values() if "crawls_running" in c]),
-            'crawls_pending': sum([c['crawls_pending'] for c in self.corpora.values() if "crawls_pending" in c])
+            'crawls_pending': sum([c['crawls_pending'] for c in self.corpora.values() if "crawls_pending" in c]),
+            'max_depth': config["mongo-scrapy"]["max_depth"]
           },
           'corpus': {
           }
