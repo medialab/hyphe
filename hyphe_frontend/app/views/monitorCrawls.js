@@ -33,18 +33,17 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.status = {message: 'Loading'}
 
     $scope.CSVfields = {
-     _id: {
-      type: 'string'
-      }
-      ,webentity_name: {
-      type: 'string'
-      }
-
-      ,crawljob_id: {
+      webentity_name: {
         type: 'string'
       }
       ,webentity_id: {
         type: 'number'
+      }
+      ,crawljob_id: {
+        type: 'string'
+      }
+      ,_id: {
+        type: 'string'
       }
       ,max_depth: {
         type: 'number'
