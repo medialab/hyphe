@@ -124,7 +124,8 @@ class Core(customJSONRPC):
         if ("defaultCreationRule" in options or "defautStartpagesMode" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
-        if "defaultCreationRule" in options:
+        defaultCreationRule = yield self.db.get_default_WECR(corpus)
+        if "defaultCreationRule" in options and options["defaultCreationRule"] != defaultCreationRule["name"]:
             yield self.traphs.stop_corpus(corpus)
             yield self.db.set_default_WECR(corpus, getWECR(options["defaultCreationRule"]))
             wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
@@ -136,12 +137,12 @@ class Core(customJSONRPC):
           "idle_timeout" in options["phantom"])):
             if self.corpora[corpus]['crawls_running']:
                 returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
-            else:
-                redeploy = True
-        oldkeep = self.corpora[corpus]["options"]["keepalive"]
-        if "phantom" in options:
+        if 'proxy' in options and options['proxy'] == self.corpora[corpus]['options']['proxy']:
+            redeploy = True
+        if 'phantom' in options and options['phantom'] == self.corpora[corpus]['options']['phantom']:
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
+        oldkeep = self.corpora[corpus]["options"]["keepalive"]
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus)
         if redeploy:
