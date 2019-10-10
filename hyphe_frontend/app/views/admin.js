@@ -14,8 +14,6 @@ angular.module('hyphe.adminController', [])
     $scope.currentSort = 'name'
     $scope.working = false
 
-
-
     // Connection
     $scope.password = ""
     $scope.cancel = function(){
@@ -41,36 +39,21 @@ angular.module('hyphe.adminController', [])
       startCorpus(id, $scope.password);
     }
 
-    $scope.stopCorpus = function(id){
-      stopCorpus(id);
-    }
+    $scope.stopCorpus = stopCorpus;
 
-    $scope.openCorpus = function(id, name){
-      openCorpus(id, name);
-    }
+    $scope.openCorpus = openCorpus;
 
-    $scope.destroyCorpus = function(id){
-      destroyCorpus(id);
-    }
+    $scope.destroyCorpus = destroyCorpus;
 
-    $scope.destroyAll = function(id){
-      destroyAll(id);
-    }
+    $scope.destroyAll = destroyAll;
 
-    $scope.backupCorpus = function(id){
-      backupCorpus(id);
-    }
+    $scope.backupCorpus = backupCorpus;
 
-    $scope.backupAll = function(){
-      backupAll();
-    }
+    $scope.backupAll = backupAll;
 
-    $scope.triggerLinks = function(id){
-      triggerLinks(id);
-    }
-    $scope.resetCorpus = function(id){
-      resetCorpus(id);
-    }
+    $scope.triggerLinks = triggerLinks;
+
+    $scope.resetCorpus = resetCorpus;
 
     function loadCorpusList(){
       if ($scope.loadingList) return;
