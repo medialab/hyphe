@@ -265,12 +265,10 @@ angular.module('hyphe.adminController', [])
         refresh()
         if (stop)
           stopCorpus(id, callback);
-        else if (callback){
-          callback();
+        else {
           $scope.oneWorking = false;
+          if (callback) callback();
         }
-        else
-          $scope.oneWorking = false;
       },
       function (data, status, headers, config) {
         alert('Error during backup of '+id)

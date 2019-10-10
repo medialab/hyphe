@@ -103,12 +103,9 @@ angular.module('hyphe.settingsController', [])
           $scope.saving = false;
           console.error("Settings could not be updated");
         });
-      }
-      else if (save && !checkValid()){
-        $scope.saving = false;
-        return;
       } else {
         $scope.saving = false;
+        if (save && !checkValid()) return;
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
