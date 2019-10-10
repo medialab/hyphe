@@ -67,7 +67,7 @@ angular.module('hyphe.settingsController', [])
     $scope.editSettings = function(save){
       if (save && checkValid()) {
         $scope.saving = true;
-        var options = {
+        var modifiedOptions = {
             "max_depth": $scope.ed_max_depth,
             "defaultStartpagesMode" : $scope.ed_defaultStartpagesMode,
             "proxy" : {
@@ -88,7 +88,7 @@ angular.module('hyphe.settingsController', [])
 
         api.setCorpusOptions({
               id: $scope.corpusId,
-              options: options
+              options: modifiedOptions
         }, function (options) {
           $scope.options = options;
           $scope.status = {};
