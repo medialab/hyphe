@@ -15,7 +15,6 @@ angular.module('hyphe.settingsController', [])
     $scope.resetting = false;
     $scope.allStartpagesMode = ['homepage', 'prefixes', 'pages-5'];
     $scope.saving = false;
-    $scope.blurStuff = '';
 
 
     $scope.destroy = function(){
@@ -68,7 +67,6 @@ angular.module('hyphe.settingsController', [])
     $scope.editSettings = function(save){
       if (save && checkValid()) {
         $scope.saving = true;
-        $scope.blurStuff = 'blur-stuff';
         var options = {
             "max_depth": $scope.ed_max_depth,
             "defaultStartpagesMode" : $scope.ed_defaultStartpagesMode,
@@ -95,22 +93,18 @@ angular.module('hyphe.settingsController', [])
           $scope.options = options;
           $scope.status = {};
           $scope.saving = false;
-          $scope.blurStuff = '';
           console.log("Settings successfully updated");
         },function(){
           $scope.status = {message:'Could not save new settings.', background:'danger'}
           $scope.saving = false;
-          $scope.blurStuff = '';
           console.error("Settings could not be updated");
         });
       }
       else if (save && !checkValid()){
         $scope.saving = false;
-        $scope.blurStuff = '';
         return;
       } else {
         $scope.saving = false;
-        $scope.blurStuff = '';
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();

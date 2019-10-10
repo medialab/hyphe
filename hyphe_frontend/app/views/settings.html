@@ -48,7 +48,6 @@
             </md-button>
 
             <md-button
-                    class=""
                     ng-click="editSettings(false)"
                     ng-show="!corpusNotEmpty && corpusSettingsEditMode"
             >
@@ -202,7 +201,7 @@
           </form>
 
         <!-- Show -->
-        <div style="padding: 4px"  layout-wrap layout="row" ng-show="!loading && !corpusSettingsEditMode" ng-class="blurStuff">
+        <div style="padding: 4px"  layout-wrap layout="row" ng-show="!loading && !corpusSettingsEditMode" ng-class="{'blur-stuff': saving}">
 
           <!-- Crawling -->
           <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" >
