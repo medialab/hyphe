@@ -50,8 +50,12 @@ angular.module('hyphe.settingsController', [])
         $scope.status = {message:'You need to select at least one Startpages Mode', background:'danger'}
         return false;
       }
-      else
-        return true;
+      // if a user enters with the keyboard a non acceptable value, the input sets the variable to undefined
+      if ($scope.ed_max_depth === undefined) {
+        $scope.status = {message:'max depth must be comprised between 0 and ' + $scope.maxmax_depth, background:'danger'}
+        return false;
+      }
+      return true;
     }
 
     $scope.toggle = function(item, list){
