@@ -754,7 +754,7 @@ angular.module('hyphe.service_utils', [])
             i++;
             if( i >= array.length )
                 return callback()
-            var item = array[i]['corpus_id']
+            var item = array[i]
             worker(item, function(){
                 return doTheWork();
             })

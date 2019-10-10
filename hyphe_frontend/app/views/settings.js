@@ -7,13 +7,15 @@ angular.module('hyphe.settingsController', [])
     $scope.currentPage = 'settings'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId();
-    $scope.corpusNotEmpty = {};
+    $scope.corpusNotEmpty;
     $scope.corpusSettingsEditMode = false
     $scope.options = {}
     $scope.loading = true
     $scope.destroying = false
     $scope.resetting = false;
     $scope.allStartpagesMode = ['homepage', 'prefixes', 'pages-5'];
+    $scope.saving = false;
+    $scope.blurStuff = '';
 
 
     $scope.destroy = function(){
@@ -66,32 +68,51 @@ angular.module('hyphe.settingsController', [])
     $scope.editSettings = function(save){
       if (save && checkValid()) {
         $scope.saving = true;
-        $scope.status = {message:'Saving new settings'}
-        $scope.options.max_depth                 = $scope.ed_max_depth;
-        $scope.options.defaultStartpagesMode     = $scope.ed_defaultStartpagesMode;
-        $scope.options.proxy.host                = $scope.ed_proxy_host;
-        $scope.options.proxy.port                = $scope.ed_proxy_port;
-        $scope.options.phantom.timeout           = $scope.ed_timeout;
-        $scope.options.phantom.ajax_timeout      = $scope.ed_ajax_timeout ;
-        $scope.options.phantom.idle_timeout      = $scope.ed_idle_timeout;
-        $scope.options.phantom.whitelist_domains = $scope.ed_whitelist;
-        $scope.options.follow_redirects          = $scope.ed_follow_redirects;
-        $scope.options.defaultCreationRule       = $scope.ed_defaultCreationRule;
+        $scope.blurStuff = 'blur-stuff';
+        var options = {
+            "max_depth": $scope.ed_max_depth,
+            "defaultStartpagesMode" : $scope.ed_defaultStartpagesMode,
+            "proxy" : {
+              "port" : $scope.ed_proxy_port,
+              "host" : $scope.ed_proxy_host
+            },
+            "phantom" : {
+              "timeout" :  $scope.ed_timeout,
+              "ajax_timeout" : $scope.ed_ajax_timeout,
+              "idle_timeout" : $scope.ed_idle_timeout,
+              "whitelist_domains" : $scope.ed_whitelist
+            },
+            "follow_redirects" : $scope.ed_follow_redirects,
+            "defaultCreationRule" : $scope.ed_defaultCreationRule
+        };
+
+        $scope.status = {message:'Saving new settings'};
 
         api.setCorpusOptions({
               id: $scope.corpusId,
-              options: $scope.options
+              options: options
         }, function (options) {
           $scope.options = options;
           $scope.status = {};
+          $scope.saving = false;
+          $scope.blurStuff = '';
           console.log("Settings successfully updated");
         },function(){
-          $scope.saving = false;
           $scope.status = {message:'Could not save new settings.', background:'danger'}
+          $scope.saving = false;
+          $scope.blurStuff = '';
           console.error("Settings could not be updated");
         });
       }
-      $scope.ed_max_depth             = parseInt($scope.options.max_depth);
+      else if (save && !checkValid()){
+        $scope.saving = false;
+        $scope.blurStuff = '';
+        return;
+      } else {
+        $scope.saving = false;
+        $scope.blurStuff = '';
+      }
+      $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
       $scope.ed_proxy_host            = $scope.options.proxy.host+"";
       $scope.ed_proxy_port            = $scope.options.proxy.port+0;
@@ -111,7 +132,7 @@ angular.module('hyphe.settingsController', [])
       api.globalStatus({},
         function(corpus_status){
           $scope.corpus_status=corpus_status;
-          $scope.corpusNotEmpty=$scope.corpus_status.corpus.traph.webentities.total;
+          $scope.corpusNotEmpty = !!$scope.corpus_status.corpus.traph.webentities.total;
           $scope.options = corpus_status.corpus.options;
           $scope.maxmax_depth = corpus_status.hyphe.max_depth;
           $scope.options.follow_redirects.sort();
@@ -119,7 +140,7 @@ angular.module('hyphe.settingsController', [])
             return {
                domain: utils.LRU_to_URL(rule.prefix).replace(/^https?:\/\//, '') || "DEFAULT RULE"
               ,type: rule.name
-              ,https: rule.prefix.indexOf('s:https') == 0
+              ,https: rule.prefix.indexOf('s:https') === 0
             };
           })
           $scope.loading = false

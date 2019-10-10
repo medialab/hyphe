@@ -766,7 +766,13 @@ textarea.over-error {
   opacity: 0.2;
 }
 
+/* ==========================================================================
+   View: Settings
+   ========================================================================== */
 
+.blur-stuff{
+  opacity: 0.3;
+}
 
 /* ==========================================================================
    Module: Web Entity Slider
@@ -820,7 +826,7 @@ textarea.over-error {
   width: 48px;
   height: 48px;
   margin-left: -24px;
-  background-color: rgba(250, 250, 250, 0.);
+  background-color: rgba(250, 250, 250, 0.0);
 }
 
 .hyphe-prefix-slider .slider-button-container .slider-bar {
