@@ -50,7 +50,9 @@
       layout="column"
       layout-align="start center"
     >
-      <img src="img/HYPHE.svg" title="hyphe-logo" style="width: 180px">
+      <a href="#/login">
+        <img src="img/HYPHE.svg" title="hyphe-logo" style="width: 180px">
+      </a>
       <h1 style="font-weight: 100; font-family: Roboto;font-size: 3.5em;">hyphe</h1>
     </div>
     <div layout="column">
@@ -97,7 +99,7 @@
       <md-button class="md-raised md-primary"
                  ng-click="backupAll()"
                  flex
-                 ng-disabled=query>
+                 ng-disabled = "query || working" >
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
         <md-icon>backup</md-icon>
         &nbsp;BACKUP ALL
@@ -106,7 +108,7 @@
               class="md-warn md-raised md-primary"
               ng-click="destroyAll(currentSort, reverse)"
               flex
-              ng-disabled=query
+              ng-disabled= "query || working"
       >
         <md-tooltip md-direction="right">Destroy everything</md-tooltip>
         <md-icon>delete_forever</md-icon>
@@ -132,30 +134,11 @@
               <span class="md-subhead">
                 ID: {{corpus.corpus_id}}
               </span>
-              <md-card-actions layout="row" layout-align="left" >
-                <div style="width: 100px; text-align: left">
-                  <md-button  class="md-raised"
-                              ng-click="backupCorpus(corpus.corpus_id)"
-                              flex
-                  >
-                    <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
-                    <md-icon>backup</md-icon>
-                  </md-button>
-                </div>
-                <div style="width: 100px; text-align: left">
-                  <md-button
-                          class="md-warn"
-                          ng-click="destroyWarning(corpus.corpus_id)"
-                          flex
-                  >
-                    <md-tooltip md-direction="down">Destroy entirely this corpus</md-tooltip>
-                    <md-icon>delete_forever</md-icon>
-                    DESTROY
-                  </md-button>
-                </div>
-              </md-card-actions>
             </div>
           </md-card-title-text>
+          <div ng-if="oneWorking===corpus.corpus_id">
+            <spinner></spinner>
+          </div>
           <md-card-title-media>
             <div class="md-media-lg card-media" style="padding: 8px" layout="column">
               <div layout="row" class="webentity-color-in">
@@ -251,59 +234,83 @@
             </div>
           </div>
         </md-card-content>
-        <md-card-actions layout="row" layout-align="end center" >
 
-          <md-button
-            class="md-warn"
-            ng-click="resetCorpus(corpus.corpus_id)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-tooltip md-direction="down">Reset this corpus, all data will be lost</md-tooltip>
-            <md-icon>delete</md-icon>
-            RESET
-          </md-button>
+        <md-card-actions layout="column"  >
+          <div layout="row" style="height: 30px; margin-bottom: 10px" >
+            <md-button
+                    class="md-warn"
+                    ng-click="resetCorpus(corpus.corpus_id)"
+                    ng-show="corpus.ready"
+                    flex
+            >
+              <md-tooltip md-direction="down">Reset this corpus, all data will be lost</md-tooltip>
+              <md-icon>delete</md-icon>
+               RESET
+            </md-button>
 
-          <md-button  class=""
-                      ng-click="triggerLinks(corpus.corpus_id)"
-                      ng-if="corpus.ready"
-                      flex>
-            <md-tooltip md-direction="down">Reindex links on this corpus</md-tooltip>
-            <md-icon>refresh</md-icon>
-            REFRESH
-          </md-button>
+            <md-button  class=""
+                        ng-click="triggerLinks(corpus.corpus_id)"
+                        ng-if="corpus.ready"
+                        flex>
+              <md-tooltip md-direction="down">Reindex links on this corpus</md-tooltip>
+              <md-icon>refresh</md-icon>
+              REFRESH
+            </md-button>
 
-          <md-button
-                  layout-align="end center"
-                  class="md-raised md-primary"
-                  ng-click="startCorpus(corpus.corpus_id, corpus.password)"
-                  ng-if="!corpus.ready"
-          >
-            <md-icon>play_arrow</md-icon>
-            START
-          </md-button>
+            <md-button
+                    class="md-primary"
+                    ng-click="openCorpus(corpus.corpus_id, corpus.name)"
+                    ng-if="corpus.ready"
+                    flex
+            >
+              <md-tooltip md-direction="down">Open this corpus</md-tooltip>
+              <md-icon>arrow_forward</md-icon>
+              OPEN
+            </md-button>
+          </div>
 
-          <md-button
-            class=""
-            ng-click="stopCorpus(corpus.corpus_id)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-tooltip md-direction="down">Stop this corpus</md-tooltip>
-            <md-icon>stop</md-icon>
-            STOP
-          </md-button>
+          <div layout="row">
 
-          <md-button
-            class="md-primary"
-            ng-click="openCorpus(corpus.corpus_id, corpus.name)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-tooltip md-direction="down">Open this corpus</md-tooltip>
-            <md-icon>arrow_forward</md-icon>
-            OPEN
-          </md-button>
+            <md-button
+                    class="md-warn"
+                    ng-click="destroyWarning(corpus.corpus_id)"
+                    flex
+            >
+              <md-tooltip md-direction="down">Destroy entirely this corpus</md-tooltip>
+              <md-icon>delete_forever</md-icon>
+              DESTROY
+            </md-button>
+
+            <md-button  class=""
+                        ng-click="backupCorpus(corpus.corpus_id)"
+                        flex
+            >
+              <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
+              <md-icon>backup</md-icon>
+              BACKUP
+            </md-button>
+
+            <md-button
+                    class="md-raised md-primary"
+                    ng-click="startCorpus(corpus.corpus_id, corpus.password)"
+                    ng-if="!corpus.ready"
+                    flex
+            >
+              <md-icon>play_arrow</md-icon>
+              START
+            </md-button>
+
+            <md-button
+                    class="md-raised"
+                    ng-click="stopCorpus(corpus.corpus_id)"
+                    ng-if="corpus.ready"
+                    flex
+            >
+              <md-tooltip md-direction="down">Stop this corpus</md-tooltip>
+              <md-icon>stop</md-icon>
+              STOP
+            </md-button>
+          </div>
 
         </md-card-actions>
       </md-card>

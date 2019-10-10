@@ -11,7 +11,8 @@ angular.module('hyphe.adminController', [])
     $scope.loadingStatus = false
     $scope.loadingList = false
     $scope.reverse = true
-    $scope.currentSort='name'
+    $scope.currentSort = 'name'
+    $scope.working = false
 
 
 
@@ -168,7 +169,8 @@ angular.module('hyphe.adminController', [])
       api.stopCorpus({
         id: id
       }, function(){
-        refresh()
+        refresh();
+        $scope.oneWorking = false;
         if (callback)
           callback()
       }
@@ -208,15 +210,17 @@ angular.module('hyphe.adminController', [])
       }
     }
 
-    function destroyAll(currentSort, reverse){
+    function destroyAll(){
       var password = prompt("This action is about to destroy every corpora. Are you sure? Type your password to confirm.");
       if (password === $scope.password){
-        var corpusListOrdered = utils.sortByField($scope.corpusList, currentSort, !reverse)
-        console.log(corpusListOrdered)
-        utils.waiter( corpusListOrdered ,
+        $scope.working = true;
+        var corpusListOrdered = utils.sortByField($scope.corpusList, $scope.currentSort, $scope.reverse)
+        var idOrdered = corpusListOrdered.map(function(c){return c.corpus_id})
+        utils.waiter( idOrdered ,
             destroyCorpus,
-            function () { alert('Everything has been erased...')
-            })
+            function () {
+              $scope.working = false;
+              alert('Everything has been erased...')})
       }
       else
         alert('Wrong password')
@@ -261,7 +265,12 @@ angular.module('hyphe.adminController', [])
         refresh()
         if (stop)
           stopCorpus(id, callback);
-        else if (callback) callback()
+        else if (callback){
+          callback();
+          $scope.oneWorking = false;
+        }
+        else
+          $scope.oneWorking = false;
       },
       function (data, status, headers, config) {
         alert('Error during backup of '+id)
@@ -269,6 +278,7 @@ angular.module('hyphe.adminController', [])
     }
 
     function backupCorpus(id, callback) {
+      $scope.oneWorking = id;
       if ($scope.corpusList_byId[id].status==='stopped'){
         startCorpus(id, $scope.password, function() {
           simpleBackup(id, true, callback)
@@ -284,13 +294,16 @@ angular.module('hyphe.adminController', [])
 
 
     function backupAll(){
-      console.log($scope.currentSort, $scope.reverse)
+      $scope.working = true
       var corpusListOrdered = utils.sortByField($scope.corpusList,$scope.currentSort, $scope.reverse)
-      corpusListOrdered.map(function(c){return c.corpus_id})
-      utils.waiter( corpusListOrdered ,
+      var idOrdered = corpusListOrdered.map(function(c){return c.corpus_id})
+      utils.waiter( idOrdered ,
           backupCorpus,
-          function () { alert('All corpora successfully backed up !')
-      })
+          function () {
+            $scope.oneWorking = false;
+            $scope.working = false;
+            alert('All corpora successfully backed up !')
+          })
     }
 
     function triggerLinks(id) {
