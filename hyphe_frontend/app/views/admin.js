@@ -13,6 +13,7 @@ angular.module('hyphe.adminController', [])
     $scope.reverse = true
     $scope.currentSort = 'name'
     $scope.working = false
+    $scope.busy = {}
 
     // Connection
     $scope.password = ""
@@ -121,10 +122,11 @@ angular.module('hyphe.adminController', [])
               }
             })
         res.sort(function(a,b){return a.localeCompare(b) })
-        return res
+        return res;
     }
 
     function startCorpus(id, password, callback){
+      $scope.busy[id] = true;
       api.startCorpus({
         id: id
         ,password: password
@@ -135,25 +137,30 @@ angular.module('hyphe.adminController', [])
             id: id
             ,timeout: 15
           },function(){
-            callback(id)
+            callback(id);
+            $scope.busy[id] = false;
           }, function(){
 
             alert('Error starting corpus '+id)
 
           })
         }
+        else
+          $scope.busy[id] = false;
 
       },function(data, status, headers, config){
+        $scope.busy[id] = false;
         alert('Error: could not open corpus, something might be wrong: ' + data)
       })
     }
 
     function stopCorpus(id, callback){
+      $scope.busy[id] = true;
       api.stopCorpus({
         id: id
       }, function(){
         refresh();
-        $scope.oneWorking = false;
+        $scope.busy[id] = false;
         if (callback)
           callback()
       }
@@ -170,16 +177,20 @@ angular.module('hyphe.adminController', [])
     }
 
     function simpleDestroy(id, callback){
+      $scope.busy[id] = true;
       api.destroyCorpus({
         id: id
       },
           function(){
         refresh();
-        if (callback) callback()
+        if (callback) callback();
+        $scope.busy[id] = false;
           }
       , function (data, status, headers, config) {
-        alert('Error, could not destroy the corpus '+id)
-      })
+        alert('Error, could not destroy the corpus '+id);
+        $scope.busy[id] = false;
+
+          })
     }
 
     function destroyCorpus(id, callback){
@@ -211,12 +222,15 @@ angular.module('hyphe.adminController', [])
 
 
     function resetCorpus(id){
+      $scope.busy[id] = true;
       var sure = confirm('All data of this corpus will be lost, are you sure?')
       if(sure) {
         api.resetCorpus({
               id: id
-            }, loadCorpusList
-            , function (data, status, headers, config) {
+            }, function(){
+              loadCorpusList();
+              $scope.busy[id] = false;
+            }, function (data, status, headers, config) {
               alert('Error while resetting corpus')
             })
       }
@@ -241,6 +255,7 @@ angular.module('hyphe.adminController', [])
 
 
     function simpleBackup(id, stop, callback){
+      $scope.busy[id] = true;
       api.backupCorpus({
         id: id
       },
@@ -249,7 +264,7 @@ angular.module('hyphe.adminController', [])
         if (stop)
           stopCorpus(id, callback);
         else {
-          $scope.oneWorking = false;
+          $scope.busy[id] = false;
           if (callback) callback();
         }
       },
@@ -259,7 +274,7 @@ angular.module('hyphe.adminController', [])
     }
 
     function backupCorpus(id, callback) {
-      $scope.oneWorking = id;
+      $scope.busy[id] = true;
       if ($scope.corpusList_byId[id].status==='stopped'){
         startCorpus(id, $scope.password, function() {
           simpleBackup(id, true, callback)
@@ -269,6 +284,7 @@ angular.module('hyphe.adminController', [])
         simpleBackup(id, false, callback)
       }
       else{
+        $scope.busy[id] = false;
         alert('this corpus does not feel so good...')
       }
     }
@@ -281,7 +297,6 @@ angular.module('hyphe.adminController', [])
       utils.waiter( idOrdered ,
           backupCorpus,
           function () {
-            $scope.oneWorking = false;
             $scope.working = false;
             alert('All corpora successfully backed up !')
           })
@@ -290,9 +305,14 @@ angular.module('hyphe.adminController', [])
     function triggerLinks(id) {
       var sure = confirm('This might take some time, are you sure you want to re-index all links of this corpus?')
       if(sure){
+        $scope.busy[id] = true;
         api.triggerLinks({id
-        },refresh
-        ,function(data, status, headers, config){
+        },function(){
+          refresh;
+          $scope.busy[id] = false;
+          }
+      ,function(data, status, headers, config){
+          $scope.busy[id] = false;
           alert('Error during re-indexation of links')
         })
       }

@@ -136,7 +136,7 @@
               </span>
             </div>
           </md-card-title-text>
-          <div ng-if="oneWorking===corpus.corpus_id">
+          <div ng-if="busy[corpus.corpus_id]">
             <spinner></spinner>
           </div>
           <md-card-title-media>
@@ -242,6 +242,7 @@
                     ng-click="resetCorpus(corpus.corpus_id)"
                     ng-show="corpus.ready"
                     flex
+                    ng-disabled="busy[corpus.corpus_id]"
             >
               <md-tooltip md-direction="down">Reset this corpus, all data will be lost</md-tooltip>
               <md-icon>delete</md-icon>
@@ -251,7 +252,9 @@
             <md-button  class=""
                         ng-click="triggerLinks(corpus.corpus_id)"
                         ng-if="corpus.ready"
-                        flex>
+                        flex
+                        ng-disabled="busy[corpus.corpus_id]"
+            >
               <md-tooltip md-direction="down">Reindex links on this corpus</md-tooltip>
               <md-icon>refresh</md-icon>
               REFRESH
@@ -262,6 +265,7 @@
                     ng-click="openCorpus(corpus.corpus_id, corpus.name)"
                     ng-if="corpus.ready"
                     flex
+                    ng-disabled="busy[corpus.corpus_id]"
             >
               <md-tooltip md-direction="down">Open this corpus</md-tooltip>
               <md-icon>arrow_forward</md-icon>
@@ -275,6 +279,7 @@
                     class="md-warn"
                     ng-click="destroyWarning(corpus.corpus_id)"
                     flex
+                    ng-disabled="busy[corpus.corpus_id]"
             >
               <md-tooltip md-direction="down">Destroy entirely this corpus</md-tooltip>
               <md-icon>delete_forever</md-icon>
@@ -284,6 +289,7 @@
             <md-button  class=""
                         ng-click="backupCorpus(corpus.corpus_id)"
                         flex
+                        ng-disabled="busy[corpus.corpus_id]"
             >
               <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
               <md-icon>backup</md-icon>
@@ -295,6 +301,7 @@
                     ng-click="startCorpus(corpus.corpus_id, corpus.password)"
                     ng-if="!corpus.ready"
                     flex
+                    ng-disabled="busy[corpus.corpus_id]"
             >
               <md-icon>play_arrow</md-icon>
               START
@@ -305,6 +312,7 @@
                     ng-click="stopCorpus(corpus.corpus_id)"
                     ng-if="corpus.ready"
                     flex
+                    ng-disabled="busy[corpus.corpus_id]"
             >
               <md-tooltip md-direction="down">Stop this corpus</md-tooltip>
               <md-icon>stop</md-icon>
