@@ -249,6 +249,24 @@
           CANCEL
         </md-button>
       </div>
+
+      <div layout ="row">
+        <md-icon style="margin-left:0px;margin-right:0px;margin-top:25px">search</md-icon>
+        <md-autocomplete
+                md-item-text="WE"
+                md-items="WE in autoComplete(query)"
+                md-min-length=0
+                md-search-text="query"
+                md-selected-item="selectedItem"
+                md-floating-label="Search a WebEntity"
+                md-selected-item-change = "findNid(selectedItem)"
+        >
+          <md-item-template>
+            <span md-highlight-text="query">{{WE}}</span>
+          </md-item-template>
+        </md-autocomplete>
+      </div>
+
     </div>
     <div
       style="padding: 8px"

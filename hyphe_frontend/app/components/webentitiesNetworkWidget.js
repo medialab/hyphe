@@ -6,6 +6,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
     $mdSidenav,
     api,
     utils,
+    autocompletion,
     $timeout,
     $window
   ){
@@ -88,9 +89,20 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeMode = 'indegree'
         $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
+        $scope.selectedItem=""
+
+
+        $scope.findNid = function(name){
+          g.forEachNode(function(node){
+            var n = g.getNodeAttributes(node)
+            if (n.name === name){
+              $scope.networkNodeClick(node);
+            }
+          });
+        }
 
         $scope.networkNodeClick = function(nid) {
-          console.log('ID  '+nid)
+
           // Default color for edges
           g.edges().forEach(function(eid){
             var e = g.getEdgeAttributes(eid)
@@ -98,10 +110,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           })
 
           g.forEachEdge(nid, function(edge, attributes, source, target){
-            console.log(edge, source, target)
             if (source === nid){
               if (g.edge(target, source)){
-                console.log('ici')
                 g.setEdgeAttribute(edge, 'color', '#0F0')
               }
               else
@@ -109,7 +119,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             }
             else if(target === nid){
               if (g.edge(target, source)) {
-                console.log('la')
                 g.setEdgeAttribute(edge, 'color', '#0F0')
               }
               else
@@ -117,8 +126,31 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             }
           });
 
-            //g.hasNode(x &&) &&
         };
+
+
+        //Search
+        $scope.autoComplete = function(query){
+          var webentities=[];
+          for (var status in $scope.statuses){
+
+            if ($scope.statuses[status]) {
+              webentities = webentities.concat( $scope.data[status].webentities.map(function (we) {
+                return we.name;
+              }));
+            }
+          }
+          var searchQuery = autocompletion.searchable(query);
+            var res = [];
+            webentities.forEach(function(k){
+                var candidateName = autocompletion.searchable(k)
+                if (candidateName && (!searchQuery || ~candidateName.indexOf(searchQuery))) {
+                    res.push(k);
+                }
+            });
+            res.sort(function(a,b){return a.localeCompare(b);});
+            return res;
+        }
 
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
@@ -126,7 +158,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         $scope.applySettings = function(){
 
-          loadStatus() // Get the number of IN / OUT / UND / DISC
+          loadStatus(); // Get the number of IN / OUT / UND / DISC
 
           for(var status in $scope.statuses){
             $scope.settings[status] = $scope.statuses[status]
