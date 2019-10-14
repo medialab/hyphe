@@ -90,9 +90,35 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.tagCategories = {}
 
         $scope.networkNodeClick = function(nid) {
-          var url = '#/project/'+$scope.$parent.corpusId+'/webentity/'+nid
-          $window.open(url, '_blank');
-        }
+          console.log('ID  '+nid)
+          // Default color for edges
+          g.edges().forEach(function(eid){
+            var e = g.getEdgeAttributes(eid)
+            e.color = '#DDD';
+          })
+
+          g.forEachEdge(nid, function(edge, attributes, source, target){
+            console.log(edge, source, target)
+            if (source === nid){
+              if (g.edge(target, source)){
+                console.log('ici')
+                g.setEdgeAttribute(edge, 'color', '#0F0')
+              }
+              else
+                g.setEdgeAttribute(edge, 'color', '#00F')
+            }
+            else if(target === nid){
+              if (g.edge(target, source)) {
+                console.log('la')
+                g.setEdgeAttribute(edge, 'color', '#0F0')
+              }
+              else
+                g.setEdgeAttribute(edge, 'color', '#F00')
+            }
+          });
+
+            //g.hasNode(x &&) &&
+        };
 
         $scope.toggleSidenav = function() {
           $mdSidenav('right').toggle()
