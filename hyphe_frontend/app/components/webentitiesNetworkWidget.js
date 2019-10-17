@@ -7,6 +7,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
     api,
     utils,
     autocompletion,
+    corpus,
     $timeout,
     $window
   ){
@@ -20,7 +21,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
       ,link: function($scope, el, attrs) {
         var pageSize = 5000
         $scope.checkLoadAndUpdateCurrentToken = 0
-
+        $scope.corpusId = corpus.getId()
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = ''
         $scope.limitAll = ''
@@ -89,9 +90,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeMode = 'indegree'
         $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
-        $scope.selectedItem=""
+        $scope.selectedItem=null
+        $scope.seeInfo = true;
 
 
+        $scope.toggleInfos = function(){
+          $scope.seeInfo = !$scope.seeInfo;
+        }
         $scope.findNid = function(name){
           g.forEachNode(function(node){
             var n = g.getNodeAttributes(node)
@@ -101,33 +106,67 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           });
         }
 
-        $scope.networkNodeClick = function(nid) {
-
+        function setEdgesToGrey(){
           // Default color for edges
-          g.edges().forEach(function(eid){
-            var e = g.getEdgeAttributes(eid)
-            e.color = '#DDD';
-          })
+          $scope.network.edges().forEach(function (eid) {
+            $scope.network.setEdgeAttribute(eid, 'color', '#DDD');
+          });
+
+        }
+
+        $scope.$watch('selectedItem', function(a, b ){
+          if ($scope.data.links.loaded && $scope.network){
+            setEdgesToGrey();
+            if (!a){
+              resetInfos();
+            }
+          }
+        });
+
+        $scope.networkNodeClick = function(nid) {
+          $scope.seeInfo = true;
+          var n = g.getNodeAttributes(nid);
+          $scope.WEId = nid;
+          $scope.WEName = n.name;
+          $scope.selectedItem = n.name;
+          $scope.WEHomepage = n.homepage;
+
+          $scope.inDegree = 0;
+          $scope.outDegree = 0;
+          $scope.bothDegree = 0;
 
           g.forEachEdge(nid, function(edge, attributes, source, target){
             if (source === nid){
               if (g.edge(target, source)){
-                g.setEdgeAttribute(edge, 'color', '#0F0')
+                g.setEdgeAttribute(edge, 'color', '#6e246c');
+                $scope.bothDegree++;
               }
               else
-                g.setEdgeAttribute(edge, 'color', '#00F')
+                g.setEdgeAttribute(edge, 'color', '#f3419c');
+              $scope.outDegree++;
             }
             else if(target === nid){
               if (g.edge(target, source)) {
-                g.setEdgeAttribute(edge, 'color', '#0F0')
+                g.setEdgeAttribute(edge, 'color', '#6e246c');
+                $scope.bothDegree++;
               }
-              else
-                g.setEdgeAttribute(edge, 'color', '#F00')
+              else{
+                g.setEdgeAttribute(edge, 'color', '#0053c2');
+                $scope.inDegree++;
+              }
             }
           });
-
         };
 
+        $scope.networkStageClick = function(){
+          $scope.selectedItem = null;
+        }
+
+        function resetInfos(){
+          $scope.inDegree = null;
+          $scope.outDegree = null;
+          $scope.bothDegree = null;
+        }
 
         //Search
         $scope.autoComplete = function(query){
@@ -153,10 +192,12 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         }
 
         $scope.toggleSidenav = function() {
-          $mdSidenav('right').toggle()
+          $mdSidenav('right').toggle();
         }
 
         $scope.applySettings = function(){
+
+          $scope.selectedItem = null;
 
           loadStatus(); // Get the number of IN / OUT / UND / DISC
 
@@ -236,8 +277,9 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         /// Functions
 
         function updateNetworkAppearance() {
-          updateNodeColors()
-          updateNodeSizes()
+          updateNodeColors();
+          updateNodeSizes();
+          setEdgesToGrey();
         }
 
         function updateNodeColors() {
@@ -578,11 +620,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             // g.removeNodeAttribute(nid, "tags");
           })
 
-          // Default color for edges
-          g.edges().forEach(function(eid){
-            var e = g.getEdgeAttributes(eid)
-            e.color = '#DDD'
-          })
 
           // Make the graph global for console tinkering
           window.g = g

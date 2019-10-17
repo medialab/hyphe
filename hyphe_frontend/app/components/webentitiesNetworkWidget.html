@@ -170,9 +170,100 @@
     network="network"
     download-network="downloadNetwork"
     on-node-click="networkNodeClick"
-  ></sigma-network>
+    on-stage-click="networkStageClick"
+  >
+  </sigma-network>
 
-</div>
+    <md-button
+            class="md-fab md-primary"
+            aria-label="Open network settings"
+            style="position: absolute; left: 16px; bottom: 16px;"
+            ng-click="toggleInfos()"
+            ng-show="!seeInfo"
+    >
+      <md-tooltip md-direction="right">Find a explore a web entity</md-tooltip>
+      <md-icon>find_in_page</md-icon>
+    </md-button>
+
+  <div style="width: 20%; height: auto; position: absolute; left: 0; top: 60%; bottom:0;"  layout="column" ng-show="seeInfo" class="md-primary">
+    <md-toolbar class="md-primary">
+      <div class="md-toolbar-tools">
+        <h2 md-truncate flex>Find a Web Entity</h2>
+
+        <md-button
+                class="md-icon-button"
+                ng-click="toggleInfos()"
+        ><md-icon>close</md-icon></md-button>
+      </div>
+    </md-toolbar>
+
+    <md-content layout-fill>
+
+      <div layout ="row" layout-align="center" style="height: 50px;  margin: 5px">
+        <md-icon style="margin-left:0px;margin-right:0px;margin-top:25px">search</md-icon>
+        <md-autocomplete
+                md-item-text="WE"
+                md-items="WE in autoComplete(query)"
+                md-min-length=0
+                md-search-text="query"
+                md-selected-item="selectedItem"
+                md-floating-label="Search a WebEntity"
+                md-selected-item-change = "findNid(selectedItem)"
+                md-clear-button="true"
+        >
+          <md-item-template>
+            <span md-highlight-text="query">{{WE}}</span>
+          </md-item-template>
+        </md-autocomplete>
+      </div>
+
+      <div style="padding: 15px; margin-top:0px" layout="column">
+        <div layout = "row" >
+          <md-button class="md-raised"
+                     flex
+                     target="_blank"
+                     ng-href="#/project/{{corpusId}}/webentity/{{WEId}}"
+                     ng-click="$event.stopPropagation();"
+                     ng-disabled="!selectedItem">
+            <md-tooltip md-direction="up">Edit this WebEntity</md-tooltip>
+            EDIT &nbsp;
+            <md-icon cstyle="margin-bottom: 3px">navigate_next</md-icon>
+          </md-button>
+          <md-button
+                  class="md-raised"
+                  flex
+                  target="_blank"
+                  ng-href="{{WEHomepage}}"
+                  ng-click="$event.stopPropagation();"
+                  ng-disabled="!selectedItem">
+            <md-tooltip md-direction="up">Visit the homepage</md-tooltip>
+            VISIT &nbsp;
+            <md-icon style="margin-bottom: 3px">link</md-icon>
+          </md-button>
+        </div>
+
+        <p class="md-title" style="margin-bottom: 0px">Links</p>
+        <p layout="column" style="margin-top: 0px">
+          <div>
+            <md-icon style="transform: rotate(-30deg); color: #0053c2; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+            &nbsp; &nbsp; &nbsp;IN LINKS : &nbsp;
+            <span>{{inDegree}}</span>
+          </div>
+          <div>
+            <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+            &nbsp; &nbsp; &nbsp; OUT LINKS : &nbsp;
+            <span>{{outDegree}}</span>
+          </div>
+          <div>
+            <md-icon style="transform: rotate(-30deg); color: #6e246c
+; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+            &nbsp; &nbsp; &nbsp;SYMMETRIC LINKS : &nbsp;
+            <span>{{bothDegree}}</span>
+          </div>
+        </div>
+      </div>
+    </md-content>
+  </div>
 
 <!-- Side Nav -->
 <md-sidenav
@@ -298,14 +389,14 @@
         </div>
       </div>
 
-      <div layout="column" ng-if="network">
+      <div layout="column" ng-show="network">
 
         <md-input-container>
           <label>NODE COLOR</label>
           <md-select ng-model="$parent.nodeColorMode">
             <md-option value=""><em>No color</em></md-option>
             <md-option value="_webentitystatus">Web entity status</md-option>
-            <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
+            <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-show="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
           </md-select>
         </md-input-container>
 
@@ -316,7 +407,7 @@
           <div flex layout="column" layout-align="center start" style="padding-left: 8px">
             <div class="network-key-text">
               {{item.name}}
-              <span ng-if="item.count">({{item.count}})</span>
+              <span ng-show="item.count">({{item.count}})</span>
             </div>
           </div>
         </div>
