@@ -174,21 +174,22 @@
   >
   </sigma-network>
 
-    <md-button
-            class="md-fab md-primary"
-            aria-label="Open network settings"
-            style="position: absolute; left: 16px; bottom: 16px;"
-            ng-click="toggleInfos()"
-            ng-show="!seeInfo"
-    >
-      <md-tooltip md-direction="right">Find a explore a web entity</md-tooltip>
-      <md-icon>find_in_page</md-icon>
-    </md-button>
+  <md-button
+          class="md-fab md-primary"
+          aria-label="Open network settings"
+          style="position: absolute; left: 16px; bottom: 16px;"
+          ng-click="toggleInfos()"
+          ng-show="selectedItem && !seeInfo"
+  >
+    <md-tooltip md-direction="right">More about this web entity</md-tooltip>
+    <md-icon>remove_red_eye</md-icon>
+  </md-button>
 
-  <div style="width: 20%; height: auto; position: absolute; left: 0; top: 60%; bottom:0;"  layout="column" ng-show="seeInfo" class="md-primary">
+
+  <div style="width: 20%; height: auto; position: absolute; left: 0; top: 65%; bottom:0;"  layout="column" ng-show="selectedItem && seeInfo" class="md-primary">
     <md-toolbar class="md-primary">
       <div class="md-toolbar-tools">
-        <h2 md-truncate flex>Find a Web Entity</h2>
+        <h2 md-truncate flex>{{WEName}}</h2>
 
         <md-button
                 class="md-icon-button"
@@ -198,25 +199,6 @@
     </md-toolbar>
 
     <md-content layout-fill>
-
-      <div layout ="row" layout-align="center" style="height: 50px;  margin: 5px">
-        <md-icon style="margin-left:0px;margin-right:0px;margin-top:25px">search</md-icon>
-        <md-autocomplete
-                md-item-text="WE"
-                md-items="WE in autoComplete(query)"
-                md-min-length=0
-                md-search-text="query"
-                md-selected-item="selectedItem"
-                md-floating-label="Search a WebEntity"
-                md-selected-item-change = "findNode(selectedItem)"
-                md-clear-button="true"
-        >
-          <md-item-template>
-            <span md-highlight-text="query">{{WE}}</span>
-          </md-item-template>
-        </md-autocomplete>
-      </div>
-
       <div style="padding: 15px; margin-top:0px" layout="column">
         <div layout = "row" >
           <md-button class="md-raised"
@@ -251,7 +233,7 @@
           </div>
           <div>
             <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-            &nbsp; &nbsp; &nbsp;OUT LINKS : &nbsp;
+            &nbsp; &nbsp; &nbsp; OUT LINKS : &nbsp;
             <span>{{outDegree}}</span>
           </div>
           <div>
@@ -341,8 +323,8 @@
         </md-button>
       </div>
 
-      <div layout ="row">
-        <md-icon style="margin-left:0px;margin-right:0px;margin-top:25px">search</md-icon>
+      <div layout ="row" style="margin-top:20px">
+        <md-icon style="margin-left:0px;margin-right:10px;margin-top:25px">search</md-icon>
         <md-autocomplete
                 md-item-text="WE"
                 md-items="WE in autoComplete(query)"
@@ -351,6 +333,8 @@
                 md-selected-item="selectedItem"
                 md-floating-label="Search a WebEntity"
                 md-selected-item-change = "findNode(selectedItem)"
+                md-clear-button="true"
+                style="width:350px"
         >
           <md-item-template>
             <span md-highlight-text="query">{{WE}}</span>
