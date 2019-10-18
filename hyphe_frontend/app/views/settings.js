@@ -57,7 +57,7 @@ angular.module('hyphe.settingsController', [])
         return false;
       }
 
-      if ($scope.nbOfPages < 0 || $scope.nbOfPages > $scope.MAXPAGES){
+      if ($scope.nbOfPages < 1 || $scope.nbOfPages > $scope.MAXPAGES){
         $scope.status = {message:'Please enter a valid number of pages as Startpages (between 1 and '+$scope.MAXPAGES+')', background:'danger'}
         return false;
       }
@@ -68,57 +68,56 @@ angular.module('hyphe.settingsController', [])
 
     $scope.editSettings = function(save){
 
-
+      $scope.saving = false;
       if (save) {
-        if (!checkValid()) return;
-        else{
-          $scope.saving = true;
-
-          //construction of the array of startpages mode
-          $scope.ed_defaultStartpagesMode = [];
-          if ($scope.startpages_homepage) {
-            $scope.ed_defaultStartpagesMode.push('homepage');
-          }
-          if ($scope.startpages_prefixes) {
-            $scope.ed_defaultStartpagesMode.push('prefixes');
-          }
-          if ($scope.startpages_pages) {
-            $scope.ed_defaultStartpagesMode.push('pages-' + $scope.nbOfPages);
-          }
-
-          var modifiedOptions = {
-            "max_depth": $scope.ed_max_depth,
-            "defaultStartpagesMode": $scope.ed_defaultStartpagesMode,
-            "proxy": {
-              "port": $scope.ed_proxy_port,
-              "host": $scope.ed_proxy_host
-            },
-            "phantom": {
-              "timeout": $scope.ed_timeout,
-              "ajax_timeout": $scope.ed_ajax_timeout,
-              "idle_timeout": $scope.ed_idle_timeout,
-              "whitelist_domains": $scope.ed_whitelist
-            },
-            "follow_redirects": $scope.ed_follow_redirects,
-            "defaultCreationRule": $scope.ed_defaultCreationRule
-          };
-
-          $scope.status = {message: 'Saving new settings'};
-
-          api.setCorpusOptions({
-            id: $scope.corpusId,
-            options: modifiedOptions
-          }, function (options) {
-            $scope.options = options;
-            $scope.status = {};
-            $scope.saving = false;
-            console.log("Settings successfully updated");
-          }, function () {
-            $scope.status = {message: 'Could not save new settings.', background: 'danger'}
-            $scope.saving = false;
-            console.error("Settings could not be updated");
-          });
+        //construction of the array of startpages mode
+        $scope.ed_defaultStartpagesMode = [];
+        if ($scope.startpages_homepage) {
+          $scope.ed_defaultStartpagesMode.push('homepage');
         }
+        if ($scope.startpages_prefixes) {
+          $scope.ed_defaultStartpagesMode.push('prefixes');
+        }
+        if ($scope.startpages_pages) {
+          $scope.ed_defaultStartpagesMode.push('pages-' + $scope.nbOfPages);
+        }
+
+        if (!checkValid()) return;
+
+        $scope.saving = true;
+
+        var modifiedOptions = {
+          "max_depth": $scope.ed_max_depth,
+          "defaultStartpagesMode": $scope.ed_defaultStartpagesMode,
+          "proxy": {
+            "port": $scope.ed_proxy_port,
+            "host": $scope.ed_proxy_host
+          },
+          "phantom": {
+            "timeout": $scope.ed_timeout,
+            "ajax_timeout": $scope.ed_ajax_timeout,
+            "idle_timeout": $scope.ed_idle_timeout,
+            "whitelist_domains": $scope.ed_whitelist
+          },
+          "follow_redirects": $scope.ed_follow_redirects,
+          "defaultCreationRule": $scope.ed_defaultCreationRule
+        };
+
+        $scope.status = {message: 'Saving new settings'};
+
+        api.setCorpusOptions({
+          id: $scope.corpusId,
+          options: modifiedOptions
+        }, function (options) {
+          $scope.options = options;
+          $scope.status = {};
+          $scope.saving = false;
+          console.log("Settings successfully updated");
+        }, function () {
+          $scope.status = {message: 'Could not save new settings.', background: 'danger'}
+          $scope.saving = false;
+          console.error("Settings could not be updated");
+        });
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
