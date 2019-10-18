@@ -103,10 +103,10 @@
 
                     <div flex="50">
                       <md-checkbox ng-model="startpages_pages" aria-label="pages-n-Checkbox">
-                        The most cited know pages of the WebEntity :
+                        The most cited known pages of the WebEntity:
                       </md-checkbox>
                       <md-input-container  style="width:60px ; margin:0px; height:33px">
-                        <input ng-disabled="!startpages_pages" type="number" min="0" max="50"  ng-model="nbOfPages" aria-label="nbOfPagesAsStartpages">
+                        <input ng-disabled="!startpages_pages" type="number" min="1" max="{{MAXPAGES}}"  ng-model="nbOfPages" aria-label="nbOfPagesAsStartpages">
                       </md-input-container>
                     </div>
                   </div>

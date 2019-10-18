@@ -4,6 +4,7 @@ angular.module('hyphe.settingsController', [])
 
   .controller('settings', ['$scope', 'api', 'utils', '$location', 'corpus'
   ,function($scope, api, utils, $location, corpus) {
+    $scope.MAXPAGES = 50
     $scope.currentPage = 'settings'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId();
@@ -56,49 +57,34 @@ angular.module('hyphe.settingsController', [])
         return false;
       }
 
-      if ($scope.nbOfPages < 0 || $scope.nbOfPages > 50){
-        $scope.status = {message:'Please enter a valid number of pages as Startpages (between 0 and 9)', background:'danger'}
+      if ($scope.nbOfPages < 0 || $scope.nbOfPages > $scope.MAXPAGES){
+        $scope.status = {message:'Please enter a valid number of pages as Startpages (between 1 and '+$scope.MAXPAGES+')', background:'danger'}
         return false;
       }
 
       return true;
     }
 
-    $scope.toggle = function(item, list, replace){
-      var toggle = false;
-      for (var index = 0; index < list.length; index++) {
-        if ((list[index].startsWith("pages") && item.startsWith("pages")) || list[index] === item) {
-          console.log(item)
-          list.splice(index, 1);
-          toggle = true;
-        }
-      }
-      if (!toggle || replace) {
-        console.log('iciaussi?')
-        list.push(item);
-      }
-    };
-
 
     $scope.editSettings = function(save){
 
 
       if (save) {
-        $scope.saving = true;
+        if (!checkValid()) return;
+        else{
+          $scope.saving = true;
 
-        //construction of the array of startpages mode
-        $scope.ed_defaultStartpagesMode = [];
-        if ($scope.startpages_homepage) {
-          console.log($scope.startpages_homepage)
-          $scope.ed_defaultStartpagesMode.push('homepage');
-        }
-        if ($scope.startpages_prefixes) {
-          $scope.ed_defaultStartpagesMode.push('prefixes');
-        }
-        if ($scope.startpages_pages) {
-          $scope.ed_defaultStartpagesMode.push('pages-' + $scope.nbOfPages);
-        }
-        if (checkValid()) {
+          //construction of the array of startpages mode
+          $scope.ed_defaultStartpagesMode = [];
+          if ($scope.startpages_homepage) {
+            $scope.ed_defaultStartpagesMode.push('homepage');
+          }
+          if ($scope.startpages_prefixes) {
+            $scope.ed_defaultStartpagesMode.push('prefixes');
+          }
+          if ($scope.startpages_pages) {
+            $scope.ed_defaultStartpagesMode.push('pages-' + $scope.nbOfPages);
+          }
 
           var modifiedOptions = {
             "max_depth": $scope.ed_max_depth,
@@ -132,14 +118,10 @@ angular.module('hyphe.settingsController', [])
             $scope.saving = false;
             console.error("Settings could not be updated");
           });
-        } else {
-          $scope.saving = false;
-          if (save && !checkValid()) return;
         }
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
-      console.log($scope.ed_defaultStartpagesMode);
       $scope.ed_proxy_host            = $scope.options.proxy.host+"";
       $scope.ed_proxy_port            = $scope.options.proxy.port+0;
       $scope.ed_timeout               = $scope.options.phantom.timeout+0;
@@ -148,17 +130,16 @@ angular.module('hyphe.settingsController', [])
       $scope.ed_whitelist             = $scope.options.phantom.whitelist_domains.slice();
       $scope.ed_follow_redirects      = $scope.options.follow_redirects.slice();
       $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule+"";
-      $scope.startpages_homepage = $scope.options.defaultStartpagesMode.includes('homepage');
-      $scope.startpages_prefixes = $scope.options.defaultStartpagesMode.includes('prefixes');
-      $scope.startpages_pages = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
+      $scope.startpages_homepage      = $scope.options.defaultStartpagesMode.includes('homepage');
+      $scope.startpages_prefixes      = $scope.options.defaultStartpagesMode.includes('prefixes');
+      $scope.startpages_pages         = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
       $scope.corpusSettingsEditMode   = !$scope.corpusSettingsEditMode;
 
       //define the current number of most cited pages as start pages
       for (var i=0; i<$scope.options.defaultStartpagesMode.length; i++){
         if ($scope.ed_defaultStartpagesMode[i].startsWith('pages')){
           $scope.nbOfPages = parseInt($scope.ed_defaultStartpagesMode[i].slice(-1));
-          console.log($scope.nbOfPages)
-          return;
+          break;
         }
       }
     };
