@@ -141,9 +141,10 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
                 g.setEdgeAttribute(edge, 'color', '#6e246c');
                 $scope.bothDegree++;
               }
-              else
+              else {
                 g.setEdgeAttribute(edge, 'color', '#f3419c');
-              $scope.outDegree++;
+                $scope.outDegree++;
+              }
             }
             else if(target === nid){
               if (g.edge(target, source)) {
