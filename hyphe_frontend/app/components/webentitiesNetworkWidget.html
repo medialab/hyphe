@@ -208,7 +208,7 @@
                 md-search-text="query"
                 md-selected-item="selectedItem"
                 md-floating-label="Search a WebEntity"
-                md-selected-item-change = "findNid(selectedItem)"
+                md-selected-item-change = "findNode(selectedItem)"
                 md-clear-button="true"
         >
           <md-item-template>
@@ -251,7 +251,7 @@
           </div>
           <div>
             <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-            &nbsp; &nbsp; &nbsp; OUT LINKS : &nbsp;
+            &nbsp; &nbsp; &nbsp;OUT LINKS : &nbsp;
             <span>{{outDegree}}</span>
           </div>
           <div>
@@ -350,7 +350,7 @@
                 md-search-text="query"
                 md-selected-item="selectedItem"
                 md-floating-label="Search a WebEntity"
-                md-selected-item-change = "findNid(selectedItem)"
+                md-selected-item-change = "findNode(selectedItem)"
         >
           <md-item-template>
             <span md-highlight-text="query">{{WE}}</span>

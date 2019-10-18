@@ -1341,7 +1341,7 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result("Traph reinitialized"))
 
     @inlineCallbacks
-    def return_new_webentity(self, lru_prefix, new=False, source=None, corpus=DEFAULT_CORPUS):
+    def return_new_webentity(self, lru_prefix, new=False, source=None, source_url=None, corpus=DEFAULT_CORPUS):
         weid = yield self.traphs.call(corpus, "retrieve_webentity", lru_prefix)
         if is_error(weid):
             returnD(weid)
@@ -1355,7 +1355,7 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['recent_changes'] += 1
             self.update_webentities_counts(WE, WE["status"], new=True, corpus=corpus)
         job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, projection=['crawling_status', 'indexing_status'], sort=sortdesc('created_at'), limit=1)
-        WE = self.format_webentity(WE, job, corpus=corpus)
+        WE = self.format_webentity(WE, job, homepage=source_url, corpus=corpus)
         WE['created'] = True if new else False
         returnD(WE)
 
@@ -1375,7 +1375,7 @@ class Memory_Structure(customJSONRPC):
             new = True
             weid, prefixes = res["result"]["created_webentities"].items()[0]
             yield self.db.add_WE(corpus, weid, prefixes)
-        res = yield self.return_new_webentity(lru, new, 'page', corpus=corpus)
+        res = yield self.return_new_webentity(lru, new, 'page', source_url=url, corpus=corpus)
         returnD(format_result(res))
 
     @inlineCallbacks

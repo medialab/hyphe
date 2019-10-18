@@ -90,14 +90,14 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeMode = 'indegree'
         $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
-        $scope.selectedItem=null
+        $scope.selectedItem = null
         $scope.seeInfo = true;
 
 
         $scope.toggleInfos = function(){
           $scope.seeInfo = !$scope.seeInfo;
         }
-        $scope.findNid = function(name){
+        $scope.findNode = function(name){
           g.forEachNode(function(node){
             var n = g.getNodeAttributes(node)
             if (n.name === name){
@@ -108,16 +108,16 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         function setEdgesToGrey(){
           // Default color for edges
-          $scope.network.edges().forEach(function (eid) {
+          $scope.network.edges().forEach(function(eid) {
             $scope.network.setEdgeAttribute(eid, 'color', '#DDD');
           });
 
         }
 
-        $scope.$watch('selectedItem', function(a, b ){
+        $scope.$watch('selectedItem', function(newVal, oldVal){
           if ($scope.data.links.loaded && $scope.network){
             setEdgesToGrey();
-            if (!a){
+            if (!newVal){
               resetInfos();
             }
           }
@@ -141,9 +141,10 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
                 g.setEdgeAttribute(edge, 'color', '#6e246c');
                 $scope.bothDegree++;
               }
-              else
+              else {
                 g.setEdgeAttribute(edge, 'color', '#f3419c');
-              $scope.outDegree++;
+                $scope.outDegree++;
+              }
             }
             else if(target === nid){
               if (g.edge(target, source)) {
