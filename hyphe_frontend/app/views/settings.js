@@ -13,23 +13,23 @@ angular.module('hyphe.settingsController', [])
     $scope.loading = true
     $scope.destroying = false
     $scope.resetting = false;
-    $scope.allStartpagesMode = ['homepage', 'prefixes', 'pages-5'];
     $scope.saving = false;
 
 
+
     $scope.destroy = function(){
-      if (confirm('Are you sure you want to PERMANENTLY destroy this corpus?')) {
-        $scope.destroying = true
-        $scope.status = {message: 'Destroying corpus'};
-        api.destroyCorpus({
-          id:corpus.getId()
-        }, function(){
-          $location.path('/project/'+$scope.corpusId+'/');
-        }, function(){
-          $scope.status = {message: "Error destroying project", background:'danger'};
-        })
-      }
+    if (confirm('Are you sure you want to PERMANENTLY destroy this corpus?')) {
+      $scope.destroying = true
+      $scope.status = {message: 'Destroying corpus'};
+      api.destroyCorpus({
+        id:corpus.getId()
+      }, function(){
+        $location.path('/project/'+$scope.corpusId+'/');
+      }, function(){
+        $scope.status = {message: "Error destroying project", background:'danger'};
+      })
     }
+  }
 
     $scope.resetCorpus = function(){
       if (confirm('Are you sure you want to reset this corpus?')) {
@@ -55,60 +55,91 @@ angular.module('hyphe.settingsController', [])
         $scope.status = {message:'max depth must be comprised between 0 and ' + $scope.maxmax_depth, background:'danger'}
         return false;
       }
+
+      if ($scope.nbOfPages < 0 || $scope.nbOfPages > 50){
+        $scope.status = {message:'Please enter a valid number of pages as Startpages (between 0 and 9)', background:'danger'}
+        return false;
+      }
+
       return true;
     }
 
-    $scope.toggle = function(item, list){
-      var index = list.indexOf(item);
-      if (index > -1){
-        list.splice(index, 1);
+    $scope.toggle = function(item, list, replace){
+      var toggle = false;
+      for (var index = 0; index < list.length; index++) {
+        if ((list[index].startsWith("pages") && item.startsWith("pages")) || list[index] === item) {
+          console.log(item)
+          list.splice(index, 1);
+          toggle = true;
+        }
       }
-      else{
+      if (!toggle || replace) {
+        console.log('iciaussi?')
         list.push(item);
       }
     };
 
+
     $scope.editSettings = function(save){
-      if (save && checkValid()) {
+
+
+      if (save) {
         $scope.saving = true;
-        var modifiedOptions = {
+
+        //construction of the array of startpages mode
+        $scope.ed_defaultStartpagesMode = [];
+        if ($scope.startpages_homepage) {
+          console.log($scope.startpages_homepage)
+          $scope.ed_defaultStartpagesMode.push('homepage');
+        }
+        if ($scope.startpages_prefixes) {
+          $scope.ed_defaultStartpagesMode.push('prefixes');
+        }
+        if ($scope.startpages_pages) {
+          $scope.ed_defaultStartpagesMode.push('pages-' + $scope.nbOfPages);
+        }
+        if (checkValid()) {
+
+          var modifiedOptions = {
             "max_depth": $scope.ed_max_depth,
-            "defaultStartpagesMode" : $scope.ed_defaultStartpagesMode,
-            "proxy" : {
-              "port" : $scope.ed_proxy_port,
-              "host" : $scope.ed_proxy_host
+            "defaultStartpagesMode": $scope.ed_defaultStartpagesMode,
+            "proxy": {
+              "port": $scope.ed_proxy_port,
+              "host": $scope.ed_proxy_host
             },
-            "phantom" : {
-              "timeout" :  $scope.ed_timeout,
-              "ajax_timeout" : $scope.ed_ajax_timeout,
-              "idle_timeout" : $scope.ed_idle_timeout,
-              "whitelist_domains" : $scope.ed_whitelist
+            "phantom": {
+              "timeout": $scope.ed_timeout,
+              "ajax_timeout": $scope.ed_ajax_timeout,
+              "idle_timeout": $scope.ed_idle_timeout,
+              "whitelist_domains": $scope.ed_whitelist
             },
-            "follow_redirects" : $scope.ed_follow_redirects,
-            "defaultCreationRule" : $scope.ed_defaultCreationRule
-        };
+            "follow_redirects": $scope.ed_follow_redirects,
+            "defaultCreationRule": $scope.ed_defaultCreationRule
+          };
 
-        $scope.status = {message:'Saving new settings'};
+          $scope.status = {message: 'Saving new settings'};
 
-        api.setCorpusOptions({
-              id: $scope.corpusId,
-              options: modifiedOptions
-        }, function (options) {
-          $scope.options = options;
-          $scope.status = {};
+          api.setCorpusOptions({
+            id: $scope.corpusId,
+            options: modifiedOptions
+          }, function (options) {
+            $scope.options = options;
+            $scope.status = {};
+            $scope.saving = false;
+            console.log("Settings successfully updated");
+          }, function () {
+            $scope.status = {message: 'Could not save new settings.', background: 'danger'}
+            $scope.saving = false;
+            console.error("Settings could not be updated");
+          });
+        } else {
           $scope.saving = false;
-          console.log("Settings successfully updated");
-        },function(){
-          $scope.status = {message:'Could not save new settings.', background:'danger'}
-          $scope.saving = false;
-          console.error("Settings could not be updated");
-        });
-      } else {
-        $scope.saving = false;
-        if (save && !checkValid()) return;
+          if (save && !checkValid()) return;
+        }
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
+      console.log($scope.ed_defaultStartpagesMode);
       $scope.ed_proxy_host            = $scope.options.proxy.host+"";
       $scope.ed_proxy_port            = $scope.options.proxy.port+0;
       $scope.ed_timeout               = $scope.options.phantom.timeout+0;
@@ -117,7 +148,19 @@ angular.module('hyphe.settingsController', [])
       $scope.ed_whitelist             = $scope.options.phantom.whitelist_domains.slice();
       $scope.ed_follow_redirects      = $scope.options.follow_redirects.slice();
       $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule+"";
+      $scope.startpages_homepage = $scope.options.defaultStartpagesMode.includes('homepage');
+      $scope.startpages_prefixes = $scope.options.defaultStartpagesMode.includes('prefixes');
+      $scope.startpages_pages = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
       $scope.corpusSettingsEditMode   = !$scope.corpusSettingsEditMode;
+
+      //define the current number of most cited pages as start pages
+      for (var i=0; i<$scope.options.defaultStartpagesMode.length; i++){
+        if ($scope.ed_defaultStartpagesMode[i].startsWith('pages')){
+          $scope.nbOfPages = parseInt($scope.ed_defaultStartpagesMode[i].slice(-1));
+          console.log($scope.nbOfPages)
+          return;
+        }
+      }
     };
 
 

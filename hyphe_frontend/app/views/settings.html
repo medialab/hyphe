@@ -89,11 +89,25 @@
                   </md-input-container>
 
                   <div layout = "column">
-                    <dt style="margin-bottom: 18px">Startpages mode</dt>
-                    <div flex="50" ng-repeat="item in allStartpagesMode">
-                      <md-checkbox ng-checked="ed_defaultStartpagesMode.includes(item)" ng-click="toggle(item, ed_defaultStartpagesMode)" aria-label="StartPagesCheckbox">
-                        {{item}}
+                    <dt style="margin-bottom: 18px">What pages to use as startpages of the WebEntity ?</dt>
+                    <div flex="50">
+                      <md-checkbox ng-model="startpages_homepage" aria-label="StartPagesCheckbox">
+                        The Homepage of the WebEntity
                       </md-checkbox>
+                    </div>
+                    <div flex="50">
+                      <md-checkbox ng-model="startpages_prefixes" aria-label="prefixes-Checkbox">
+                        The prefixes of the WebEntity
+                      </md-checkbox>
+                    </div>
+
+                    <div flex="50">
+                      <md-checkbox ng-model="startpages_pages" aria-label="pages-n-Checkbox">
+                        The most cited know pages of the WebEntity :
+                      </md-checkbox>
+                      <md-input-container  style="width:60px ; margin:0px; height:33px">
+                        <input ng-disabled="!startpages_pages" type="number" min="0" max="50"  ng-model="nbOfPages" aria-label="nbOfPagesAsStartpages">
+                      </md-input-container>
                     </div>
                   </div>
                 </dl>
@@ -122,7 +136,7 @@
             </div>
 
             <!-- Cautious Crawl -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-show="false">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">CAUTIOUS CRAWL</h3>
                 <dl class="key-value-pairs">
@@ -148,7 +162,7 @@
             </div>
 
             <!-- CAUTIOUS DOMAINS -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-show="false">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">CAUTIOUS DOMAINS</h3>
 
@@ -238,7 +252,7 @@
           </div>
 
           <!-- Cautious Crawl -->
-          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-show="false">
             <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
               <h3 style="margin:0px">CAUTIOUS CRAWL</h3>
               <dl class="key-value-pairs">
@@ -258,7 +272,7 @@
           </div>
 
           <!-- CAUTIOUS DOMAINS -->
-          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-show = "false">
             <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
               <h3 style="margin:0px">CAUTIOUS DOMAINS</h3>
 
