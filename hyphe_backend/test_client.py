@@ -27,6 +27,11 @@ if len(sys.argv) == 1:
     print helpdoc
     exit()
 
+auto_convert_integers = True
+if '--no-convert-int' in sys.argv:
+    sys.argv.remove('--no-convert-int')
+    auto_convert_integers = False
+
 if sys.argv[1] == "inline":
     inline = True
     startargs = 3
@@ -70,10 +75,11 @@ for a in sys.argv[startargs:]:
         elif a == "False" or a == "True":
             args.append(eval(a))
         else:
-            try:
-                a = int(a)
-            except:
-                pass
+            if not auto_convert_integers:
+                try:
+                    a = int(a)
+                except:
+                    pass
             args.append(a)
         is_array = False
 

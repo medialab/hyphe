@@ -9,7 +9,7 @@ angular.module('hyphe.exportController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.dataVolume = 'compact'
-    $scope.compactFields = ['id', 'name', 'prefixes', 'indegree', 'status', 'last_modification_date', 'user_tags']
+    $scope.compactFields = ['id', 'name', 'prefixes', 'indegree', 'pages_total', 'pages_crawled', 'status', 'last_modification_date', 'user_tags']
     $scope.fields = {
       id: {
         name: 'ID'
@@ -50,12 +50,12 @@ angular.module('hyphe.exportController', [])
         ,description: 'A URL used as hyperlink when you click on the web entity, for convenience.'
         ,accessor: 'homepage'
       }
-      /*,start_pages: { //???
+      ,start_pages: {
         name: 'START PAGES'
         ,type: 'array of string'
         ,description: 'The list of start pages used the last time it was crawled.'
         ,accessor: 'startpages'
-      }*/
+      }
       ,crawled: {
         name: 'CRAWLED'
         ,type: 'string'
@@ -80,6 +80,30 @@ angular.module('hyphe.exportController', [])
         ,description: 'Number of other web entities citing it in the corpus'
         ,accessor: 'indegree'
       }
+      ,outdegree: {
+        name: 'OUTDEGREE'
+        ,type: 'number'
+        ,description: 'Number of other web entities cited by it in the corpus'
+        ,accessor: 'outdegree'
+      }
+      ,undirected_degree: {
+        name: 'NEIGHBOORS COUNT'
+        ,type: 'number'
+        ,description: 'Number of other web entities cited by it or citing it in the corpus'
+        ,accessor: 'undirected_degree'
+      }
+      ,pages_total: {
+        name: 'TOTAL KNOWN PAGES'
+        ,type: 'number'
+        ,description: 'Number of web pages of this web entity visited or linked by other ones'
+        ,accessor: 'pages_total'
+      }
+      ,pages_crawled: {
+        name: 'CRAWLED PAGES'
+        ,type: 'number'
+        ,description: 'Number of web pages of this web entity visited when crawling the entity'
+        ,accessor: 'pages_crawled'
+      }
       ,creation_date_timestamp: {
         name: 'CREATION TIMESTAMP'
         ,type: 'number'
@@ -92,7 +116,7 @@ angular.module('hyphe.exportController', [])
         ,description: 'When it was created, as a text date.'
         ,accessor: 'creation_date'
         ,preprocess: function(d){
-          return (new Date(+d)).toLocaleString()
+          return (new Date(+d)).toISOString()
         }
       }
       ,last_modification_date_timestamp: {
@@ -107,7 +131,7 @@ angular.module('hyphe.exportController', [])
         ,description: 'Last time its metadata were modified, as a text date.'
         ,accessor: 'last_modification_date'
         ,preprocess: function(d){
-          return (new Date(+d)).toLocaleString()
+          return (new Date(+d)).toISOString()
         }
       }
       ,user_tags: {
@@ -371,7 +395,7 @@ angular.module('hyphe.exportController', [])
         var fileContent = []
 
         // Title
-        fileContent.push($scope.projectName + '\n' + $scope.projectName.replace(/./gi,'=') + '\nExported ' + (new Date()).toLocaleString() + '\n\n' )
+        fileContent.push($scope.projectName + '\n' + $scope.projectName.replace(/./gi,'=') + '\nExported ' + (new Date()).toISOString() + '\n\n' )
 
         webentities.forEach(function(we){
           var content = '\n\n\n\n' + we.name + '\n' + we.name.replace(/./gi, '-')

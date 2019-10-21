@@ -137,9 +137,28 @@
 
                 <md-divider></md-divider>
 
+                <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
+                  <p class="md-title">
+                    {{tagCat}}
+                    <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
+                      <md-icon>visibility</md-icon>
+                    </md-button>
+                  </p>
+                  <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
+                    <em>Untagged</em>
+                  </md-checkbox>
+                  <div ng-repeat="(val, valData) in tagCategories[tagCat]">
+                    <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
+                      {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
+                    </md-checkbox>
+                  </div>
+                </div>
+
+                <md-divider></md-divider>
+
                 <div layout="column" style="padding: 8px 16px">
                   <p class="md-title">
-                    Free Tags
+                    Field notes
                     <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
                       <md-icon>visibility</md-icon>
                     </md-button>
@@ -154,24 +173,6 @@
                   </div>
                 </div>
 
-                <md-divider></md-divider>
-
-                <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'" style="padding: 8px 16px">
-                  <p class="md-title">
-                    {{tagCat}}
-                    <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
-                      <md-icon>visibility</md-icon>
-                    </md-button>
-                  </p>
-                  <md-checkbox class="md-primary" ng-model="tagCategoriesUntagged[tagCat]" aria-label="Untagged" ng-change="touchUntagged(tagCat)">
-                    <em>Untagged</em>
-                  </md-checkbox>
-                  <div ng-repeat="(val, valData) in tagValues">
-                    <md-checkbox class="md-primary" ng-model="valData.selected" aria-label="{{val}}" ng-change="touchTagValue(tagCat)">
-                      {{val}} <em md-colors="{'color':'default-primary'}">{{valData.count|number}}</em>
-                    </md-checkbox>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -190,7 +191,7 @@
                       layout="row"
                     >
                       <div style="padding: 24px 16px 8px 10px">
-                        <md-checkbox ng-checked="allChecked" ng-click="toggleCheckAll()" md-indeterminate="allCheckedIndeterminate"></md-checkbox>
+                        <md-checkbox ng-checked="allChecked" ng-click="toggleCheckAll()" md-indeterminate="allCheckedIndeterminate" aria-label="select all entities"></md-checkbox>
                       </div>
 
                       <md-input-container flex style="margin-right: 16px">
@@ -205,7 +206,7 @@
                         <md-select ng-model="$parent.displayCategory">
                           <md-option value=""><em>None</em></md-option>
                           <md-option
-                            ng-repeat="(tagCat, tagValues) in tagCategories"
+                            ng-repeat="tagCat in tagCategories | toSortedKeysArray"
                             value="{{tagCat}}"
                           >{{tagCat}}</md-option>
                         </md-select>
@@ -326,23 +327,7 @@
 
               <div flex style="overflow-y: auto; padding: 8px" md-colors="{'background': 'default-background-200'}">
                 <div layout="column">
-                  <div layout="column">
-                    <div class="md-title">
-                      Free Tags
-                      <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
-                        <md-icon>visibility</md-icon>
-                      </md-button>
-                    </div>
-                    <summarize-tag-cat
-                      tag-cat="'FREETAGS'"
-                      webentities="checkedList"
-                      tag-categories="tagCategories"
-                      set-value="addTagToSelection"
-                      delete-value="deleteTagFromSelection"
-                    ></summarize-tag-cat>
-                  </div>
-
-                  <div ng-repeat="(tagCat, tagValues) in tagCategories" layout="column" ng-if="tagCat != 'FREETAGS'">
+                  <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" layout="column" ng-if="tagCat != 'FREETAGS'" class="category-{{tagCat | slugify}}">
                     <div class="md-title">
                       {{tagCat}}
                       <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory(tagCat)" ng-disabled="displayCategory == tagCat">
@@ -361,13 +346,35 @@
                   <div
                     layout="row"
                     md-colors="{'background': 'default-background-100'}"
-                    style="padding: 8px; margin-top: 16px"
+                    style="padding: 8px"
                   >
                     <md-input-container flex>
                       <label>New category</label>
                       <input ng-model="$parent.$parent.newCategory" ng-press-enter="saveNewCategory()">
                     </md-input-container>
                     <md-button class="md-primary" ng-click="saveNewCategory()">Add</md-button>
+                  </div>
+
+                  <br>
+
+                  <div class="fieldnotes"
+                    layout="column"
+                    md-colors="{'background': 'default-background-300'}"
+                    style="padding: 8px; margin-top: 16px"
+                  >
+                    <div class="md-title">
+                      Field notes
+                      <md-button class="md-icon-button" style="opacity: 0.5" ng-click="focusCategory('FREETAGS')" ng-disabled="displayCategory == 'FREETAGS'">
+                        <md-icon>visibility</md-icon>
+                      </md-button>
+                    </div>
+                    <summarize-tag-cat
+                      tag-cat="'FREETAGS'"
+                      webentities="checkedList"
+                      tag-categories="tagCategories"
+                      set-value="addTagToSelection"
+                      delete-value="deleteTagFromSelection"
+                    ></summarize-tag-cat>
                   </div>
                 </div>
 

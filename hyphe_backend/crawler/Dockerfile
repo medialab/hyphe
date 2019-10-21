@@ -7,21 +7,16 @@ RUN echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repos
 
 RUN apk --update add chromium@edge chromium-chromedriver@edge harfbuzz@edge nss@edge
 
-# Install scrapyd & dependencies
-
-COPY requirements-global-scrapyd.txt /tmp/requirements-global-scrapyd.txt
+COPY requirements-scrapyd.txt /requirements-scrapyd.txt
 
 RUN apk --update add gcc musl-dev libffi-dev openssl-dev libxml2-dev libxslt-dev \
         && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
-        && pip install --cache-dir=/tmp/pipcache -r /tmp/requirements-global-scrapyd.txt \
-        && pip install --cache-dir=/tmp/pipcache Scrapy==0.24.6 \
-        && pip install --cache-dir=/tmp/pipcache scrapyd==1.0.1 \
-        && pip install --cache-dir=/tmp/pipcache tqdm==4.30.0 \
+        && pip install --cache-dir=/tmp/pipcache --requirement requirements-scrapyd.txt \
         && rm -r /tmp/pipcache \
         && apk del gcc musl-dev \
         && rm /var/cache/apk/*
 
-COPY scrapyd.config /etc/scrapyd/conf.d/100-hyphe
+COPY scrapyd.config /etc/scrapyd/scrapyd.conf
 
 EXPOSE 6800
 

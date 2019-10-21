@@ -29,6 +29,12 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('slugify', [function () {
+    return function (input) {
+      return input.replace(/[^a-z0-9]/i, '_')
+    }
+  }])
+
   .filter('prettyDate', ['utils', function(utils) {
     return function(timestamp) {
       return utils.prettyDate(timestamp)
@@ -55,13 +61,13 @@ angular.module('hyphe.filters', [])
 
   .filter('none', [function(){
     return function(integer) {
-      return (integer == 0 ? 'None' : integer)
+      return (!integer ? 'None' : integer)
     }
   }])
 
   .filter('no', [function(){
     return function(integer) {
-      return (integer == 0 ? 'No' : integer)
+      return (!integer ? 'No' : integer)
     }
   }])
 
@@ -192,19 +198,34 @@ angular.module('hyphe.filters', [])
   }])
 
   .filter('sortByField', [function(){
-    return function(list,field,asc){
+    return function(list, field, asc){
       var result = list.slice(0)
       
       result.sort(function(a,b){
-        if(a[field] < b[field]) return -1
-        if(a[field] > b[field]) return 1
+        var alc = a[field].toLowerCase(),
+            blc = b[field].toLowerCase()
+        if (alc < blc) return -1
+        if (alc > blc) return 1
         return 0
       })
 
-      if(asc)
-        return result
-      else
-        return result.reverse()
+      if (asc) return result
+      return result.reverse()
+    }
+  }])
+
+  .filter('toSortedKeysArray', [function(){
+    return function(obj){
+      if (!(obj instanceof Object)) {
+        return obj
+      }
+      return Object.keys(obj).sort(function(a, b){
+        var alc = a.toLowerCase(),
+            blc = b.toLowerCase()
+        if (alc < blc) return -1
+        if (alc > blc) return 1
+        return 0
+      })
     }
   }])
 

@@ -74,6 +74,9 @@ class customJSONRPC(JSONRPC):
             version = jsonrpclib.VERSION_1
         else:
             version = jsonrpclib.VERSION_PRE1
+        if not functionPath:
+            self._cbRender({}, request, id, version)
+            return server.NOT_DONE_YET
         try:
             function = self._getFunction(functionPath)
             d = None
@@ -107,12 +110,17 @@ class customJSONRPC(JSONRPC):
             content = request.content.read()
             if not content and request.method == 'GET' and 'request' in request.args:
                 content = request.args['request'][0]
-            parsed = jsonrpclib.loads(content)
-            functionPath = parsed.get("method")
+            try:
+                parsed = jsonrpclib.loads(content)
+                functionPath = parsed.get("method")
+            except ValueError:
+                functionPath = ""
             try:
                 txt = jsonrpclib.dumps(result, id=id, version=2.0)
             except TypeError:
                 txt = result
+            except AttributeError:
+                txt = result.message
             self.safe_log("%s: %s" % (functionPath, lightLogVar(txt, 1000)), "DEBUG - ANSWER")
         return JSONRPC._cbRender(self, result, request, id, version)
 

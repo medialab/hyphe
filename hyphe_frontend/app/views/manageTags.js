@@ -147,6 +147,8 @@ angular.module('hyphe.manageTagsController', [])
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
+        var slugCat = category.replace(/[^a-z0-9]/i, '_')
+        document.querySelector(".category-"+slugCat+" input").focus()
       }, 0)
 
       return true
@@ -242,7 +244,11 @@ angular.module('hyphe.manageTagsController', [])
           $scope.searchQuery, false, 'name'
         ),
         $scope.filters, $scope.tagCategories
-      )
+      ).sort(function (a,b) {
+        if (a.name < b.name) return -1;
+        else if (a.name > b.name) return 1;
+        return 0;
+      })
     }
 
     function updateTags() {
@@ -497,7 +503,7 @@ angular.module('hyphe.manageTagsController', [])
       var g = new Graph({type: 'directed', allowSelfLoops: false})
 
       for (var k in weIndex)
-        g.addNode(k, weIndex[k])
+        g.addNode(k, Object.assign({}, weIndex[k]))
 
       validLinks.forEach(function(l) {
         g.importEdge(l)

@@ -257,7 +257,7 @@ def lru_reorder_query(lru) :
     return add_trailing_pipe(lru)
 
 def lru_uriencode(lru):
-    return add_trailing_pipe("|".join(["%s:%s" % (k, uri_recode(t, safechars=('/+' if k == 'p' else ''), query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)]))
+    return add_trailing_pipe("|".join(["%s:%s" % (k, uri_recode(t, safechars=('/+:' if k == 'p' else ''), query=(k=='q'))) if k in ['p', 'q', 'f'] else stem for k, t, stem in split_lru_in_stems(lru)]))
 
 def add_trailing_pipe(lru):
     if not lru.endswith("|"):

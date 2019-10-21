@@ -39,7 +39,7 @@ This work will also be the occasion to clean, refactor and rethink the whole API
 
 ### - A new crawler?
 
-Hyphe currently relies on Scrapy for its crawling part. It works quite well but we are experiencing problematic limitations in terms of packaging, especially with ScrapyD, for which we had to build homemade Debian & CentOS packages.
+Hyphe currently relies on Scrapy for its crawling part. It works quite well but we are experiencing problematic limitations in terms of packaging, especially with ScrapyD not being ditributed as a daemon anymore.
 
 For a better maintainability, we are thinking about switching to our own crawler, still in active development: [sandcrawler](http://github.com/medialab/sandcrawler).
 

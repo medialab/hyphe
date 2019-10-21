@@ -66,7 +66,7 @@
                       </div>
 
                       <!-- Edit -->
-                      <div layout="column" ng-if="identityEditMode" style="padding: 8px" md-colors="{'background': 'default-background-50'}">
+                      <form  layout="column" ng-if="identityEditMode" style="padding: 8px" md-colors="{'background': 'default-background-50'}">
                         <md-input-container>
                           <label>Name</label>
                           <input ng-model="$parent.webentityEdit_name">
@@ -85,23 +85,31 @@
                           <div class="hint" md-colors="{'color': 'default-warn'}">{{homepageErrorMessage}}</div>
                         </md-input-container>
                         <div layout="row" style="padding-bottom: 8px" layout-align="center">
-                          <md-button class="md-raised md-primary" ng-click="saveWebEntity()" ng-disabled="identityEditLoading">Save changes</md-button>
+                          <md-button type="submit" class="md-raised md-primary" ng-click="saveWebEntity()" ng-disabled="identityEditLoading">Save changes</md-button>
                           <md-button class="" ng-click="disableEditMode()" ng-disabled="identityEditLoading">Cancel</md-button>
                         </div>
-                      </div>
+                      </form>
 
                       <!-- Other info -->
                       <div style="padding: 8px; margin-top: 16px" md-colors="{'background': 'default-background-200'}">
                         <dl class="key-value-pairs">
 
+                          <dt>Linked to</dt>
+                          <dd>{{webentity.undirected_degree | no}} other entit{{webentity.undirected_degree | y_ies}}</dd>
+
+                          <dt>Cited by</dt>
+                          <dd>{{webentity.indegree | no}} other entit{{webentity.indegree | y_ies}}</dd>
+
+                          <div ng-show="webentity.crawled">
+                            <dt>Citing</dt>
+                            <dd>{{webentity.outdegree | no}} other entit{{webentity.outdegree | y_ies}}</dd>
+                          </div>
+                          
                           <dt>Created {{webentity['creation_date']|prettyDate}}</dt>
                           <dd>{{webentity['creation_date']|date}}</dd>
                           
                           <dt>Last modified {{webentity['last_modification_date']|prettyDate}}</dt>
                           <dd>{{webentity['last_modification_date']|date}}</dd>
-                          
-                          <dt>Cited by</dt>
-                          <dd>{{webentity['indegree'] | no}} other entit{{webentity['indegree'] | y_ies}}</dd>
                           
                         </dl>
                       </div>
@@ -141,7 +149,7 @@
                         ]"
                       >
                         <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
-                          {{startpagetype.name}} start pages
+                          {{startpagetype.name}} start page{{webentity.tags['CORE-STARTPAGES'][startpagetype.id].length | plural}}
                         </md-subheader>
                         <md-list-item
                           ng-repeat="url in webentity.tags['CORE-STARTPAGES'][startpagetype.id]"
@@ -316,28 +324,8 @@
                       <div flex style="overflow-y: auto">
                         <div layout="column" style="padding: 8px">
                           
-                          <!-- Free tags -->
-                          <div class="md-title">Free tags</div>
-                          <md-chips
-                            ng-model="tagCategories.FREETAGS"
-                            readonly="tagsPendingQueries>0"
-                            md-removable="tagsPendingQueries<=0"
-                          >
-                            <md-autocomplete
-                              md-selected-item="selectedItem"
-                              md-search-text="searchText"
-                              md-items="tag in autoComplete(searchText, 'FREETAGS')"
-                              md-item-text="tag"
-                              placeholder="+ Tag..."
-                            >
-                              <span md-highlight-text="searchText">{{tag}}</span>
-                            </md-autocomplete>
-                          </md-chips>
-                          <br>
-                          <br>
-
                           <!-- Tag categories -->
-                          <div ng-repeat="(tagCat, _tv) in tagCategories" ng-if="tagCat != 'FREETAGS'">
+                          <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" ng-if="tagCat != 'FREETAGS'" class="category-{{tagCat | slugify}}">
                             <div class="md-title">{{tagCat}}</div>
                             <md-chips
                               ng-model="tagCategories[tagCat]"
@@ -350,6 +338,7 @@
                                 md-search-text="searchText"
                                 md-items="tag in autoComplete(searchText, tagCat)"
                                 md-item-text="tag"
+                                md-min-length=0
                                 placeholder="Set tag"
                               >
                                 <span md-highlight-text="searchText">{{tag}}</span>
@@ -358,11 +347,10 @@
                             <br>
                           </div>
 
-
                           <div
                             layout="row"
                             md-colors="{'background': 'default-background-100'}"
-                            style="padding: 8px; margin-top: 16px"
+                            style="padding: 8px"
                           >
                             <md-input-container flex>
                               <label>New category</label>
@@ -371,6 +359,31 @@
                             <md-button class="md-primary" ng-click="saveNewCategory()">Add</md-button>
                           </div>
 
+                          <br>
+                          <br>
+
+                          <!-- Free tags -->
+                          <div class="fieldnotes"
+                            md-colors="{'background': 'default-background-300'}"
+                            style="padding: 8px; margin-top: 16px"
+                          >
+                          <div class="md-title">Field notes</div>
+                          <md-chips
+                            ng-model="tagCategories.FREETAGS"
+                            readonly="tagsPendingQueries>0"
+                            md-removable="tagsPendingQueries<=0"
+                          >
+                            <md-autocomplete
+                              md-selected-item="selectedItem"
+                              md-search-text="searchText"
+                              md-items="t in []"
+                              md-item-text="note"
+                              placeholder="Add note..."
+                            >
+                              <span md-highlight-text="searchText">{{tag}}</span>
+                            </md-autocomplete>
+                          </md-chips>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -384,8 +397,11 @@
                 layout="row"
                 style="height: 48px;"
               >
-                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length<=0">Pages</h3>
-                <h3 style="padding: 8px; margin: 0px" ng-if="pages.length>=1">{{pages.length|number}} Pages</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="webentity.pages_total<=0">No known page</h3>
+                <h3 style="padding: 8px; margin: 0px" ng-if="webentity.pages_total>=1">
+                  {{webentity.pages_total|number}} Page{{webentity.pages_total|plural}}
+                  <small ng-if="webentity.pages_crawled>0">({{webentity.pages_crawled|number}} crawled)</small>
+                </h3>
                 <div flex></div>
                 <!-- <md-button class="md-raised" disabled="true">
                   <md-icon>equalizer</md-icon>
@@ -400,7 +416,8 @@
                   network
                 </md-button>
               </div>
-              <div style="height: 64px; padding: 0px 8px" layout="column">
+              <!--
+              <div style="height: 64px; padding: 0px 8px" layout="column" ng-if="webentity.pages_total>=5">
                 <md-input-container style="margin-bottom: 0;">
                   <label>NOT a full text search</label>
                   <md-icon>search</md-icon>
@@ -409,32 +426,49 @@
                   >
                 </md-input-container>
               </div>
+              -->
               
-              <div flex ng-if="pagesLoading" layout="column" layout-align="center center">
+              <div flex ng-if="pagesLoading && !pagesToken" layout="column" layout-align="center center">
                 <spinner></spinner>
               </div>
 
-              <div flex ng-if="!pagesLoading">
+              <div flex ng-show="!pagesLoading || pagesToken" style="margin-top: 15px">
                 <md-virtual-repeat-container layout-fill>
                   <md-list>
                     <md-list-item
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
-                      <span md-truncate flex>
-                        <a href="{{page.url}}" target="_blank" title="Open in a new tab">
+                      <a href="{{page.url}}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
-                        </a>
-                        {{page.url}}
-                        <div class="md-secondary" ng-if="page.crawled">
-                          <md-tooltip md-direction="left">Crawled</md-tooltip>
-                          <md-icon>opacity</md-icon>
-                        </div>
-                        <div class="md-secondary" ng-if="!page.crawled">
-                          <md-tooltip md-direction="left">Not crawled</md-tooltip>
-                          <md-icon style="opacity: 0.2">opacity</md-icon>
-                        </div>
-                      </span>
+                      </a>
+                      <div ng-if="page.url===webentity.homepage">
+                        &nbsp;<md-icon>home</md-icon>
+                      </div>
+                      <div md-truncate flex >&nbsp;{{page.url}}</div>
+                      <div class="md-primary">
+                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)"></md-switch>
+                        <md-tooltip md-direction="left">Set as StartPage</md-tooltip>
+                      </div>
+                      <div class="md-secondary" ng-if="page.crawled">
+                        <md-tooltip md-direction="left">Crawled</md-tooltip>
+                        <md-icon>opacity</md-icon>
+                      </div>
+                      <div class="md-secondary" ng-if="!page.crawled">
+                        <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                        <md-icon style="opacity: 0.2">opacity</md-icon>
+                      </div>
+                    </md-list-item>
+                    <md-list-item ng-show="pagesToken">
+                      <div flex layout="row" layout-align="center center" class="pagination-button">
+                        <spinner ng-if="pagesLoading" style="margin-top: -15px"></spinner>
+                        <md-button class="md-raised" ng-show="!pagesLoading" ng-click="loadPages()" style="margin: 5px 20px 20px 0px">
+                          {{ pages.length | number }} pages loaded, click to load more
+                        </md-button>
+                        <md-checkbox class="md-primary" ng-model="loadAllPages" ng-show="!pagesLoading" title="Warning: this can take a while">
+                          LOAD ALL
+                        </md-checkbox>
+                      </div>
                     </md-list-item>
                   </md-list>
                 </md-virtual-repeat-container>

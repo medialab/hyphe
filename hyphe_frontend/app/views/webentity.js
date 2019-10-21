@@ -31,8 +31,14 @@ angular.module('hyphe.webentityController', [])
 
     $scope.pages = []
     $scope.pagesLoading = true
+    $scope.pagesToken = null
+    $scope.loadAllPages = false
 
     $scope.$watch('tagCategories', synchronizeTags, true)
+
+    $scope.$on('$destroy', function(){
+      $scope.loadAllPages = false
+    })
 
     $scope.enableEditMode = function(){
       $scope.webentityEdit_name = $scope.webentity.name
@@ -109,7 +115,10 @@ angular.module('hyphe.webentityController', [])
 
     $scope.saveNewCategory = function(){
       var category = $scope.newCategory.trim()
-      if (!category || $scope.tagCategories[category]) return false
+      if (!category || $scope.tagCategories[category]) {
+        $scope.status = {message: 'This category already exists.', background: 'warning'}
+        return false
+      }
       if (~category.indexOf('.')) {
         $scope.status = {message: 'Tag categories cannot include dot characters', background: 'warning'}
         return false
@@ -119,30 +128,39 @@ angular.module('hyphe.webentityController', [])
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
+        var slugCat = category.replace(/[^a-z0-9]/i, '_')
+        document.querySelector(".category-"+slugCat+" input").focus()
       }, 0)
       
       return true
     }
 
-    // Init
-    api.downloadCorpusTLDs(function(){
-      fetchWebentity()
-      fetchCrawls()
-      fetchAutocompletionTags()
-      loadPages()
-    })
-
     // Functions
-    function loadPages(){
+    $scope.loadPages = function(){
       $scope.pagesLoading = true
-      $scope.status = {message: 'Load pages'}
-      api.getPages({
-          webentityId:$scope.webentity.id
+      if (!$scope.loadAllPages) {
+        $scope.status = {message: 'Loading pages'}
+      } else if (!$scope.pagesToken) {
+        $scope.status = {message: 'Loading pages 0 %', progress: 0}
+      }
+      api.getPaginatedPages({
+          webentityId: $scope.webentity.id
+          ,token: $scope.pagesToken
         }
         ,function(result){
-          $scope.pages = result
+          result.pages.forEach(function(page){
+              page.isStartPage = $scope.webentity.startpages.includes(page.url)
+          });
+          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.pagesToken = result.token
           $scope.pagesLoading = false
-          $scope.status = {}
+          if ($scope.loadAllPages && $scope.pagesToken) {
+            var percent = 99.5 * $scope.pages.length / $scope.webentity.pages_total
+            $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
+            $timeout($scope.loadPages, 0)
+          } else {
+            $scope.status = {}
+          }
         }
         ,function(){
           $scope.pagesLoading = false
@@ -150,6 +168,61 @@ angular.module('hyphe.webentityController', [])
         }
       )
     }
+
+    $scope.toggleStartPages=function(page){
+      var remove, msg1, msg2, func;
+      if (page.isStartPage){
+        remove = false
+        msg1 = "Add"
+        msg2 = "add"
+        func = "addStartPage"
+      }else{
+        remove = true
+        msg1 = "Remov"
+        msg2 = "remov"
+        func = "removeStartPage"
+      }
+      UpdateStartPagesForPage(page, remove)
+      $scope.status = {message: msg1+'ing startpage'}
+      api[func]({
+           webentityId: $scope.webentity.id
+          ,url: page.url
+        }
+        ,function () {
+          $scope.status = {}
+        }
+        ,function (data, status, headers, config) {
+          // API call fail
+          $scope.status = {message: 'Error '+msg2+'ing startpage', background: 'danger'}
+          console.error('Startpage could not be '+msg2+'ed', data, status, headers, config)
+          UpdateStartPagesForPage(page, !remove)
+          page.isStartPage = !page.isStartPage
+        }
+      )
+    }
+
+    function UpdateStartPagesForPage(page, remove){
+      if (remove) {
+        Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
+          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
+            var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
+            $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
+          }
+        })
+      } else {
+        if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
+          $scope.webentity.tags['CORE-STARTPAGES'].user = []
+        }
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
+      }
+    }
+
+    // Init
+    api.downloadCorpusTLDs(function(){
+      fetchWebentity()
+      fetchCrawls()
+      fetchAutocompletionTags()
+    })
 
     function synchronizeTags() {
       if ($scope.tagCategories && $scope.webentity.tags) {
@@ -268,8 +341,9 @@ angular.module('hyphe.webentityController', [])
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
           }
 
-          console.log($scope.webentity.name, $scope.webentity)
-        }
+          $scope.loadPages()
+
+          }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
@@ -306,12 +380,12 @@ angular.module('hyphe.webentityController', [])
             var tag
             var tagCatValues = data[tagCat]
             for (tag in tagCatValues) {
-              $scope.tagsAutocomplete[tagCat][autocompletion.searchable(tag)] = tag
+              $scope.tagsAutocomplete[tagCat][tag] = tag
             }
           }
           $scope.autoComplete = autocompletion.getTagAutoCompleteFunction($scope.tagsAutocomplete)
         }
-        ,function(data){
+        ,function(){
           $scope.status = {message: 'Error loading corpus tags', background: 'danger'}
         }
       )

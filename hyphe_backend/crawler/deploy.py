@@ -102,17 +102,19 @@ except IOError as e:
 if verbose:
     print "Sending HCI's scrapy egg to scrapyd server..."
 
-p = subprocess.Popen(['scrapy', 'deploy', '--version', time.strftime('%Y%m%d-%H%M%S', time.gmtime(time.time()))], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+p = subprocess.Popen(['scrapyd-deploy', '--version', time.strftime('%Y%m%d-%H%M%S', time.gmtime(time.time()))], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output, errors = p.communicate()
 try:
     output = json.loads(output)
     if output['status'] != "ok":
         print "There was a problem sending the scrapy egg."
-        print output, errors
+        print output["message"].replace("\\n", "\n")
+        print errors
         exit()
 except ValueError:
     print "There was a problem sending the scrapy egg."
-    print output, errors
+    print output
+    print errors
     exit()
 if verbose:
     print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']

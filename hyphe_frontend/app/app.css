@@ -215,10 +215,17 @@ md-list.md-dense md-list-item .md-list-item-inner .md-avatar {
   box-shadow: none;
 }
 
+.md-chip-input-container {
+  width: 100%;
+}
+
 .fix-scroll-glitch {
   background-color: #F00;
 }
 
+.fieldnotes md-chip {
+  clear: both;
+}
 
 
 /* ==========================================================================
@@ -505,7 +512,35 @@ tags-input .tags .tag-item {
   font-size: 9px;
 }
 
+.credits-list {
+  width: 100%;
+  background-color: #EFEBE8;
+  height: 80px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 
+.credits-list-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #EFEBE8;
+  height: 80px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.credits-list .md-list-item-inner, .credits-list-footer .md-list-item-inner{
+  font-weight: lighter;
+  text-align: center;
+  height: 80px;
+}
+
+.pusher {
+  height: 120px;
+}
 
 /* ==========================================================================
    View: Import URLs
@@ -695,7 +730,13 @@ textarea.over-error {
   padding: 0px 8px 0px 8px;
 }
 
-.welist-col-cited {
+.welist-col-number {
+  width: 68px;
+  padding: 0px 16px 0px 0px;
+  text-align: right;
+}
+
+.welist-col-number-header {
   width: 68px;
   padding: 0px 8px 0px 8px;
   text-align: right;

@@ -42,6 +42,7 @@
   layout-fill
   ng-if="corpusList"
 >
+
   <!-- Left column -->
   <div style="width: 200px" layout="column">
     <div
@@ -57,20 +58,54 @@
         {{corpusList.length|number}} corp{{corpusList.length > 1 ? 'ora' : 'us'}}
       </div>
       <div style="padding: 8px">
-        {{globalStatus.ram_left|number}} Mo of free RAM
+        Crawls : {{globalStatus.crawls_running|number}} running &amp; {{globalStatus.crawls_pending|number}} pending
       </div>
+      <md-divider></md-divider>
       <div style="padding: 8px">
-        Corpus slots: {{globalStatus.corpus_running|number}} in operation &amp; {{globalStatus.ports_left|number}} free
+
+        <md-autocomplete
+              md-item-text="name"
+              md-items="name in autoComplete(query)"
+              md-min-length=0
+              md-search-text="query"
+              md-selected-item="selectedItem"
+              placeholder="Search Corpus"
+         >
+          <span md-highlight-text="query">{{name}}</span>
+        </md-autocomplete>
       </div>
-      <div style="padding: 8px">
-        Crawls: {{globalStatus.crawls_running|number}} running &amp; {{globalStatus.crawls_pending|number}} pending
+
+      <div style="margin-left:8px">
+        <md-input-container>
+          <md-select ng-model="currentSort"   placeholder="Sort by" >
+            <md-tooltip md-direction="right">Sort By </md-tooltip>
+            <md-option value="name">Name</md-option>
+            <md-option value="last_activity">Last Used</md-option>
+            <md-option value="created_at">Last Created</md-option>
+            <md-option value="total_webentities">Nb. of Webentities</md-option>
+            <md-option value="total_pages_crawled">Nb. of Crawled Pages</md-option>
+          </md-select>
+        </md-input-container>
       </div>
+
+      <div style="margin-left:8px">
+        <md-checkbox ng-model="reverse" aria-label="Reverse">
+          Invert sort
+        </md-checkbox>
+      </div>
+        <md-divider></md-divider>
+      <md-button class="md-raised md-primary" ng-click="api.backupCorpus()">
+        <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
+        <md-icon>backup</md-icon>
+        &nbsp;Backup
+      </md-button>
+
     </div>
   </div>
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in corpusList"
+      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | filter:query"
     >
       <md-card
         style="background-color: #FFF"
@@ -105,6 +140,12 @@
               <div layout="row">
                 <div style="width: 80px; text-align: right; padding-right: 8px"><em>{{corpus.total_webentities|number}}</em></div>
                 <div><em>TOTAL</em></div>
+              </div>
+              <div style="width: 160px; text-align: right">
+                <md-button  class="md-raised" ng-click="api.backupCorpus(corpus)">
+                  <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
+                  <md-icon>backup</md-icon>
+                </md-button>
               </div>
             </div>
           </md-card-title-media>
@@ -159,12 +200,13 @@
             </div>
           </div>
         </md-card-content>
-        <md-card-actions layout="row" layout-align="end center">
+        <md-card-actions layout="row" layout-align="end center" >
 
           <md-button
             class="md-warn"
             ng-click="destroyCorpus(corpus.corpus_id)"
             ng-if="corpus.ready"
+            flex
           >
             <md-icon>delete_forever</md-icon>
             DESTROY
@@ -174,15 +216,17 @@
             class="md-warn"
             ng-click="resetCorpus(corpus.corpus_id)"
             ng-if="corpus.ready"
+            flex
           >
             <md-icon>delete</md-icon>
             RESET
           </md-button>
 
           <md-button
-            class="md-raised md-primary"
-            ng-click="startCorpus(corpus.corpus_id, corpus.password)"
-            ng-if="!corpus.ready"
+                  layout-align="end center"
+                  class="md-raised md-primary"
+                  ng-click="startCorpus(corpus.corpus_id, corpus.password)"
+                  ng-if="!corpus.ready"
           >
             <md-icon>play_arrow</md-icon>
             START
@@ -192,6 +236,7 @@
             class=""
             ng-click="stopCorpus(corpus.corpus_id)"
             ng-if="corpus.ready"
+            flex
           >
             <md-icon>stop</md-icon>
             STOP
@@ -201,6 +246,7 @@
             class="md-primary"
             ng-click="openCorpus(corpus.corpus_id, corpus.name)"
             ng-if="corpus.ready"
+            flex
           >
             <md-icon>arrow_forward</md-icon>
             OPEN

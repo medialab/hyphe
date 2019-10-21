@@ -31,7 +31,9 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
     
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
+    API.WEBENTITY_PAGE_LIST_PAGINATE                = 'store.paginate_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
+    API.WEBENTITY_PAGES_NETWORK_PAGINATE            = 'store.paginate_webentity_pagelinks_network'
     API.WEBENTITY_SUBWEBENTITY_LIST_GET             = 'store.get_webentity_subwebentities'
     API.WEBENTITY_PARENTWEBENTITY_LIST_GET          = 'store.get_webentity_parentwebentities'
     API.WEBENTITY_EDIT                              = 'store.basic_edit_webentity'
@@ -47,7 +49,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_MERGE_INTO                        = 'store.merge_webentity_into_another'
 
     API.WEBENTITY_LIST_TAG_VALUE_ADD                = 'store.add_webentities_tag_value'
-    API.WEBENTITY_LIST_TAG_VALUE_REMOVE               = 'store.rm_webentities_tag_value'
+    API.WEBENTITY_LIST_TAG_VALUE_REMOVE             = 'store.rm_webentities_tag_value'
 
     API.WEBENTITY_TAG_VALUE_ADD                     = 'store.add_webentity_tag_value'
     API.WEBENTITY_TAG_VALUE_REMOVE                  = 'store.rm_webentity_tag_value'
@@ -256,11 +258,35 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.getPaginatedPages = buildApiCall(
+        API.WEBENTITY_PAGE_LIST_PAGINATE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.count || 5000
+              ,settings.token || null
+              ,settings.crawledOnly || false
+              ,corpus.getId()
+            ]}
+      )
+
     ns.getPagesNetwork = buildApiCall(
         API.WEBENTITY_PAGES_NETWORK_GET
         ,function(settings){
           return [
               settings.webentityId
+              ,settings.includeExternalLinks
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.getPaginatedPagesNetwork = buildApiCall(
+        API.WEBENTITY_PAGES_NETWORK_PAGINATE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.count || 10
+              ,settings.token || null
               ,settings.includeExternalLinks
               ,corpus.getId()
             ]}
@@ -442,7 +468,7 @@ angular.module('hyphe.service_hyphe_api', [])
             return [
               settings.name
               ,settings.password
-              ,settings.options || []
+              ,settings.options || {}
             ]
           }
       )

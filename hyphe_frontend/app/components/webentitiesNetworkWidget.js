@@ -5,6 +5,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 .directive('webentitiesNetworkWidget', function(
     $mdSidenav,
     api,
+    utils,
     $timeout,
     $window
   ){
@@ -142,7 +143,27 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         $scope.downloadNetwork = function() {
           if ($scope.network) {
-            var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
+            var blob = new Blob(
+              [gexf.write($scope.network, {
+                formatNode: function(key, attributes) {
+                  return {
+                    label: attributes.label,
+                    attributes: utils.omit(
+                      attributes,
+                      ["label", "color", "x", "y", "size",  // graph fields already present
+                       "tags", "prefixes"]                  // object fields undesired in GEXF
+                    ),
+                    viz: {
+                      color: attributes.color,
+                      x: attributes.x,
+                      y: attributes.y,
+                      size: attributes.size
+                    }
+                  };
+                }
+              })],
+              {'type':'text/gexf+xml;charset=utf-8'}
+            );
             saveAs(blob, $scope.corpusName + ".gexf", true);
           }
         }
@@ -199,12 +220,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             // Node colors by tag
             var tagCat = $scope.nodeColorMode
             var colorArray = [
-              "#5689d7",
-              "#6cab33",
-              "#c13cf6",
-              "#eaa31d",
-              "#ec335b"
-            ]
+                  "#663185",
+                  "#60ae62",
+                  "#b8405a",
+                  "#b3a140",
+                  "#cd6cb9",
+                  "#6b7dd6",
+                  "#c26538"]
             var colorDefault = "#777"
             var colorUntagged = "#BBB"
             var colorError = "#600"
@@ -263,6 +285,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               value = g.outDegree(nid)
             } else if ($scope.nodeSizeMode == 'degree') {
               value = g.degree(nid)
+            } else {
+              value = g.getNodeAttribute(nid, $scope.nodeSizeMode)
             }
             var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(value))
             values.push(value)
@@ -443,7 +467,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           var g = new Graph({type: 'directed', allowSelfLoops: false})
 
           for (var k in weIndex)
-            g.addNode(k, weIndex[k])
+            g.addNode(k, Object.assign({}, weIndex[k]))
 
           validLinks.forEach(function(l) {
             g.importEdge(l)

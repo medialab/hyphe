@@ -144,7 +144,10 @@
               >
                 <md-subheader class="md-primary follow-md-virtual-repeat-width" style="height: 48px">
                   <div layout="row">
-                    <div flex>
+                    <div flex
+                      md-colors="{'color': (sort == 'webentity_name') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('webentity_name')"
+                    >
                       WEB ENTITY NAME
                     </div>
                     <div class="md-secondary crawljobs-col-dept">
