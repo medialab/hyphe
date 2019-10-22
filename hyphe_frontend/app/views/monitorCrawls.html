@@ -287,7 +287,7 @@
                     ng-click="abortCrawl(crawljobsIndex[focusedJobId])"
                   >
                     <md-icon>clear</md-icon>
-                    ABORT CRAWL
+                    {{ crawljobsIndex[focusedJobId].crawling_status == 'RUNNING' ? 'ABORT' : 'STOP' }} CRAWL
                     <md-tooltip>Stop harvesting and indexing pages for this webentity</md-tooltip>
                   </md-button>
 
@@ -297,7 +297,7 @@
                     ng-click="abortCrawl(crawljobsIndex[focusedJobId])"
                   >
                     <md-icon>clear</md-icon>
-                    ABORT INDEXING
+                    STOP INDEXING
                     <md-tooltip>Stop indexing pages that were harvested but not indexed yet</md-tooltip>
                   </md-button>
 
