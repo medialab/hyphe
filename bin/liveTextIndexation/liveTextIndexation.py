@@ -1,17 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, os, re
-import pymongo
-import jsonrpclib
-from md5 import md5
-from html2text import textify
-from elasticsearch import Elasticsearch
-from elasticsearch import helpers
+import os
+import re
+import sys
 import time
+from md5 import md5
+
+import jsonrpclib
+import pymongo
 from dragnet import extract_content, extract_content_and_comments
+from elasticsearch import Elasticsearch, helpers
+from html2text import textify
 
 BATCH_SIZE = 1000
+DELETE_INDEX = False
+RESET_MONGO = False
 
 
 def ensure_index_on_pages(mongo_pages_coll):
@@ -41,25 +45,23 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["te
             total += 1
 
             body = page["body"].decode('zip')
-            
+
             encoding = page.get("encoding", "")
             try:
                 body = body.decode(encoding)
             except Exception :
                 body = body.decode("UTF8", "replace")
                 encoding = "UTF8-replace"
-            # We shouldn't do that, prefix tree in memory... 
-            we = hyphe_core.store.get_webentity_for_url_as_lru(page["lru"], corpus)
-            try:
-                assert we["code"] == "success"
-                page_to_index["webentity_id"] = we["result"]["id"]
-                page_to_index["webentity_name"] = we["result"]["name"]
-            except:
-                print("WARNING! Could not resolve WebEntity for url %s" % page["url"])
+
+            page_to_index["webentity_id"] = page['webentity_when_crawled']
 
             #page["html"] = body
             page_to_index["text"] = textify(body, encoding=encoding)
-            page_to_index["dragnet"] = extract_content(body, encoding=encoding)
+            try:
+                page_to_index["dragnet"] = extract_content(body, encoding=encoding)
+            except Exception as e:
+                print("DRAGNET ERROR:", str(e))
+                page_to_index["dragnet"] = None
             pages.append(page_to_index)
         # index batch to ES
         index_result = helpers.bulk(es, [{'_source':p} for p in pages], index='hyphe.%s.txt' % corpus, doc_type='webpage')
@@ -113,7 +115,7 @@ if __name__ == '__main__':
     except Exception as e:
         exit('Could not initiate connection to MongoDB')
     ensure_index_on_pages(dbpages)
-    
+
     # connect to ES
     es = Elasticsearch('localhost:9200')
 
@@ -128,6 +130,9 @@ if __name__ == '__main__':
                     "properties":{
                         "lru": {
                             "type": "keyword"
+                        },
+                        "webentity_id": {
+                            "type": "integer"
                         }
                     }
                 }
@@ -150,12 +155,65 @@ if __name__ == '__main__':
         "script": {
             "source": "ctx._source.webentity_id=params.new_we_id",
             "lang": "painless",
-            "params":{
+            "params": {
                 "new_we_id": 999
             }
         },
         "query": {
-            "prefix" : { "lru" : "s:https|h:org|h:fosdem|p:2019|p:schedule|" }
-        }
+                "bool": {
+                    "must": {
+                        "prefix" : { 
+                            "lru" : "s:https|h:org|h:fosdem|p:2019|p:schedule|"
+                        }
+                    },
+                    "must_not": {
+                        "term": {
+                            "webentity_id": 999
+                        }
+                    }
+                }
+            }
     }
+
+body2 = 
+    {
+	"script": {
+		"source": "ctx._source.webentity_id=params.new_we_id",
+		"lang": "painless",
+		"params": {
+			"new_we_id": 1111
+		}
+	},
+	"query": {
+		"bool": {
+			"must": [
+				{
+					"prefix": {
+						"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|"
+					}
+				},
+				{
+					"bool": {
+						"must_not": {
+							"term": {
+								"webentity_id": 1111
+							}
+						}
+					}
+				},
+				{
+					"bool": {
+						"must_not": {
+							"prefix": {
+								"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|p:event|"
+							}
+						}
+					}
+				}
+			]
+		}
+	}
+}
+
+
     es.update_by_query(index='hyphe.%s.txt' % corpus, body = body, conflicts="proceed")

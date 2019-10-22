@@ -1092,7 +1092,8 @@ class Crawler(customJSONRPC):
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
           'user_agent': get_random_user_agent(),
-          'cookies': cookies_string
+          'cookies': cookies_string,
+          'webentity_id': webentity_id
         }
         if phantom_crawl:
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])

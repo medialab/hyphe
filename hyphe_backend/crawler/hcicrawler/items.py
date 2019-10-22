@@ -14,3 +14,4 @@ class Page(Item):
     lrulinks = Field()
     error = Field()
     indexed = Field()
+    webentity_when_crawled = Field()
