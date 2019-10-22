@@ -7,6 +7,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     api,
     utils,
     corpus,
+    $timeout,
     $window,
     $mdSidenav
   ) {
@@ -14,8 +15,11 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     $scope.corpusId = corpus.getId()
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
-    $scope.pages
+    $scope.pages = []
+    $scope.links = []
+    $scope.token
     $scope.loading = true
+    $scope.loadAll = true
 
     $scope.includeExternalLinks = false
     $scope.network
@@ -34,7 +38,16 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       }
     }
 
+    $scope.networkNodeClick = function(node) {
+      var url = $scope.network.getNodeAttribute(node, 'url')
+      $window.open(url, '_blank');
+    }
+
     $scope.$watch('nodeSizeBaseRatio', updateNetwork)
+
+    $scope.$on('$destroy', function(){
+      $scope.loadAll = false
+    })
 
     // Init
     api.downloadCorpusTLDs(function(){
@@ -59,13 +72,24 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     }
 
     function loadPages(){
-      $scope.status = {message: 'Loading pages'}
-      api.getPages({
-          webentityId:$scope.webentity.id
+      if (!$scope.token) {
+        $scope.status = {message: 'Loading pages 0 %', progress: 0}
+      }
+      api.getPaginatedPages({
+          webentityId: $scope.webentity.id
+          ,token: $scope.token || null
         }
         ,function(result){
-          $scope.pages = result
-          loadNetwork()
+          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.token = result.token
+
+          var percent = 100 * $scope.pages.length / $scope.webentity.pages_total
+          $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent / 4}
+          if ($scope.loadAll && $scope.token) {
+            $timeout(loadPages, 0)
+          } else if ($scope.token === null) {
+            loadNetwork()
+          }
         }
         ,function(){
           $scope.status = {message: 'Error loading pages', background: 'danger'}
@@ -74,19 +98,30 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     }
 
     function loadNetwork(){
-      $scope.status = {message: 'Loading links'}
-      api.getPagesNetwork({
+      if (!$scope.token) {
+        $scope.status = {message: 'Loading links 0 %', progress: 25}
+      }
+      api.getPaginatedPagesNetwork({
           webentityId: $scope.webentity.id
           ,includeExternalLinks: $scope.includeExternalLinks
+          ,token: $scope.token
         }
         ,function(result){
-          $scope.status = {}
-          $scope.webentity.loading = false
+          $scope.links = $scope.links.concat(result.links)
+          $scope.token = result.token
 
-          buildNetwork(result)
+          if ($scope.loadAll && $scope.token) {
+            var percent = $scope.links.length / ($scope.webentity.pages_total + 100 * $scope.webentity.pages_crawled)
+            $scope.status = {message: 'Loading links ' + Math.round(100 * percent)+ ' %', progress: 25 + 75 * percent}
+            $timeout(loadNetwork, 0)
+          } else if (!$scope.token) {
+            $scope.status = {message: 'Building network'}
+            $scope.webentity.loading = false
+            $timeout(buildNetwork, 0)
+          }
         }
         ,function(){
-          $scope.status = {message: 'Error loading web entity', background: 'danger'}
+          $scope.status = {message: 'Error loading links', background: 'danger'}
         }
       )
     }
@@ -141,15 +176,15 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       ]
     }
 
-    function buildNetwork(json){
+    function buildNetwork(){
       var nIndex = {}
-      json.forEach(function(d){
+      $scope.links.forEach(function(d){
         nIndex[d[0]] = true
         nIndex[d[1]] = true
       })
 
-      var startPagesIndex = {}
-      $scope.webentity.startpages.forEach(function(url){
+      var startPagesIndex = {};
+      ($scope.webentity.startpages || []).forEach(function(url){
         startPagesIndex[url] = true
       })
 
@@ -171,7 +206,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       }
 
       var linksIdIndex = {}
-      var links = json.map(function(d){
+      var links = $scope.links.map(function(d){
         return {
           key: d[0] + '>' + d[1],
           source: d[0],
@@ -187,8 +222,13 @@ angular.module('hyphe.webentityPagesNetworkController', [])
       })
 
       var g = new Graph({type: 'directed', allowSelfLoops: false})
-      g.addNodesFrom(nIndex)
-      g.importEdges(links)
+
+      for (var k in nIndex)
+        g.addNode(k, Object.assign({}, nIndex[k]))
+
+      links.forEach(function(l) {
+        g.importEdge(l)
+      })
 
       // Default appearance
       g.nodes().forEach(function(nid){
@@ -220,6 +260,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
 
       updateNetwork()
 
+      $scope.status = {}
       $scope.loading = false
     }
 

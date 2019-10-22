@@ -1,10 +1,11 @@
 'use strict';
 
 angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
- 
+
 .directive('webentitiesNetworkWidget', function(
     $mdSidenav,
     api,
+    utils,
     $timeout,
     $window
   ){
@@ -142,7 +143,27 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         $scope.downloadNetwork = function() {
           if ($scope.network) {
-            var blob = new Blob([gexf.write($scope.network)], {'type':'text/gexf+xml;charset=utf-8'});
+            var blob = new Blob(
+              [gexf.write($scope.network, {
+                formatNode: function(key, attributes) {
+                  return {
+                    label: attributes.label,
+                    attributes: utils.omit(
+                      attributes,
+                      ["label", "color", "x", "y", "size",  // graph fields already present
+                       "tags", "prefixes"]                  // object fields undesired in GEXF
+                    ),
+                    viz: {
+                      color: attributes.color,
+                      x: attributes.x,
+                      y: attributes.y,
+                      size: attributes.size
+                    }
+                  };
+                }
+              })],
+              {'type':'text/gexf+xml;charset=utf-8'}
+            );
             saveAs(blob, $scope.corpusName + ".gexf", true);
           }
         }
@@ -155,7 +176,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.applySettings()
 
         /// Functions
-        
+
         function updateNetworkAppearance() {
           updateNodeColors()
           updateNodeSizes()
@@ -199,12 +220,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             // Node colors by tag
             var tagCat = $scope.nodeColorMode
             var colorArray = [
-              "#5689d7",
-              "#6cab33",
-              "#c13cf6",
-              "#eaa31d",
-              "#ec335b"
-            ]
+                  "#663185",
+                  "#60ae62",
+                  "#b8405a",
+                  "#b3a140",
+                  "#cd6cb9",
+                  "#6b7dd6",
+                  "#c26538"]
             var colorDefault = "#777"
             var colorUntagged = "#BBB"
             var colorError = "#600"
@@ -252,7 +274,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         function updateNodeSizes() {
           var g = $scope.network
           if (g === undefined) { return }
-            
+
           var minSize = 1
           var values = []
           g.nodes().forEach(function(nid){
@@ -263,6 +285,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               value = g.outDegree(nid)
             } else if ($scope.nodeSizeMode == 'degree') {
               value = g.degree(nid)
+            } else {
+              value = g.getNodeAttribute(nid, $scope.nodeSizeMode)
             }
             var size = $scope.nodeSizeBaseRatio * (minSize + Math.sqrt(value))
             values.push(value)
@@ -441,8 +465,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             })
 
           var g = new Graph({type: 'directed', allowSelfLoops: false})
-          g.addNodesFrom(weIndex)
-          g.importEdges(validLinks)
+
+          for (var k in weIndex)
+            g.addNode(k, Object.assign({}, weIndex[k]))
+
+          validLinks.forEach(function(l) {
+            g.importEdge(l)
+          })
 
           // Filtering: mark nodes for deletion
           var allThreshold = 0
@@ -453,14 +482,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           if ($scope.settings.limitDiscovered) {
             discThreshold = +$scope.settings.limitDiscovered.replace('+', '')
           }
-          var nodesToDelete = []
+
           g.nodes().forEach(function(nid){
             var degree = g.degree(nid)
             if (degree < allThreshold || (g.getNodeAttribute(nid, "status") == 'DISCOVERED' && degree < discThreshold)) {
-              nodesToDelete.push(nid)
+              g.dropNode(nid)
             }
           })
-          g.dropNodes(nodesToDelete)
 
           var nodesArea = g.order * 10
           g.nodes().forEach(function(nid){
@@ -544,4 +572,4 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
     }
   })
 
-  
+

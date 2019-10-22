@@ -32,7 +32,7 @@ Docker's containers are sizeable: you should ensure **at least 4GB** of empty sp
 
 #### 1. Install Docker
 
-First, you should deploy **Docker** on your machine following its [official installation instructions](https://docs.docker.com/installation/).
+First, you should deploy **Docker** on your machine following its [official installation instructions](https://docs.docker.com/install/).
 
 Once you've got Docker installed and running, you will need **Docker Compose** to set up and orchestrate Hyphe services in a single line. Docker Compose is already installed along with Docker on Windows and Mac OS X, but you may need to [install it for Linux](https://docs.docker.com/compose/install/).
 
@@ -188,14 +188,14 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Tutorials / examples
 
-* Explanatory video (french) [Explorer les internets avec Hyphe](https://vimeo.com/235804282) (September 2017). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
+* Explanatory video (french) [Explorer les internets avec Hyphe](https://metsem.hypotheses.org/111) (September 2017). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
 
 * (FR) [Le web du secteur de l'hydrogène](https://www.cellie.fr/2018/11/21/le-graphe-un-pan-de-la-dataviz-exploitable-pour-cartographier-et-explorer-un-secteur-dactivite-2/) par Mathieu Boyer (2018)
 
 
 ### Publications about Hyphe
 
-* JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](http://www.aaai.org/ocs/index.php/ICWSM/ICWSM16/paper/view/13051/12797)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
+* JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](https://spire.sciencespo.fr/hdl:/2441/6obemb2hsj9pboj9bbvc7sftne/resources/jacomy-all-hyphe-icwsm-2016.pdf)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
 
 * PLIQUE, Guillaume, JACOMY, Mathieu, OOGHE-TABANOU, Benjamin & GIRARD, Paul, "It's a Tree... It's a Graph... It's a Traph!!!! Designing an on-file multi-level graph index for the Hyphe web crawler". ([Video](https://fosdem.org/2018/schedule/event/multi_level_graph_index/) / [Slides](https://medialab.github.io/hyphe-traph/fosdem2018/)) Presentation at the FOSDEM, Brussels, BELGIUM, February 3rd, 2018.
 
@@ -203,6 +203,10 @@ See our [roadmap](doc/roadmap.md)!
 
 
 ### Publications using Hyphe
+
+* TOURNAY Virginie, JACOMY Mathieu, NECULA Andra, LEIBING Annette & BLASIMME Alessandro, 2019, "[A New Web-Based Big Data Analytics for Dynamic Public Opinion Mapping in Digital Networks on Contested Biotechnology Fields](https://www.liebertpub.com/doi/10.1089/omi.2019.0130)", in OMICS: A Journal of Integrative Biology. DOI: 10.1089/omi.2019.0130
+
+* ÁLVARO SÁNCHEZ, Sandra, 2019, "[A Topological Space for Design, Participation and Production. Tracking Spaces of Transformation](http://peerproduction.net/editsuite/issues/issue-13-open/peer-reviewed-papers/a-topological-space-for-design-participation-and-production/)", in Journal of Peer Production, Issue 13: OPEN.
 
 * VENTURINI, Tommaso, JACOMY, Mathieu, BOUNEGRU, Liliana & GRAY, Jonathan, (2018, forthcoming), "[Visual Network Exploration for Data Journalists](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3043912)", in S. E. I. and B. Franklin (Ed.). Abingdon: Routledge.
 
@@ -237,6 +241,9 @@ See our [roadmap](doc/roadmap.md)!
 * MUNK, Anders Kristian. [Mapping Wind Energy Controversies Online: Introduction to Methods and Datasets](http://www.academia.edu/11976139/Mapping_Wind_Energy_Controversies_Online_Introduction_to_Methods_and_Datasets). 2014.
 
 * WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://www.sciencedirect.com/science/article/pii/S0277953618306282). Social Science & Medicine. 220. 10.1016/j.socscimed.2018.10.032. 2018. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
+
+* ROMELE, Alberto, SEVERO Marta. [From Philosopher to Network. Using Digital Traces for Understanding
+Paul Ricoeur’s Legacy](https://hal.archives-ouvertes.fr/hal-01294443/document). Azimuth. Philosophical Coordinates in Modern and Contemporary Age, Edizioni Storia e Letteratura, 2016, Philosophy and Digital Traces, VI (6), <azimuthjournal.com> <hal-01294443>
 
 
 ## Credits & License

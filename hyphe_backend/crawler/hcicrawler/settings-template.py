@@ -5,30 +5,31 @@ BOT_NAME = 'hcicrawler'
 
 LOG_LEVEL = '{{log_level}}'
 
-SPIDER_MODULES = ['hcicrawler.spiders']
-NEWSPIDER_MODULE = 'hcicrawler.spiders'
+SPIDER_MODULES = 'hcicrawler.spiders'
 
-ITEM_PIPELINES = [
-    'hcicrawler.pipelines.ResolveLinks',
-    'hcicrawler.pipelines.OutputStore',
-    'hcicrawler.pipelines.RemoveBody',
-    'hcicrawler.pipelines.OutputQueue',
-]
+ITEM_PIPELINES = {
+    'hcicrawler.pipelines.ResolveLinks': 200,
+    'hcicrawler.pipelines.OutputStore': 300,
+    'hcicrawler.pipelines.RemoveBody': 400,
+    'hcicrawler.pipelines.OutputQueue': 500,
+}
 
 CONCURRENT_REQUESTS = {{max_simul_requests}}
 CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
 
-DOWNLOADER_CLIENTCONTEXTFACTORY = 'hcicrawler.webclient.CustomSSLContextFactory'
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
+
 REDIRECT_ENABLED = False
 
-
 PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
+
 DOWNLOADER_MIDDLEWARES = {
-    'scrapy.contrib.downloadermiddleware.useragent.UserAgentMiddleware': 200,
-    'scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware': 110,
     'hcicrawler.middlewares.ProxyMiddleware': 100,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': 200
 }
+
+MAX_RESPONSE_SIZE = 5242880 # 5Mb
 
 DUPEFILTER_CLASS = 'hcicrawler.middlewares.CustomDupeFilter'
 

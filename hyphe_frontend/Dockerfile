@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM nginx:1.17-alpine
 
 ENV BACKEND_PORT=6978
 ENV BACKEND_HOST=backend
@@ -8,7 +8,7 @@ COPY . /frontend/
 WORKDIR /frontend
 
 RUN apk --update add git nodejs nodejs-npm \
-    && npm install \
+    && npm ci \
     && npm run build \
     && npm cache clean --force \
     && apk del git nodejs \

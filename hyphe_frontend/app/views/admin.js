@@ -2,14 +2,18 @@
 
 angular.module('hyphe.adminController', [])
 
-  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus'
-  ,function($scope, api, utils, $location, $timeout, corpus) {
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout', 'corpus', 'autocompletion',
+  function($scope, api, utils, $location, $timeout, corpus, autocompletion) {
     $scope.currentPage = 'admin'
     $scope.corpusList
     $scope.corpusList_byId = {}
     $scope.globalStatus
     $scope.loadingStatus = false
     $scope.loadingList = false
+    $scope.reverse = false
+    $scope.currentSort='name'
+
+
 
     // Connection
     $scope.password = ""
@@ -101,18 +105,37 @@ angular.module('hyphe.adminController', [])
       
     }
 
-    function startCorpus(id, password){
-      api.startCorpus({
-        id: id
-        ,password: password
-      }, function(){
 
-        refresh()
-        // openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
-
-      },function(data, status, headers, config){
-        alert('Error: possibly a wrong password')
+      //Search
+    $scope.autoComplete = function(query){
+      var names = $scope.corpusList.map(function (corpus) {
+        return corpus.name
       })
+        var searchQuery = autocompletion.searchable(query)
+            , res = []
+            names.forEach(function(k){
+              var candidateName = autocompletion.searchable(k)
+              if (candidateName && (!searchQuery || ~candidateName.indexOf(searchQuery))) {
+                res.push(k)
+              }
+            })
+        res.sort(function(a,b){return a.localeCompare(b) })
+        return res
+    }
+
+
+    function startCorpus(id, password){
+    api.startCorpus({
+      id: id
+      ,password: password
+    }, function(){
+
+      refresh()
+      // openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
+
+    },function(data, status, headers, config){
+      alert('Error: possibly a wrong password')
+    })
     }
 
     function stopCorpus(id){

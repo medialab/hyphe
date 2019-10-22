@@ -1,4 +1,4 @@
-from scrapy import log
+import logging
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 from txmongo import MongoConnection, connection as mongo_connection
@@ -78,7 +78,7 @@ class ResolveLinks(object):
     @inlineCallbacks
     def process_item(self, item, spider):
         lrulinks = []
-        for url, lru in item["lrulinks"]:
+        for url, lru in item.get("lrulinks", []):
             if self._should_resolve(lru, spider):
                 if url in spider.resolved_links:
                     lru = spider.resolved_links[url]
@@ -91,7 +91,7 @@ class ResolveLinks(object):
                         lru = url_to_lru_clean(rurl, TLDS_TREE)
                         spider.resolved_links[url] = lru
                     except Exception, e:
-                        spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), log.INFO)
+                        spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), logging.INFO)
             lrulinks.append(lru)
         item["lrulinks"] = lrulinks
         returnValue(item)

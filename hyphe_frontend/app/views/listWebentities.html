@@ -130,7 +130,7 @@
                   >
                     <div layout="row" style="padding-right: 46px;">
                       <div style="padding: 0px 22px 0px 3px; height: 20px;">
-                        <md-checkbox ng-checked="allChecked" ng-click="toggleCheckAll()" ng-disabled="allCheckedDisable" md-indeterminate="allCheckedIndeterminate"></md-checkbox>
+                        <md-checkbox ng-checked="allChecked" ng-click="toggleCheckAll()" ng-disabled="allCheckedDisable" md-indeterminate="allCheckedIndeterminate" aria-label="Select all entities listed"></md-checkbox>
                       </div>
                       <div
                         flex
@@ -167,7 +167,19 @@
                         <md-icon class="welist-icon md-accent" ng-if="sort == 'crawled' && !sortAsc">arrow_upward</md-icon>
                       </div>
                       <div
-                        class="welist-col-cited pointable"
+                        class="welist-col-number-header pointable"
+                        md-colors="{'color': (sort == 'pages_total') ? ('default-accent') : ('default-primary')}"
+                        ng-click="toggleSort('pages_total')"
+                        hide show-gt-sm
+                      >
+                        PGS
+                        <md-tooltip md-direction="top">Total known pages (crawled and/or discovered)</md-tooltip>
+                        <md-icon class="welist-icon md-primary" style="opacity: 0.2" ng-if="sort != 'pages_total'">remove</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'pages_total' && sortAsc">arrow_downward</md-icon>
+                        <md-icon class="welist-icon md-accent" ng-if="sort == 'pages_total' && !sortAsc">arrow_upward</md-icon>
+                      </div>
+                      <div
+                        class="welist-col-number-header pointable"
                         ng-click="toggleSort('indegree')"
                         md-colors="{'color': (sort == 'indegree') ? ('default-accent') : ('default-primary')}"
                       >
@@ -250,9 +262,16 @@
                             </div>
                           </div>
                           <div
-                            class="welist-col-cited"
+                            class="welist-col-number"
+                            hide show-gt-sm
                           >
-                            <md-tooltip md-direction="right">Is cited by {{obj.webentity.indegree|number}} other web entities in the corpus</md-tooltip>
+                            <md-tooltip md-direction="right">{{obj.webentity.pages_total|number}} page{{obj.webentity.pages_total|plural}} of the web entity known (including {{obj.webentity.pages_crawled|number}} crawled)</span></md-tooltip>
+                            {{obj.webentity.pages_total|number}}
+                          </div>
+                          <div
+                            class="welist-col-number"
+                          >
+                            <md-tooltip md-direction="right">Is cited by {{obj.webentity.indegree|number}} other web entit{{obj.webentity.indegree|y_ies}} in the corpus</md-tooltip>
                             {{obj.webentity.indegree|number}}
                           </div>
                           <div

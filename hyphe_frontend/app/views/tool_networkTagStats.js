@@ -119,7 +119,7 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
         })
         attData.values.forEach(function(v1){
           attData.values.forEach(function(v2){
-            attData.valueFlow[v1][v2].nd = ( attData.valueFlow[v1][v2].count - attData.valueFlow[v1][v2].expected ) / (4 * g.size) 
+            attData.valueFlow[v1][v2].nd = ( attData.valueFlow[v1][v2].count - attData.valueFlow[v1][v2].expected ) / (4 * g.size)
           })
         })
 
@@ -356,8 +356,13 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
         })
 
       var g = new Graph({type: 'directed', allowSelfLoops: false})
-      g.addNodesFrom(weIndex)
-      g.importEdges(validLinks)
+
+      for (var k in weIndex)
+        g.addNode(k, Object.assign({}, weIndex[k]))
+
+      validLinks.forEach(function(l) {
+        g.importEdge(l)
+      })
 
       // Default nodes appearance
       g.nodes().forEach(function(nid){
@@ -419,5 +424,5 @@ angular.module('hyphe.toolNetworkTagStatsController', [])
         $scope.loadingStatus = false
       })
     }
-  
+
   })

@@ -103,20 +103,24 @@ The API will always answer as such:
     * __`get_webentities_page`__
     * __`get_webentities_ranking_stats`__
   + [TAGS](#tags)
+    * __`rebuild_tags_dictionary`__
     * __`add_webentity_tag_value`__
     * __`add_webentities_tag_value`__
     * __`rm_webentity_tag_value`__
     * __`rm_webentities_tag_value`__
+    * __`edit_webentity_tag_value`__
     * __`get_tags`__
     * __`get_tag_namespaces`__
     * __`get_tag_categories`__
     * __`get_tag_values`__
   + [PAGES, LINKS AND NETWORKS](#pages-links-and-networks)
     * __`get_webentity_pages`__
+    * __`paginate_webentity_pages`__
     * __`get_webentity_mostlinked_pages`__
     * __`get_webentity_subwebentities`__
     * __`get_webentity_parentwebentities`__
     * __`get_webentity_pagelinks_network`__
+    * __`paginate_webentity_pagelinks_network`__
     * __`get_webentity_referrers`__
     * __`get_webentity_referrals`__
     * __`get_webentity_ego_network`__
@@ -594,7 +598,7 @@ The API will always answer as such:
   + _`light_for_csv`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids.
+ Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids`.
  Results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` `_ (optional, default: `= -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.`)
  Other possible options include:
   * order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree", "name"]` will order by maximum indegree first then by alphabetic order of names
@@ -612,8 +616,7 @@ The API will always answer as such:
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.
- Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page`)
-  + _`using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.
+ Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.`)
   * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name", "lru prefixes", "startpages" & "homepage"). For instance `["hyphe", "www"]`
   * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
   * see description of `sort`, `light` and `semilight` in `get_webentities` above.
@@ -736,6 +739,13 @@ The API will always answer as such:
 
 ### TAGS
 
+- __`rebuild_tags_dictionary`:__
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Administrative function to regenerate for a `corpus` the dictionnary of tag values used by autocompletion features
+  + _`mostly a debug function which should not be used in most cases.
+
+
 - __`add_webentity_tag_value`:__
   + _`webentity_id`_ (mandatory)
   + _`namespace`_ (mandatory)
@@ -776,6 +786,17 @@ The API will always answer as such:
  Removes for a `corpus` a tag `namespace:category`_ (optional, default: `value` to a bunch of WebEntities defined by a list of `webentity_ids`.`)
 
 
+- __`edit_webentity_tag_value`:__
+  + _`webentity_id`_ (mandatory)
+  + _`namespace`_ (mandatory)
+  + _`category`_ (mandatory)
+  + _`old_value`_ (mandatory)
+  + _`new_value`_ (mandatory)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Replaces for a `corpus` a tag `namespace:category`_ (optional, default: `old_value` into a tag `namespace:category=new_value` for the WebEntity defined by `webentity_id` if it is set.`)
+
+
 - __`get_tags`:__
   + _`namespace`_ (optional, default: `null`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
@@ -811,15 +832,26 @@ The API will always answer as such:
   + _`onlyCrawled`_ (optional, default: `true`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
+ Warning: this method can be very slow on webentities with many pages, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
+
+
+- __`paginate_webentity_pages`:__
+  + _`webentity_id`_ (mandatory)
+  + _`count`_ (optional, default: `5000`)
+  + _`pagination_token`_ (optional, default: `null`)
+  + _`onlyCrawled`_ (optional, default: `false`)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
 
 
 - __`get_webentity_mostlinked_pages`:__
   + _`webentity_id`_ (mandatory)
   + _`npages`_ (optional, default: `20`)
+  + _`max_prefix_distance`_ (optional, default: `null`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`.
+ Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id` and optionnally at a maximum depth of `max_prefix_distance`.
 
 
 - __`get_webentity_subwebentities`:__
@@ -843,7 +875,17 @@ The API will always answer as such:
   + _`include_external_links`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true".
+ Warning: this method can be very slow on webentities with many pages or links, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true".
+
+
+- __`paginate_webentity_pagelinks_network`:__
+  + _`webentity_id`_ (optional, default: `null`)
+  + _`count`_ (optional, default: `10`)
+  + _`pagination_token`_ (optional, default: `null`)
+  + _`include_external_outlinks`_ (optional, default: `false`)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Returns for a `corpus` internal page links for `count` source pages of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_outlinks` to "true".
 
 
 - __`get_webentity_referrers`:__

@@ -29,13 +29,13 @@
     "angulartics": "1.4.0",
     "d3": "4.11.0",
     "file-saver": "1.3.3",
-    "graphology": "0.11.4",
+    "graphology": "0.14.1",
     "graphology-components": "0.1.0",
     "graphology-gexf": "0.5.0",
     "graphology-hits": "0.1.0",
     "graphology-layout": "0.1.0",
-    "graphology-layout-forceatlas2": "0.1.1",
+    "graphology-layout-forceatlas2": "0.2.1",
     "ng-tags-input": "3.2.0",
-    "sigma": "2.0.0-alpha18"
+    "sigma": "2.0.0-alpha20"
   }
 }

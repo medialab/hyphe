@@ -31,6 +31,17 @@ python deploy.py <corpus_name>
 Whenever `config.json` or the code in `hyphe_backend/crawler` and `hyphe_backend/lib/urllru.py` is modified, the spider for an existing corpus needs to be redeployed on the ScrapyD server to be taken into account. You can either do this by hand running the previous command, or by calling the Core API's method `crawl.deploy_crawler` ([see API documentation](api.md#commands-for-namespace-crawl)).
 
 
+## Debug ScrapyD when developing with Docker
+
+In the `docker-compose.yml` file, just add the following directive within the `services/crawler` section:
+```yml
+    ports:
+      - "7800:6800"
+```
+
+This will allow you to access ScrapyD's web monitoring interface and API at http://localhost:7800/.
+
+
 ## Use the API from command-line
 
 The entire frontend relies on calls to the core API which can also very well be scripted or reimplemented. This is especially useful when wanting to exploit some of Hyphe's functionalities which are not available from the web interface yet (for instance, tag all webentities from a list of urls with tag CSV, crawl all IN webentities, etc.).

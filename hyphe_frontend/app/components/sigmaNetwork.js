@@ -142,10 +142,10 @@ angular.module('hyphe.sigmaNetworkComponent', [])
                 $scope.onNodeClick(e.node)
               })
             })
-            renderer.on('overNode', function(e){
+            renderer.on('enterNode', function(e){
               el[0].classList.add('pointable')
             })
-            renderer.on('outNode', function(e){
+            renderer.on('leaveNode', function(e){
               el[0].classList.remove('pointable')
             })
 

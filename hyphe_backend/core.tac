@@ -4,10 +4,12 @@
 import sys, time
 import subprocess
 import msgpack
+from copy import deepcopy
 from bson.binary import Binary
 from json import dump as jsondump
 from random import randint
 from datetime import datetime
+from collections import defaultdict
 from twisted.internet import reactor
 from twisted.python import log as logger
 from twisted.python.logfile import LogFile
@@ -47,9 +49,11 @@ class Core(customJSONRPC):
         self.db = MongoDB(config['mongo-scrapy'])
         self.traphs = TraphFactory(data_dir=config["traph"]["data_path"])
         self.corpora = {}
+        self.existing_corpora = set([])
         self.destroying = {}
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
+        reactor.callLater(0, self.jsonrpc_list_corpus)
         reactor.addSystemEventTrigger('before', 'shutdown', self.close)
 
     @inlineCallbacks
@@ -67,6 +71,9 @@ class Core(customJSONRPC):
           "ready": False,
           "status": self.traphs.status_corpus(corpus, simplify=True),
         }
+        if corpus not in self.existing_corpora:
+            res["status"] = "missing"
+            res["message"] = "Corpus does not exist"
         if res["status"] == "ready":
             res["ready"] = True
         elif res["status"] == "error":
@@ -93,6 +100,7 @@ class Core(customJSONRPC):
             corpus["password"] = (corpus["password"] != "")
             corpus.update(self.jsonrpc_test_corpus(corpus.pop('_id'))["result"])
             res[corpus["corpus_id"]] = corpus
+            self.existing_corpora.add(corpus["corpus_id"])
         returnD(format_result(res))
 
     def jsonrpc_get_corpus_options(self, corpus=DEFAULT_CORPUS):
@@ -152,6 +160,8 @@ class Core(customJSONRPC):
                 yield self.db.add_WECR(corpus, lru, wecr)
 
     def corpus_ready(self, corpus):
+        if corpus not in self.existing_corpora:
+            return False
         if not self.traphs.test_corpus(corpus):
             return False
         if corpus not in self.corpora:
@@ -200,12 +210,13 @@ class Core(customJSONRPC):
                 returnD(format_error(e))
         self.corpora[corpus] = {
           "name": name,
-          "options": clean_missing_corpus_options({}, config),
+          "options": clean_missing_corpus_options(options, config),
           "tlds": tlds
         }
 
         # Save corpus in mongo
         yield self.db.add_corpus(corpus, name, password, self.corpora[corpus]["options"], tlds)
+        self.existing_corpora.add(corpus)
 
         # Setup WebEntityCreationRules
         yield self.init_creationrules(corpus)
@@ -238,7 +249,6 @@ class Core(customJSONRPC):
         self.corpora[corpus]["webentities_discovered"] = 0
         self.corpora[corpus]["tags"] = {}
         self.corpora[corpus]["webentities_links"] = {}
-        self.corpora[corpus]["webentities_ranks"] = {}
         self.corpora[corpus]["creation_rules"] = []
         self.corpora[corpus]["crawls"] = 0
         self.corpora[corpus]["crawls_running"] = 0
@@ -256,13 +266,16 @@ class Core(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_start_corpus(self, corpus=DEFAULT_CORPUS, password="", _noloop=False, _quiet=False, _create_if_missing=False):
         """Starts an existing `corpus` possibly `password`-protected. Returns the new corpus status."""
-        # Entrypoint to just test the global password for login2 page
+        # Entrypoint to just test the global password for admin page
         if not corpus:
             if not password or password != config.get("ADMIN_PASSWORD", None):
                 returnD(format_error("Wrong password"))
             returnD(format_success(True))
 
         if self.corpus_ready(corpus) or self.traphs.status_corpus(corpus, simplify=True) == "starting":
+            corpus_conf = yield self.db.get_corpus(corpus)
+            if corpus_conf and corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
+                returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
             returnD(self.jsonrpc_test_corpus(corpus, _msg="Corpus already ready"))
 
         if corpus not in self.corpora:
@@ -283,6 +296,8 @@ class Core(customJSONRPC):
         if corpus_conf['password'] and password != config.get("ADMIN_PASSWORD", None) and corpus_conf['password'] not in [password, salt(password)]:
             del(self.corpora[corpus]["starting"])
             returnD(format_error("Wrong auth for password-protected corpus %s" % corpus))
+
+        self.existing_corpora.add(corpus)
 
         res = yield self.crawler.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
@@ -341,12 +356,25 @@ class Core(customJSONRPC):
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
         try:
-            self.corpora[corpus]["tags"] = msgpack.unpackb(corpus_conf['tags'])
-        except:
+            tags = msgpack.unpackb(corpus_conf['tags'])
+            for ns, categories in tags.items():
+                ns = ns.decode("utf-8")
+                self.corpora[corpus]["tags"][ns] = {}
+                for cat, values in categories.items():
+                    cat = cat.decode("utf-8")
+                    self.corpora[corpus]["tags"][ns][cat] = {}
+                    for val, count in values.items():
+                        val = val.decode("utf-8")
+                        self.corpora[corpus]["tags"][ns][cat][val] = count
+        except Exception as e:
+            logger.msg("Could not unpack tags from Mongo: %s (%s), rebuilding dictionary..." % (e, type(e)), system="WARNING - %s" % corpus)
             self.corpora[corpus]["tags"] = {}
+        if self.corpora[corpus]["total_webentities"] and not self.corpora[corpus]["tags"]:
+            reactor.callLater(0, self.store.jsonrpc_rebuild_tags_dictionary, corpus)
         try:
             self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
-        except:
+        except Exception as e:
+            logger.msg("Could not unpack links from Mongo: %s (%s)" % (e, type(e)), system="WARNING - %s" % corpus)
             self.corpora[corpus]["webentities_links"] = {}
         self.corpora[corpus]["reset"] = False
         if not _noloop and not self.corpora[corpus]['jobs_loop'].running:
@@ -487,6 +515,7 @@ class Core(customJSONRPC):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
+        yield self.init_creationrules(corpus)
 
         res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=(not _noloop))
         if is_error(res):
@@ -518,6 +547,7 @@ class Core(customJSONRPC):
         yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
         del(self.destroying[corpus])
+        self.existing_corpora.remove(corpus)
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
 
     @inlineCallbacks
@@ -696,7 +726,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]['crawls_running'] = len(scrapyjobs['running'])
         yield self.update_corpus(corpus)
         # clean lost jobs
-        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.PENDING, 'indexing_status': 'BATCH_FINISHED'}, {'crawling_status': crawling_statuses.RUNNING, "started_at": now_ts()})
+        yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.PENDING, 'indexing_status': indexing_statuses.BATCH_FINISHED}, {'crawling_status': crawling_statuses.RUNNING, "started_at": now_ts()})
         if len(scrapyjobs['running']) + len(scrapyjobs['pending']) == 0:
             yield self.db.update_jobs(corpus, {'crawling_status': crawling_statuses.RUNNING}, {'crawling_status': crawling_statuses.FINISHED, "finished_at": now_ts()})
 
@@ -748,7 +778,7 @@ class Core(customJSONRPC):
             startrule = startrule.lower()
             nlinks = self.re_linkedpages.search(startrule)
             if nlinks:
-                pages = yield self.store.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=int(nlinks.group(1)))
+                pages = yield self.store.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=int(nlinks.group(1)), max_depth=2)
                 if is_error(pages):
                     returnD(pages)
                 pages = pages["result"]
@@ -758,12 +788,12 @@ class Core(customJSONRPC):
             elif startrule == "startpages":
                 starts[startrule] = WE["startpages"]
             elif startrule == "homepage":
-                starts[startrule] = WE["homepage"]
+                starts[startrule] = [WE["homepage"]]
             else:
                 returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
         if categories:
             returnD(starts)
-        returnD(list(set(s for st in starts.values() for s in st)))
+        returnD(list(set(s for st in starts.values() for s in st if s)))
 
     @inlineCallbacks
     def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, save_startpages=False, corpus=DEFAULT_CORPUS):
@@ -1164,7 +1194,8 @@ class Memory_Structure(customJSONRPC):
         res = {'_id': WE["_id"], 'id': WE["_id"], 'name': WE["name"], 'status': WE["status"], 'prefixes': WE["prefixes"]}
         if weight is not None:
             res['weight'] = weight
-        res['indegree'] = self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
+        for key in ['undirected_', 'in', 'out']:
+            res[key + 'degree'] = self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get(key + 'degree', 0)
         if test_bool_arg(light):
             return res
         res['creation_date'] = WE["creationDate"]
@@ -1177,6 +1208,8 @@ class Memory_Structure(customJSONRPC):
             res['crawling_status'] = crawling_statuses.UNCRAWLED
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
+        for key in ['total', 'crawled']:
+            res['pages_' + key] = self.corpora[corpus]['webentities_links'].get(WE['_id'], {}).get('pages_' + key, 0)
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
         for tag, values in WE["tags"].iteritems():
@@ -1196,7 +1229,7 @@ class Memory_Structure(customJSONRPC):
 
     re_camelCase = re.compile(r'(.)_(.)')
     def sortargs_accessor(self, WE, field, jobs={}, weights=None, corpus=DEFAULT_CORPUS):
-        if "_" in field:
+        if "_" in field and not field.startswith("pages_"):
             field = self.re_camelCase.sub(lambda x: x.group(1)+x.group(2).upper(), field)
         else: field = field.lower()
         if field in WE:
@@ -1206,8 +1239,8 @@ class Memory_Structure(customJSONRPC):
             return job and job['crawling_status'] not in [crawling_statuses.CANCELED, crawling_statuses.UNCRAWLED]
         if field == "weight" and weights is not None:
             return weights.get(WE["_id"], 0)
-        if field == "indegree":
-            return self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0)
+        if field.startswith("pages") or field.endswith("degree"):
+            return self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get(field, 0)
         return None
 
     @inlineCallbacks
@@ -1257,7 +1290,7 @@ class Memory_Structure(customJSONRPC):
     def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
         homepages = {}
         homepWEs = [w for w in WEs if not w["homepage"]]
-        results = yield DeferredList([self.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=50) for WE in homepWEs], consumeErrors=True)
+        results = yield DeferredList([self.traphs.call(corpus, "get_webentity_most_linked_pages", WE["_id"], WE["prefixes"], pages_count=50, max_depth=1) for WE in homepWEs], consumeErrors=True)
         res = []
         for i, (bl, pgs) in enumerate(results):
             WE = homepWEs[i]
@@ -1278,7 +1311,7 @@ class Memory_Structure(customJSONRPC):
                 if self.validate_linkpage(page_url, prefixes):
                     homepages[WE["_id"]] = page_url
                     if p["indegree"] > 2:
-                        self.jsonrpc_set_webentity_homepage(WE["_id"], page_url, corpus=corpus, _declare_page=False)
+                        self.jsonrpc_set_webentity_homepage(WE["_id"], page_url, corpus=corpus, _declare_page=False, _automatic=True)
                         break
                 else:
                     for pr in prefixes:
@@ -1303,7 +1336,7 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result("Traph reinitialized"))
 
     @inlineCallbacks
-    def return_new_webentity(self, lru_prefix, new=False, source=None, corpus=DEFAULT_CORPUS):
+    def return_new_webentity(self, lru_prefix, new=False, source=None, source_url=None, corpus=DEFAULT_CORPUS):
         weid = yield self.traphs.call(corpus, "retrieve_webentity", lru_prefix)
         if is_error(weid):
             returnD(weid)
@@ -1313,11 +1346,11 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("Could not retrieve WE for prefix %s" % lru_prefix))
         if test_bool_arg(new):
             if source:
-                yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus)
+                yield self.jsonrpc_add_webentity_tag_value(weid, 'CORE', 'createdBy', "user via %s" % source, corpus=corpus, _automatic=True)
             self.corpora[corpus]['recent_changes'] += 1
             self.update_webentities_counts(WE, WE["status"], new=True, corpus=corpus)
         job = yield self.db.list_jobs(corpus, {'webentity_id': weid}, projection=['crawling_status', 'indexing_status'], sort=sortdesc('created_at'), limit=1)
-        WE = self.format_webentity(WE, job, corpus=corpus)
+        WE = self.format_webentity(WE, job, homepage=source_url, corpus=corpus)
         WE['created'] = True if new else False
         returnD(WE)
 
@@ -1337,7 +1370,7 @@ class Memory_Structure(customJSONRPC):
             new = True
             weid, prefixes = res["result"]["created_webentities"].items()[0]
             yield self.db.add_WE(corpus, weid, prefixes)
-        res = yield self.return_new_webentity(lru, new, 'page', corpus=corpus)
+        res = yield self.return_new_webentity(lru, new, 'page', source_url=url, corpus=corpus)
         returnD(format_result(res))
 
     @inlineCallbacks
@@ -1442,7 +1475,7 @@ class Memory_Structure(customJSONRPC):
                 if parent["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"]), new_WE["prefixes"]):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                    self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus)
+                    self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus, _automatic=True)
         returnD(format_result(new_WE))
 
 
@@ -1450,7 +1483,7 @@ class Memory_Structure(customJSONRPC):
 
     # TODO REWRITE AS MONGO DIRECT EDITS
     @inlineCallbacks
-    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, corpus=DEFAULT_CORPUS, _commit=True):
+    def update_webentity(self, webentity_id, field_name, value, array_behavior=None, array_key=None, array_namespace=None, update_timestamp=True, corpus=DEFAULT_CORPUS, _commit=True):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         # Get WebEntity if webentity_id not already one from internal call
@@ -1502,7 +1535,7 @@ class Memory_Structure(customJSONRPC):
                 WE[field_name] = value
             if _commit:
                 if len(WE["prefixes"]):
-                    yield self.db.upsert_WE(corpus, webentity_id, WE)
+                    yield self.db.upsert_WE(corpus, webentity_id, WE, update_timestamp=update_timestamp)
                     if field_name == 'prefixes':
                         self.corpora[corpus]['recent_changes'] += 1
                     returnD(format_result("%s field of WebEntity %s updated." % (field_name, webentity_id)))
@@ -1602,20 +1635,20 @@ class Memory_Structure(customJSONRPC):
                 return
             self.corpora[corpus]["webentities_%s" % oldStatus.lower()] -= 1
         elif not deleted:
-            self.corpora[corpus]['total_webentities'] += 1
+            self.corpora[corpus]["total_webentities"] += 1
         if not deleted:
             self.corpora[corpus]["webentities_%s" % newStatus.lower()] += 1
         elif not new:
-            self.corpora[corpus]['total_webentities'] -= 1
+            self.corpora[corpus]["total_webentities"] -= 1
         if "IN" in [oldStatus, newStatus]:
             categories = self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", [])
         if oldStatus == "IN" and not new:
-            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
+            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories if cat != "FREETAGS"]):
                 self.corpora[corpus]["webentities_in_untagged"] -= 1
             if not WE["crawled"]:
                 self.corpora[corpus]["webentities_in_uncrawled"] -= 1
         if newStatus == "IN" and not deleted:
-            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories]):
+            if "USER" not in WE["tags"] or any([cat not in WE["tags"]["USER"] for cat in categories if cat != "FREETAGS"]):
                 self.corpora[corpus]["webentities_in_untagged"] += 1
             if not WE["crawled"]:
                 self.corpora[corpus]["webentities_in_uncrawled"] += 1
@@ -1625,7 +1658,7 @@ class Memory_Structure(customJSONRPC):
         return self.batch_webentities_edit("set_webentity_status", webentity_ids, corpus, status)
 
     @inlineCallbacks
-    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS, _declare_page=True):
+    def jsonrpc_set_webentity_homepage(self, webentity_id, homepage="", corpus=DEFAULT_CORPUS, _declare_page=True, _automatic=False):
         """Changes for a `corpus` the homepage of a WebEntity defined by `webentity_id` to `homepage`."""
         homepage = (homepage or "").strip()
         try:
@@ -1646,7 +1679,7 @@ class Memory_Structure(customJSONRPC):
                     logger.msg("ERROR while declaring homepage %s" % homepage, system="DEBUG - %s" % corpus)
                 elif res["result"]["created"]:
                     returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
-        res = yield self.update_webentity(webentity_id, "homepage", homepage, corpus=corpus)
+        res = yield self.update_webentity(webentity_id, "homepage", homepage, update_timestamp=(not _automatic), corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1675,7 +1708,7 @@ class Memory_Structure(customJSONRPC):
                 if old_WE["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(old_WE["homepage"], self.corpora[corpus]["tlds"]), lru_prefixes):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (old_WE["homepage"], old_WE["name"]), system="DEBUG - %s" % corpus)
-                    yield self.jsonrpc_set_webentity_homepage(old_WE["_id"], "", corpus=corpus)
+                    yield self.jsonrpc_set_webentity_homepage(old_WE["_id"], "", corpus=corpus, _automatic=True)
                 logger.msg("Removing LRUPrefix %s from WebEntity %s" % (lru_prefix, old_WE["name"]), system="INFO - %s" % corpus)
                 res = yield self.jsonrpc_rm_webentity_lruprefix(old_WE["_id"], lru_prefix, corpus=corpus)
                 if is_error(res):
@@ -1732,7 +1765,7 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
         if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
             WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
-        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", corpus=corpus)
+        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", update_timestamp=(not _automatic), corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
@@ -1757,6 +1790,8 @@ class Memory_Structure(customJSONRPC):
             returnD(self.parent.corpus_error(corpus))
         old_webentity_id = int(old_webentity_id)
         good_webentity_id = int(good_webentity_id)
+        if old_webentity_id == good_webentity_id:
+            returnD(format_error('ERROR: old_webentity_id and good_webentity_id are identical: %s' % old_webentity_id))
         old_WE = yield self.db.get_WE(corpus, old_webentity_id)
         if not old_WE:
             returnD(format_error('ERROR retrieving WebEntity with id %s' % old_webentity_id))
@@ -1789,9 +1824,7 @@ class Memory_Structure(customJSONRPC):
             if not old_WE["startpages"]:
                 old_WE["startpages"] = []
             if old_WE["homepage"]:
-                if new_WE["homepage"]:
-                    old_WE["startpages"].append(new_WE["homepage"])
-                new_WE["homepage"] = old_WE["homepage"]
+                old_WE["startpages"].append(old_WE["homepage"])
             if not new_WE["startpages"]:
                 new_WE["startpages"] = []
             for page in old_WE["startpages"]:
@@ -1899,7 +1932,15 @@ class Memory_Structure(customJSONRPC):
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
         if job['_id'] != 'unknown':
-            yield self.db.update_jobs(corpus, job['_id'], {'nb_crawled_pages': tot_crawled_pages, 'nb_unindexed_pages': crawled_pages_left, 'indexing_status': indexing_statuses.BATCH_FINISHED}, inc={'nb_pages': nb_pages, 'nb_links': n_batchlinks})
+            update = {
+                'nb_crawled_pages': tot_crawled_pages,
+                'nb_unindexed_pages': crawled_pages_left,
+                'indexing_status': indexing_statuses.BATCH_FINISHED
+            }
+            if job['crawling_status'] == crawling_statuses.PENDING:
+                update['crawling_status'] = crawling_statuses.RUNNING
+                update["started_at"] = now_ts()
+            yield self.db.update_jobs(corpus, job['_id'], update, inc={'nb_pages': nb_pages, 'nb_links': n_batchlinks})
             yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_FINISHED)
 
         returnD(True)
@@ -1908,10 +1949,24 @@ class Memory_Structure(customJSONRPC):
     def rank_webentities(self, corpus=DEFAULT_CORPUS):
         if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
-        ranks = {}
-        for target, links in self.corpora[corpus]["webentities_links"].items():
-            ranks[target] = len(links)
-        self.corpora[corpus]['webentities_ranks'] = ranks
+        outlinks = defaultdict(set)
+        alllinks = defaultdict(set)
+        for target, links in self.corpora[corpus]['webentities_links'].items():
+            for key in ['crawled', 'uncrawled', 'total']:
+                if 'pages_'+key not in links:
+                    links['pages_'+key] = 0
+            links['pages_total'] = links['pages_crawled'] + links['pages_uncrawled']
+            for key in ['undirected_', 'in', 'out']:
+                links[key + 'degree'] = links.get(key + 'degree', 0)
+            links['indegree'] = len(links) - 6
+            for source in links:
+                if isinstance(source, int):
+                    outlinks[source].add(target)
+                    alllinks[source].add(target)
+                    alllinks[target].add(source)
+        for target, links in self.corpora[corpus]['webentities_links'].items():
+            links["undirected_degree"] = len(alllinks[target])
+            links["outdegree"] = len(outlinks[target])
         yield self.parent.update_corpus(corpus, False, True)
 
     @inlineCallbacks
@@ -1936,7 +1991,7 @@ class Memory_Structure(customJSONRPC):
         if oldest_page_in_queue:
             # find next job to be indexed and set its indexing status to batch_running
             self.corpora[corpus]['loop_running'] = "Indexing crawled pages"
-            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, projection=['crawljob_id', 'crawl_arguments', 'webentity_id'], limit=1)
+            job = yield self.db.list_jobs(corpus, {'crawljob_id': oldest_page_in_queue['_job'], 'indexing_status': {'$ne': indexing_statuses.BATCH_RUNNING}}, projection=['crawljob_id', 'crawl_arguments', 'webentity_id', 'crawling_status'], limit=1)
             if not job:
                 jobs = yield self.db.list_jobs(corpus)
                 if not jobs:
@@ -1949,7 +2004,8 @@ class Memory_Structure(customJSONRPC):
                 job = {
                   '_id': 'unknown',
                   'crawljob_id': oldest_page_in_queue['_job'],
-                  'webentity_id': None
+                  'webentity_id': None,
+                  'crawling_status': None
                 }
             page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['traph']['max_simul_pages_indexing'])
             if page_items:
@@ -1972,7 +2028,8 @@ class Memory_Structure(customJSONRPC):
         now = now_ts()
         s = time.time()
         # Build links after at least one index if no more than 25000 pages in queue and...
-        if self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['pages_queued'] < 25000 and (
+        pages_crawled = yield self.db.check_pages(corpus)
+        if pages_crawled and self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['pages_queued'] < 25000 and (
             # pagesqueue is empty
             not self.corpora[corpus]['pages_queued'] or
             # links were not built since more than 8 times the time it takes
@@ -2022,6 +2079,8 @@ class Memory_Structure(customJSONRPC):
         disc = yield self.db.count_WEs(corpus, {"status": "DISCOVERED"})
         query = {"status": "IN", "$or": [{"tags.USER": {"$exists": False}}]}
         for cat in self.jsonrpc_get_tag_categories(namespace="USER", corpus=corpus).get("result", []):
+            if cat == "FREETAGS":
+                continue
             query["$or"].append({"tags.USER.%s" % cat: {"$exists": False}})
         notg = yield self.db.count_WEs(corpus, query)
         if corpus not in self.corpora:
@@ -2168,7 +2227,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=[], sort=None, count=100, page=0, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS, _weights=None):
-        """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` == -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
+        """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids`.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` == -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         page, count = self._checkPageCount(page, count)
@@ -2195,7 +2254,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS, _exactSearch=False):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page\, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (notes: this does not work with undirected_degree and outdegree ; only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2237,7 +2296,7 @@ class Memory_Structure(customJSONRPC):
                 returnD(format_error('ERROR: fieldKeywords must be a list of two-string-elements lists or ["indegree", [min_int, max_int]]. %s' % fieldKeywords))
         WEs = yield self.db.get_WEs(corpus, query)
         if indegree_filter:
-            WEs = [w for w in WEs if self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_ranks"].get(WE["_id"], 0) <= indegree_filter[1]]
+            WEs = [w for w in WEs if self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0) >= indegree_filter[0] and self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get('indegree', 0) <= indegree_filter[1]]
 
         res = yield self.paginate_webentities(WEs, count, page, sort=sort, light=light, semilight=semilight, corpus=corpus)
         returnD(res)
@@ -2276,6 +2335,7 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` all WebEntities having at least one tag in any namespace/category equal to `value`.\nResults are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        value = value.strip()
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
@@ -2397,7 +2457,7 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No previous query found for token %s on corpus %s" % (pagination_token, corpus)))
         histogram = {}
         for w in WEs["webentities"]:
-            rank = self.corpora[corpus]["webentities_ranks"].get(w[0], 0)
+            rank = self.corpora[corpus]["webentities_links"].get(w[0], {}).get('indegree', 0)
             if rank not in histogram:
                 histogram[rank] = 0
             histogram[rank] += 1
@@ -2406,13 +2466,29 @@ class Memory_Structure(customJSONRPC):
   # TAGS
 
     def _cleanupTagsKey(self, key):
+        # MongoDB considers dots as hierarchy separator in objects and refuses them in object's keys
         if key and "." in key:
             key = key.replace(".", "_")
+        if key:
+            key = key.strip()
         return key
 
+    @inlineCallbacks
+    def jsonrpc_rebuild_tags_dictionary(self, corpus=DEFAULT_CORPUS):
+        """Administrative function to regenerate for a `corpus` the dictionnary of tag values used by autocompletion features, mostly a debug function which should not be used in most cases."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        WEs = yield self.db.get_WEs(corpus, {"tags.USER": {"$exists": True}}, projection=["tags"])
+        self.corpora[corpus]["tags"] = {}
+        for WE in WEs:
+            for ns in WE["tags"]:
+                for cat in WE["tags"][ns]:
+                    yield self.add_tags_to_dictionary(ns, cat, WE["tags"][ns][cat], corpus, _commit=False)
+        yield self.parent.update_corpus(corpus, True)
+        returnD(format_result(self.corpora[corpus]["tags"]))
 
     @inlineCallbacks
-    def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS):
+    def add_tags_to_dictionary(self, namespace, category, values, corpus=DEFAULT_CORPUS, _commit=True):
         if not isinstance(values, list):
             values = [values]
         if namespace not in self.corpora[corpus]["tags"]:
@@ -2424,14 +2500,15 @@ class Memory_Structure(customJSONRPC):
             if value not in self.corpora[corpus]["tags"][namespace][category]:
                 self.corpora[corpus]["tags"][namespace][category][value] = 0
             self.corpora[corpus]["tags"][namespace][category][value] += 1
-        yield self.parent.update_corpus(corpus, True)
+        if _commit:
+            yield self.parent.update_corpus(corpus, True)
 
     @inlineCallbacks
     def remove_tag_from_dictionary(self, namespace, category, value, corpus=DEFAULT_CORPUS):
         try:
             self.corpora[corpus]["tags"][namespace][category][value] -= 1
         except:
-            return
+            returnD(None)
         if self.corpora[corpus]["tags"][namespace][category][value] <= 0:
             del(self.corpora[corpus]["tags"][namespace][category][value])
         if not self.corpora[corpus]["tags"][namespace][category]:
@@ -2441,11 +2518,12 @@ class Memory_Structure(customJSONRPC):
         yield self.parent.update_corpus(corpus, True)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _commit=True):
+    def jsonrpc_add_webentity_tag_value(self, webentity_id, namespace, category, value, corpus=DEFAULT_CORPUS, _automatic=False, _commit=True):
         """Adds for a `corpus` a tag `namespace:category=value` to a WebEntity defined by `webentity_id`."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
-        res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, corpus=corpus)
+        value = value.strip()
+        res = yield self.update_webentity(webentity_id, "tags", value, "push", category, namespace, _commit=_commit, update_timestamp=(not _automatic), corpus=corpus)
         if not is_error(res):
             yield self.add_tags_to_dictionary(namespace, category, value, corpus=corpus)
         returnD(res)
@@ -2460,6 +2538,7 @@ class Memory_Structure(customJSONRPC):
         """Removes for a `corpus` a tag `namespace:category=value` associated with a WebEntity defined by `webentity_id` if it is set."""
         namespace = self._cleanupTagsKey(namespace)
         category = self._cleanupTagsKey(category)
+        value = value.strip()
         res = yield self.update_webentity(webentity_id, "tags", value, "pop", category, namespace, _commit=_commit, corpus=corpus)
         if not is_error(res):
             yield self.remove_tag_from_dictionary(namespace, category, value, corpus=corpus)
@@ -2471,11 +2550,25 @@ class Memory_Structure(customJSONRPC):
         return self.batch_webentities_edit("rm_webentity_tag_value", webentity_ids, corpus, namespace, category, value)
 
     @inlineCallbacks
+    def jsonrpc_edit_webentity_tag_value(self, webentity_id, namespace, category, old_value, new_value, corpus=DEFAULT_CORPUS, _automatic=False, _commit=True):
+        """Replaces for a `corpus` a tag `namespace:category=old_value` into a tag `namespace:category=new_value` for the WebEntity defined by `webentity_id` if it is set."""
+        namespace = self._cleanupTagsKey(namespace)
+        category = self._cleanupTagsKey(category)
+        old_value = old_value.strip()
+        new_value = new_value.strip()
+        WE = yield self.update_webentity(webentity_id, "tags", old_value, "pop", category, namespace, _commit=False, corpus=corpus)
+        res = yield self.update_webentity(WE, "tags", new_value, "push", category, namespace, _commit=_commit, update_timestamp=(not _automatic), corpus=corpus)
+        if not is_error(res):
+            yield self.remove_tag_from_dictionary(namespace, category, old_value, corpus=corpus)
+            yield self.add_tags_to_dictionary(namespace, category, new_value, corpus=corpus)
+        returnD(res)
+
+    @inlineCallbacks
     def add_backend_tags(self, webentity_id, key, value, namespace="", corpus=DEFAULT_CORPUS, _commit=True):
         if not namespace:
             namespace = "CORE"
         else: namespace = "CORE-%s" % namespace
-        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, _commit=_commit, corpus=corpus)
+        WE = yield self.jsonrpc_add_webentity_tag_value(webentity_id, namespace, key, value, corpus=corpus, _automatic=True, _commit=_commit)
         returnD(WE)
 
     def jsonrpc_get_tags(self, namespace=None, corpus=DEFAULT_CORPUS):
@@ -2546,7 +2639,6 @@ class Memory_Structure(customJSONRPC):
             res['linked'] = page.get('indegree', None)
         return res
 
-
     def format_pages(self, pages, linked=False):
         if is_error(pages):
             return pages
@@ -2554,30 +2646,103 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        """Warning: this method can be very slow on webentities with many pages\, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        onlyCrawled = test_bool_arg(onlyCrawled)
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        if onlyCrawled:
-            pages = yield self.traphs.call(corpus, "get_webentity_crawled_pages", webentity_id, WE["prefixes"])
-        else:
-            pages = yield self.traphs.call(corpus, "get_webentity_pages", webentity_id, WE["prefixes"])
+        if webentity_id not in self.corpora[corpus]['webentities_links']:
+            self.corpora[corpus]['webentities_links'][webentity_id] = {}
+        we_links = self.corpora[corpus]['webentities_links'][webentity_id]
+        for key in ['crawled', 'uncrawled', 'total']:
+            if key not in we_links:
+                we_links['pages_' + key] = 0
+        pages = yield self.traphs.call(corpus, "get_webentity_"+("crawled_" if onlyCrawled else "")+"pages", webentity_id, WE["prefixes"])
         if is_error(pages):
             returnD(pages)
+        if onlyCrawled:
+            we_links['pages_crawled'] = len(pages["result"])
+            we_links['pages_total'] = we_links['pages_crawled'] + we_links['pages_uncrawled']
+        else:
+            we_links['pages_total'] = len(pages["result"])
+            we_links['pages_uncrawled'] = we_links['pages_total'] - we_links['pages_crawled']
+        yield self.parent.update_corpus(corpus, False, True)
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
-    def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id`."""
+    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        onlyCrawled = test_bool_arg(onlyCrawled)
+        WE = yield self.db.get_WE(corpus, webentity_id)
+        if not WE:
+            returnD(format_error("No webentity found for id %s" % webentity_id))
+        try:
+            count = int(count)
+            if count < 1: raise
+        except:
+            returnD(format_error("count should be a positive integer"))
+        if pagination_token:
+            try:
+                total, crawled, token = pagination_token.split('|')
+                total = int(total)
+                crawled = int(crawled)
+            except:
+                returnD(format_error("Pagination token '%s' seems wrong, it should look like <int>|<int>|<b64_string>" % pagination_token))
+        else:
+            total, crawled, token = (0, 0, None)
+        pages = yield self.traphs.call(corpus, "paginate_webentity_pages", webentity_id, WE["prefixes"], page_count=count, pagination_token=token, crawled_only=onlyCrawled)
+        if is_error(pages):
+            returnD(pages)
+        pages = pages['result']
+        total += pages['count']
+        crawled += pages['count_crawled']
+        if pages.get('token'):
+            token = '|'.join([str(total), str(crawled), pages['token']])
+        else:
+            token = None
+            # Update totaux
+            if webentity_id not in self.corpora[corpus]['webentities_links']:
+                self.corpora[corpus]['webentities_links'][webentity_id] = {}
+            we_links = self.corpora[corpus]['webentities_links'][webentity_id]
+            for key in ['crawled', 'uncrawled', 'total']:
+                if key not in we_links:
+                    we_links['pages_' + key] = 0
+            we_links['pages_crawled'] = crawled
+            if onlyCrawled:
+                we_links['pages_total'] = we_links['pages_uncrawled'] + crawled
+            else:
+                we_links['pages_total'] = total
+                we_links['pages_uncrawled'] = total - crawled
+            yield self.parent.update_corpus(corpus, False, True)
+        returnD(format_result({
+            'token': token,
+            'pages': self.format_pages(pages['pages'])
+        }))
+
+    @inlineCallbacks
+    def jsonrpc_get_webentity_mostlinked_pages(self, webentity_id, npages=20, max_prefix_distance=None, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the `npages` (defaults to 20) most linked Pages indexed that fit within the WebEntity defined by `webentity_id` and optionnally at a maximum depth of `max_prefix_distance`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         try:
             npages = int(npages)
             assert(npages > 0)
         except:
             returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
+        if max_prefix_distance != None:
+            try:
+                max_prefix_distance = int(max_prefix_distance)
+                assert(max_prefix_distance >= 0)
+            except:
+                returnD(format_error("ERROR: max_prefix_distance argument must be null or a positive integer"))
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages)
+        pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages, max_depth=max_prefix_distance)
         if is_error(pages):
             returnD(pages)
         returnD(format_result(self.format_pages(pages["result"], linked=True)))
@@ -2592,6 +2757,8 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def get_webentity_relative_webentities(self, webentity_id, relative_type="children", light=False, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         if relative_type != "children" and relative_type != "parents":
             returnD(format_error("ERROR: relative_type must be set to children or parents"))
         WE = yield self.db.get_WE(corpus, webentity_id)
@@ -2612,7 +2779,9 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pagelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
+        """Warning: this method can be very slow on webentities with many pages or links\, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating NodeLinks network for WebEntity %s..." % webentity_id, system="INFO - %s" % corpus)
         include_external = test_bool_arg(include_external_links)
@@ -2627,6 +2796,44 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(res))
 
     @inlineCallbacks
+    def jsonrpc_paginate_webentity_pagelinks_network(self, webentity_id=None, count=10, pagination_token=None, include_external_outlinks=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` internal page links for `count` source pages of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_outlinks` to "true"."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        include_external = test_bool_arg(include_external_outlinks)
+        WE = yield self.db.get_WE(corpus, webentity_id)
+        if not WE:
+            returnD(format_error("No webentity found for id %s" % webentity_id))
+        try:
+            count = int(count)
+            if count < 1: raise
+        except:
+            returnD(format_error("count should be a positive integer"))
+        if pagination_token:
+            try:
+                total, total_pages, token = pagination_token.split('|')
+                total = int(total)
+                total_pages = int(total_pages)
+            except:
+                returnD(format_error("Pagination token '%s' seems wrong, it should look like <int>|<b64_string>" % pagination_token))
+        else:
+            total, total_pages, token = (0, 0, None)
+        links = yield self.traphs.call(corpus, "paginate_webentity_pagelinks", webentity_id, WE["prefixes"], source_page_count=count, pagination_token=token, include_outbound=include_external_outlinks)
+        if is_error(links):
+            returnD(links)
+        links = links['result']
+        total += links['count_pagelinks']
+        total_pages += links['count_sourcepages']
+        if links.get('token'):
+            token = '|'.join([str(total), str(total_pages), links['token']])
+        else:
+            token = None
+        returnD(format_result({
+            'token': token,
+            'links': [list(l) for l in links['pagelinks']]
+        }))
+
+    @inlineCallbacks
     def get_webentity_linked_entities(self, webentity_id=None, direction="in", count=100, page=0, light=True, semilight=False, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2634,7 +2841,10 @@ class Memory_Structure(customJSONRPC):
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
         if direction == "in":
-            linked = self.corpora[corpus]["webentities_links"].get(webentity_id, {})
+            linked = deepcopy(self.corpora[corpus]["webentities_links"].get(webentity_id, {}))
+            for key in ['pages_crawled', 'pages_uncrawled', 'pages_total', 'undirected_degree', 'indegree', 'outdegree']:
+                if key in linked:
+                    del linked[key]
         else:
             linked = {}
             for target, sources in self.corpora[corpus]["webentities_links"].items():
@@ -2660,7 +2870,7 @@ class Memory_Structure(customJSONRPC):
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No webentity found for id %s" % webentity_id))
-        neighbors = set([webentity_id] + self.corpora[corpus]["webentities_links"].get(webentity_id, {}).keys())
+        neighbors = set([webentity_id] + [k for k in self.corpora[corpus]["webentities_links"].get(webentity_id, {}).keys() if isinstance(k, int)])
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             if webentity_id in sources:
                 neighbors.add(target)
@@ -2680,6 +2890,8 @@ class Memory_Structure(customJSONRPC):
         res = []
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             for source, weight in sources.items():
+                if not isinstance(source, int):
+                    continue
                 res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
         return handle_standard_results(res)
@@ -2761,7 +2973,7 @@ class Memory_Structure(customJSONRPC):
                     if parenthomelru != variation and urllru.has_prefix(parenthomelru, variations):
                         if config['DEBUG']:
                             logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
-                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus)
+                        yield self.jsonrpc_set_webentity_homepage(parent["id"], "", corpus=corpus, _automatic=True)
         returnD(format_result("Webentity creation rule added and applied: %s new webentities created" % news))
 
     @inlineCallbacks

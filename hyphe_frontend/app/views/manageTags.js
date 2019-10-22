@@ -120,7 +120,7 @@ angular.module('hyphe.manageTagsController', [])
         })
       })
       buildTagData()
-      
+
       return api.removeTag_webentities({
           webentityId_list: webentities.map(function(we){return we.id})
           ,category: tagCat
@@ -143,12 +143,14 @@ angular.module('hyphe.manageTagsController', [])
         return false
       }
       $scope.tagCategories[category] = []
-      
+
       // Wait a frame to render the new category before resetting the form field and focus on input
       $timeout(function(){
         $scope.newCategory = ''
+        var slugCat = category.replace(/[^a-z0-9]/i, '_')
+        document.querySelector(".category-"+slugCat+" input").focus()
       }, 0)
-      
+
       return true
     }
 
@@ -242,13 +244,17 @@ angular.module('hyphe.manageTagsController', [])
           $scope.searchQuery, false, 'name'
         ),
         $scope.filters, $scope.tagCategories
-      )
+      ).sort(function (a,b) {
+        if (a.name < b.name) return -1;
+        else if (a.name > b.name) return 1;
+        return 0;
+      })
     }
 
     function updateTags() {
       if($scope.loading) { return }
       $scope.filters = []
-      
+
       if ($scope.generalOption !== undefined) {
         // There is a general option (special option)
         // As a consequence everything else is unselected
@@ -421,7 +427,7 @@ angular.module('hyphe.manageTagsController', [])
             ,page: 0
           }
           ,function(result){
-            
+
             $scope.data.in.total = result.total_results
             $scope.data.in.token = result.token
 
@@ -495,8 +501,13 @@ angular.module('hyphe.manageTagsController', [])
         })
 
       var g = new Graph({type: 'directed', allowSelfLoops: false})
-      g.addNodesFrom(weIndex)
-      g.importEdges(validLinks)
+
+      for (var k in weIndex)
+        g.addNode(k, Object.assign({}, weIndex[k]))
+
+      validLinks.forEach(function(l) {
+        g.importEdge(l)
+      })
 
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)

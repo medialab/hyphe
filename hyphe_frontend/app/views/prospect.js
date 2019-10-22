@@ -9,7 +9,8 @@ angular.module('hyphe.prospectController', [])
     utils,
     corpus,
     store,
-    $location
+    $location,
+    $window
   ) {
     $scope.currentPage = 'prospect'
     $scope.corpusName = corpus.getName()
@@ -62,6 +63,8 @@ angular.module('hyphe.prospectController', [])
       $scope.settingsChanged = difference
     }
 
+
+
     $scope.loadWebentities = function(query){
 
       // Get filtering settings
@@ -103,7 +106,7 @@ angular.module('hyphe.prospectController', [])
           ,status: status
         }
         ,function(result){
-            obj.webentity.status = status 
+            obj.webentity.status = status
         }
         ,function(){
           // In case of error, we undo the modification in the UI
@@ -446,5 +449,23 @@ angular.module('hyphe.prospectController', [])
 
     // Init
     $scope.applySettings()
+
+    $scope.$on('$locationChangeStart', function( event ) {
+      var toIn = $scope.setToIn
+      if(toIn){
+        var answer = confirm("You have set as IN "+toIn+" web entit" + (toIn > 1 ? "ies" : "y") + " which you should probably crawl. Do you really want to leave this page?")
+        if (!answer) {
+          event.preventDefault();
+        } else {
+          $window.onbeforeunload = null;
+        }
+      }
+    })
+
+    $window.onbeforeunload = function(){
+      if($scope.setToIn>0) {
+        return "you have set some entities as IN which you should probably crawl. Do you really want to leave this page?"
+      }
+    }
 
   })

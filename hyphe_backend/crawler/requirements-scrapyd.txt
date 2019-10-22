@@ -1,0 +1,9 @@
+service_identity==14
+urllib3[secure]
+Twisted>=18,<=19
+Scrapy==1.6.0
+scrapyd==1.2.0
+scrapyd-client==1.2.0a1
+selenium==2.42.1
+pymongo==3.8
+txmongo>=18,<=19

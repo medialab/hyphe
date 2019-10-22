@@ -18,13 +18,14 @@
     "max_simul_pages_indexing": 250
   },
   "core_api_port": 6978,
-  "defaultStartpagesMode": ["prefixes", "pages-5"],
+  "defaultStartpagesMode": ["homepage", "prefixes", "pages-5"],
   "defaultCreationRule": "domain",
   "creationRules": {
     "twitter.com": "path-1",
-    "twitter.com/hashtag": "path-2",
     "facebook.com": "path-1",
     "facebook.com/pages": "path-2",
+    "facebook.com/groups": "path-2",
+    "facebook.com/people": "path-2",
     "plus.google.com": "path-1",
     "linkedin.com": "path-2",
     "viadeo.com/user": "path-2",

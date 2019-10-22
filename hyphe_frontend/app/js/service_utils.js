@@ -643,6 +643,16 @@ angular.module('hyphe.service_utils', [])
       return result
     }
 
+    // lodash's omit function to clone an object without a list of keys
+    ns.omit = function(obj, omitKeys){
+      return Object.keys(obj).reduce((result, key) => {
+        if(!~omitKeys.indexOf(key)){
+           result[key] = obj[key];
+        }
+        return result;
+      }, {});
+    }
+
     ns.consolidateJob = function(job){
       job.globalStatus = ''
       if(job.crawling_status == 'RUNNING'){

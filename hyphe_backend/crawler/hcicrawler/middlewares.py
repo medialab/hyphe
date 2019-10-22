@@ -1,12 +1,11 @@
 import os
-from hcicrawler.settings import PROXY
-try:
-    from scrapy.dupefilters import BaseDupeFilter
-except:
-    from scrapy.dupefilter import BaseDupeFilter
+import logging
+
+from scrapy.dupefilters import BaseDupeFilter
 from scrapy.utils.request import request_fingerprint
 from scrapy.utils.job import job_dir
-from scrapy import log
+
+from hcicrawler.settings import PROXY
 
 def use_proxy(request):
     return PROXY != "" and not PROXY.startswith(':') and not request.meta['noproxy']
@@ -48,6 +47,5 @@ class CustomDupeFilter(BaseDupeFilter):
 
     def log(self, request, spider):
         if self.logdupes:
-            fmt = "Filtered duplicate request: %(request)s - no more duplicates will be shown (see DUPEFILTER_CLASS)"
-            log.msg(format=fmt, request=request, level=log.DEBUG, spider=spider)
+            spider.log("Filtered duplicate request: %ss - no more duplicates will be shown (see DUPEFILTER_CLASS)" % request, logging.DEBUG)
             self.logdupes = False

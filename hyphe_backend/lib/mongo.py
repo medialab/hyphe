@@ -114,7 +114,7 @@ class MongoDB(object):
             yield self.WEs(corpus).create_index(sortasc('name'), background=True)
             yield self.WEs(corpus).create_index(sortasc('status'), background=True)
             yield self.WEs(corpus).create_index(sortasc('crawled'), background=True)
-            yield self.WEs(corpus).create_index(mongosort(textIndex("$**")), background=True)
+            yield self.WEs(corpus).create_index(mongosort(textIndex("$**")), language_override="HYPHE_MONGODB_LANGUAGE_INDEX_FIELD_NAME", background=True)
             yield self.WECRs(corpus).create_index(sortasc('prefix'), background=True)
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
@@ -144,7 +144,7 @@ class MongoDB(object):
             # catch and destroy old indices built with older pymongo versions
             if retry:
                 yield self.db()['corpus'].drop_indexes()
-                for coll in ["pages", "queue", "logs", "jobs", "stats"]:
+                for coll in ["webentities", "pages", "queue", "logs", "jobs", "stats"]:
                     yield self._get_coll(corpus, coll).drop_indexes()
                 yield self.init_corpus_indexes(corpus, retry=False)
             else:
@@ -187,13 +187,13 @@ class MongoDB(object):
         returnD(res)
 
     @inlineCallbacks
-    def get_WEs(self, corpus, query=None):
+    def get_WEs(self, corpus, query=None, **kwargs):
         if not query:
-            res = yield self.WEs(corpus).find()
+            res = yield self.WEs(corpus).find({}, **kwargs)
         else:
             if isinstance(query, list) and isinstance(query[0], int):
                 query = {"_id": {"$in": query}}
-            res = yield self.WEs(corpus).find(query)
+            res = yield self.WEs(corpus).find(query, **kwargs)
         returnD(res)
 
     @inlineCallbacks
@@ -227,7 +227,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def add_WE(self, corpus, weid, prefixes, name=None, status="DISCOVERED", startpages=[], tags={}):
-        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages, tags), False)
+        yield self.upsert_WE(corpus, weid, self.new_WE(weid, prefixes, name, status, startpages, tags), update_timestamp=False)
 
     @inlineCallbacks
     def add_WEs(self, corpus, new_WEs):
@@ -236,8 +236,8 @@ class MongoDB(object):
         yield self.WEs(corpus).insert_many([self.new_WE(weid, prefixes) for weid, prefixes in new_WEs.items()])
 
     @inlineCallbacks
-    def upsert_WE(self, corpus, weid, metas, updateTimestamp=True):
-        if updateTimestamp:
+    def upsert_WE(self, corpus, weid, metas, update_timestamp=True):
+        if update_timestamp:
             metas["lastModificationDate"] = now_ts()
         yield self.WEs(corpus).update_one({"_id": weid}, {"$set": metas}, upsert=True)
 
@@ -276,7 +276,6 @@ class MongoDB(object):
     @inlineCallbacks
     def set_default_WECR(self, corpus, regexp):
         yield self.add_WECR(corpus, "DEFAULT_WEBENTITY_CREATION_RULE", regexp)
-
 
     @inlineCallbacks
     def list_logs(self, corpus, job, **kwargs):
@@ -351,6 +350,11 @@ class MongoDB(object):
     def get_waiting_jobs(self, corpus):
         jobs = yield self.jobs(corpus).find({"crawljob_id": None}, projection=["created_at", "crawl_arguments"])
         returnD((corpus, jobs))
+
+    @inlineCallbacks
+    def check_pages(self, corpus):
+        res = yield self.pages(corpus).find_one()
+        returnD(res is not None)
 
     @inlineCallbacks
     def forget_pages(self, corpus, job, urls, **kwargs):

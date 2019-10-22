@@ -1,10 +1,7 @@
-MAX_RESPONSE_SIZE = 1048576 # 1Mb
-
-from OpenSSL import SSL
-from twisted.internet.ssl import ClientContextFactory
-from twisted.internet._sslverify import ClientTLSOptions
-from scrapy.core.downloader.contextfactory import ScrapyClientContextFactory
 from scrapy.core.downloader.webclient import ScrapyHTTPClientFactory, ScrapyHTTPPageGetter
+
+from hcicrawler.settings import MAX_RESPONSE_SIZE
+
 
 class LimitSizePageGetter(ScrapyHTTPPageGetter):
 
@@ -18,12 +15,3 @@ class LimitSizeHTTPClientFactory(ScrapyHTTPClientFactory):
 
     protocol = LimitSizePageGetter
 
-
-class CustomSSLContextFactory(ScrapyClientContextFactory):
-
-    def getContext(self, hostname=None, port=None):
-        ctx = ClientContextFactory.getContext(self)
-        ctx.set_options(SSL.OP_ALL)
-        if hostname:
-            ClientTLSOptions(hostname, ctx)
-        return ctx
