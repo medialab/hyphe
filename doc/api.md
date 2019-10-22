@@ -143,7 +143,7 @@ The API will always answer as such:
 - __`test_corpus`:__
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns the current status of a `corpus`: "ready"/"starting"/"stopped"/"error".
+ Returns the current status of a `corpus`: "ready"/"starting"/"missing"/"stopped"/"error".
 
 
 - __`list_corpus`:__
@@ -618,7 +618,7 @@ The API will always answer as such:
  Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.
  Returns all results at once if `count` `_ (optional, default: `= -1 ; otherwise results will be paginated with `count` results per page, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.`)
   * `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name", "lru prefixes", "startpages" & "homepage"). For instance `["hyphe", "www"]`
-  * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (note: only exact values will be matched when querying on field status field). For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
+  * `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (notes: this does not work with undirected_degree and outdegree ; only exact values will be matched when querying on field status field). For instance: `[["name", "hyphe"], ["indegree", [3, 1000]]]`
   * see description of `sort`, `light` and `semilight` in `get_webentities` above.
 
 
@@ -920,6 +920,7 @@ The API will always answer as such:
 
 
 - __`get_webentities_network`:__
+  + _`include_links_from_OUT`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` the list of all agregated weighted links between WebEntities.

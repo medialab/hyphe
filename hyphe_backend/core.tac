@@ -65,7 +65,7 @@ class Core(customJSONRPC):
   # CORPUS HANDLING
 
     def jsonrpc_test_corpus(self, corpus=DEFAULT_CORPUS, _msg=None):
-        """Returns the current status of a `corpus`: "ready"/"starting"/"stopped"/"error"."""
+        """Returns the current status of a `corpus`: "ready"/"starting"/"missing"/"stopped"/"error"."""
         res = {
           "corpus_id": corpus,
           "ready": False,
@@ -601,6 +601,7 @@ class Core(customJSONRPC):
             self.corpora[corpus]['crawls_running'] = 0
         corpus_status = {
           'name': self.corpora[corpus]['name'],
+          'idle': not (self.corpora[corpus]['crawls_pending'] + self.corpora[corpus]['crawls_running'] + self.corpora[corpus]['pages_queued'] + self.corpora[corpus]["recent_changes"]),
           'options': self.corpora[corpus]['options'],
           'crawler': {
             'jobs_finished': self.corpora[corpus]['crawls'] - self.corpora[corpus]['crawls_pending'] - self.corpora[corpus]['crawls_running'],
