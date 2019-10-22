@@ -1626,6 +1626,8 @@ class Memory_Structure(customJSONRPC):
         res = yield self.update_webentity(oldWE, "status", status, corpus=corpus, _commit=_commit)
         if not is_error(res):
             self.update_webentities_counts(oldWE, status, corpus=corpus)
+            if "OUT" in [status, oldWE["status"]]:
+                self.corpora[corpus]['recent_changes'] += 1
         returnD(res)
 
     def update_webentities_counts(self, WE, newStatus, new=False, deleted=False, corpus=DEFAULT_CORPUS):
