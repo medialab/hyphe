@@ -472,7 +472,7 @@ class Core(customJSONRPC):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
             jsondump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
-            links = self.store.jsonrpc_get_webentities_network(corpus=corpus)
+            links = self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
             jsondump(links["result"], f)
@@ -1946,11 +1946,15 @@ class Memory_Structure(customJSONRPC):
         returnD(True)
 
     @inlineCallbacks
-    def rank_webentities(self, corpus=DEFAULT_CORPUS):
+    def rank_webentities(self, corpus=DEFAULT_CORPUS, include_links_from_OUT=False):
         if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
+        inlinks = defaultdict(set)
         outlinks = defaultdict(set)
         alllinks = defaultdict(set)
+        if not include_links_from_OUT:
+            outWEs = yield self.db.get_WEs(corpus, {"status": "OUT"}, projection=["_id"])
+            outWEs = set(we["_id"] for we in outWEs)
         for target, links in self.corpora[corpus]['webentities_links'].items():
             for key in ['crawled', 'uncrawled', 'total']:
                 if 'pages_'+key not in links:
@@ -1958,14 +1962,18 @@ class Memory_Structure(customJSONRPC):
             links['pages_total'] = links['pages_crawled'] + links['pages_uncrawled']
             for key in ['undirected_', 'in', 'out']:
                 links[key + 'degree'] = links.get(key + 'degree', 0)
-            links['indegree'] = len(links) - 6
             for source in links:
+                # Filter links coming from WEs set as OUT
+                if not include_links_from_OUT and source in outWEs:
+                    continue
                 if isinstance(source, int):
                     outlinks[source].add(target)
                     alllinks[source].add(target)
                     alllinks[target].add(source)
+                    inlinks[target].add(source)
         for target, links in self.corpora[corpus]['webentities_links'].items():
             links["undirected_degree"] = len(alllinks[target])
+            links["indegree"] = len(inlinks[target])
             links["outdegree"] = len(outlinks[target])
         yield self.parent.update_corpus(corpus, False, True)
 
@@ -2881,20 +2889,27 @@ class Memory_Structure(customJSONRPC):
                     res.append([source, target, weight])
         returnD(format_result(res))
 
-    def jsonrpc_get_webentities_network(self, corpus=DEFAULT_CORPUS):
+    @inlineCallbacks
+    def jsonrpc_get_webentities_network(self, include_links_from_OUT=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the list of all agregated weighted links between WebEntities."""
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating WebEntities network...", system="INFO - %s" % corpus)
+        if not include_links_from_OUT:
+            outWEs = yield self.db.get_WEs(corpus, {"status": "OUT"}, projection=["_id"])
+            outWEs = set(we["_id"] for we in outWEs)
         res = []
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             for source, weight in sources.items():
                 if not isinstance(source, int):
                     continue
+                # Filter links coming from WEs set as OUT
+                if not include_links_from_OUT and source in outWEs:
+                    continue
                 res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
-        return handle_standard_results(res)
+        returnD(handle_standard_results(res))
 
   # CREATION RULES
 
