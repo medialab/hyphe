@@ -67,11 +67,11 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["te
                 page_to_index["dragnet"] = None
             pages.append(page_to_index)
         # index batch to ES
-        index_result = helpers.bulk(es, [{'_source':p} for p in pages], index='hyphe.%s.txt' % CORPUS)
+        index_result = helpers.bulk(es, [{'_op_type': 'update', "doc_as_upsert" : True, "_id":md5(page['url']).hexdigest(), 'doc':p} for p in pages], index='hyphe.%s.txt' % CORPUS)
         #print index_result
         # update status in mongo
         mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'indexed': True}}, multi=True, upsert=False)
-        print mongo_update
+        print(mongo_update)
         # throttle if batch empty
         if len(pages) == 0:
             time.sleep(throttle)
