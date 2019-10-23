@@ -37,7 +37,8 @@ def index_text_page(hyphe_core, mongo, es, CORPUS, content_types=["text/plain", 
             "status": 200,
             "content_type": {"$in": content_types},
             "body" : {"$exists": True},
-            "indexed" : False
+            "indexed" : False,
+            "forgotten" : False
         }
         total = 0
         jobs = set()
@@ -48,7 +49,7 @@ def index_text_page(hyphe_core, mongo, es, CORPUS, content_types=["text/plain", 
             page_to_index = {
                 'url': page['url'],
                 'lru': page['lru'],
-                'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))] 
+                'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))]
             }
             total += 1
 

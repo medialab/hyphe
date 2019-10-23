@@ -1,0 +1,39 @@
+{
+  "trivial": {
+    "script": {
+      "lang": "painless",
+      "source": "ctx._source.webentity_id = params.new_webentity_id",
+      "params": {
+        "new_webentity_id": "INSERT NEW WEBENTITY VALUE"
+      }
+    },
+    "query": {
+      "term": {
+        "webentity_id": "INSERT OLD WEBENTITY VALUE"
+      }
+    }
+  },
+  "complex": {
+    "script": {
+      "lang": "painless",
+      "source": "ctx._source.webentity_id = params.new_webentity_id",
+      "params": {
+        "new_webentity_id": "INSERT NEW WEBENTITY VALUE"
+      }
+    },
+    "query": {
+      "must": [
+        {
+          "term": {
+            "webentity_id": "INSERT OLD WEBENTITY VALUE"
+          }
+        },
+        {
+          "term": {
+            "prefixes": "INSERT WEBENTITY PREFIX"
+          }
+        }
+      ]
+    }
+  }
+}
