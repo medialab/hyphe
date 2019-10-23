@@ -401,6 +401,16 @@ class MongoDB(object):
         yield self.queue(corpus).delete_many(specs, **kwargs)
 
     @inlineCallbacks
+    def add_update(self, corpus, oldWE, newWE, prefixes=None):
+        yield self.updates(corpus).insert_one({
+            "old_webentity": oldWE,
+            "new_webentity": new_WE,
+            "prefixes": prefixes,
+            "index_status": indexing_statuses.PENDING,
+            "timestamp": now_ts()
+        })
+
+    @inlineCallbacks
     def save_WEs_query(self, corpus, ids, query_options):
         res = yield self.queries(corpus).insert_one({
           "webentities": ids,
