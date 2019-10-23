@@ -14,8 +14,9 @@ from elasticsearch import Elasticsearch, helpers
 from html2text import textify
 
 BATCH_SIZE = 1000
-DELETE_INDEX = False
-RESET_MONGO = False
+DELETE_INDEX = True
+RESET_MONGO = True
+CORPUS = "wikipedia"
 
 
 def ensure_index_on_pages(mongo_pages_coll):
@@ -24,7 +25,7 @@ def ensure_index_on_pages(mongo_pages_coll):
     print("index done")
 
 
-def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["text/plain", "text/html"]):
+def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["text/plain", "text/html"]):
     throttle = 0.5
     while True:
         # boucle infinie
@@ -38,9 +39,11 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["te
         pages = []
         for page in mongo_pages_coll.find(query).sort('timestamp').limit(BATCH_SIZE):
 
+            stems = page['lru'].rstrip('|').split('|')
             page_to_index = {
                 'url': page['url'],
-                'lru': page['lru']
+                'lru': page['lru'],
+                'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))] 
             }
             total += 1
 
@@ -55,8 +58,8 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["te
 
             page_to_index["webentity_id"] = page['webentity_when_crawled']
 
-            #page["html"] = body
-            page_to_index["text"] = textify(body, encoding=encoding)
+            page["html"] = body
+            page_to_index["textify"] = textify(body, encoding=encoding)
             try:
                 page_to_index["dragnet"] = extract_content(body, encoding=encoding)
             except Exception as e:
@@ -64,8 +67,8 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, corpus, content_types=["te
                 page_to_index["dragnet"] = None
             pages.append(page_to_index)
         # index batch to ES
-        index_result = helpers.bulk(es, [{'_source':p} for p in pages], index='hyphe.%s.txt' % corpus, doc_type='webpage')
-        print index_result
+        index_result = helpers.bulk(es, [{'_source':p} for p in pages], index='hyphe.%s.txt' % CORPUS)
+        #print index_result
         # update status in mongo
         mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'indexed': True}}, multi=True, upsert=False)
         print mongo_update
@@ -82,7 +85,7 @@ if __name__ == '__main__':
     # TODO: add arguments for
     # - apiurl
     # - mongoconn + db
-    # - corpus
+    # - CORPUS
     # - output formats
     # - output dir
     # - boilerpipe extractors
@@ -96,22 +99,21 @@ if __name__ == '__main__':
     api = "http://localhost:90/api/"
     mongohost = "localhost"
     mongoport = 27017
-    corpus = "fosdem"
     password = ""
 
-    # Initiate Hyphe API connection and ensure corpus started
+    # Initiate Hyphe API connection and ensure CORPUS started
     try:
         hyphe = jsonrpclib.Server(api, version=1)
     except Exception as e:
         exit('Could not initiate connection to hyphe core')
-    start = hyphe.start_corpus(corpus, password)
+    start = hyphe.start_corpus(CORPUS, password)
     if start['code'] == 'fail' :
         exit(start['message'])
 
     # Initiate MongoDB connection and build index on pages
     try:
         db = pymongo.MongoClient(mongohost, mongoport)
-        dbpages = db["hyphe_%s" % corpus]["pages"]
+        dbpages = db["hyphe_%s" % CORPUS]["pages"]
     except Exception as e:
         exit('Could not initiate connection to MongoDB')
     ensure_index_on_pages(dbpages)
@@ -119,21 +121,36 @@ if __name__ == '__main__':
     # connect to ES
     es = Elasticsearch('localhost:9200')
 
-    if DELETE_INDEX:
-        es.indices.delete(index='hyphe.%s.txt' % corpus)
-    if not es.indices.exists(index='hyphe.%s.txt' % corpus):
+    if es.indices.exists(index='hyphe.%s.txt' % CORPUS) and DELETE_INDEX:
+        print 'index deleted'
+        es.indices.delete(index='hyphe.%s.txt' % CORPUS)
+    if not es.indices.exists(index='hyphe.%s.txt' % CORPUS):
         if RESET_MONGO:
             mongo_update = dbpages.update({}, {'$set': {'indexed': False}}, multi=True, upsert=False)
-        es.indices.create(index='hyphe.%s.txt' % corpus, body = {
+            print('mongo index created')
+        es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
             "mappings": {
-                "webpage":{
-                    "properties":{
-                        "lru": {
-                            "type": "keyword"
-                        },
-                        "webentity_id": {
-                            "type": "integer"
-                        }
+                "properties": {
+                    "lru": {
+                        "type": "keyword"
+                    },
+                    "url": {
+                        "type": "keyword"
+                    },
+                    "prefixes": {
+                        "type": "keyword"
+                    },
+                    "webentity_id": {
+                        "type": "keyword"
+                    },
+                    "textify": {
+                        "type": "text"
+                    },
+                    "dragnet": {
+                        "type": "text"
+                    },
+                    "html": {
+                        "type": "text"
                     }
                 }
             }
@@ -147,73 +164,73 @@ if __name__ == '__main__':
         #     sys.exit(1)
 
     # Run!
-    index_text_page(hyphe, dbpages, es, corpus)
+    index_text_page(hyphe, dbpages, es, CORPUS)
 
     # example of an update_by_query on a prefix lru search to update webentity
     # will never be executed unless index_text_page() is documented
-    body = {
-        "script": {
-            "source": "ctx._source.webentity_id=params.new_we_id",
-            "lang": "painless",
-            "params": {
-                "new_we_id": 999
-            }
-        },
-        "query": {
-                "bool": {
-                    "must": {
-                        "prefix" : { 
-                            "lru" : "s:https|h:org|h:fosdem|p:2019|p:schedule|"
-                        }
-                    },
-                    "must_not": {
-                        "term": {
-                            "webentity_id": 999
-                        }
-                    }
-                }
-            }
-    }
+#     body = {
+#         "script": {
+#             "source": "ctx._source.webentity_id=params.new_we_id",
+#             "lang": "painless",
+#             "params": {
+#                 "new_we_id": 999
+#             }
+#         },
+#         "query": {
+#                 "bool": {
+#                     "must": {
+#                         "prefix" : { 
+#                             "lru" : "s:https|h:org|h:fosdem|p:2019|p:schedule|"
+#                         }
+#                     },
+#                     "must_not": {
+#                         "term": {
+#                             "webentity_id": 999
+#                         }
+#                     }
+#                 }
+#             }
+#     }
 
-body2 = 
-    {
-	"script": {
-		"source": "ctx._source.webentity_id=params.new_we_id",
-		"lang": "painless",
-		"params": {
-			"new_we_id": 1111
-		}
-	},
-	"query": {
-		"bool": {
-			"must": [
-				{
-					"prefix": {
-						"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|"
-					}
-				},
-				{
-					"bool": {
-						"must_not": {
-							"term": {
-								"webentity_id": 1111
-							}
-						}
-					}
-				},
-				{
-					"bool": {
-						"must_not": {
-							"prefix": {
-								"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|p:event|"
-							}
-						}
-					}
-				}
-			]
-		}
-	}
-}
+# body2 = 
+#     {
+# 	"script": {
+# 		"source": "ctx._source.webentity_id=params.new_we_id",
+# 		"lang": "painless",
+# 		"params": {
+# 			"new_we_id": 1111
+# 		}
+# 	},
+# 	"query": {
+# 		"bool": {
+# 			"must": [
+# 				{
+# 					"prefix": {
+# 						"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|"
+# 					}
+# 				},
+# 				{
+# 					"bool": {
+# 						"must_not": {
+# 							"term": {
+# 								"webentity_id": 1111
+# 							}
+# 						}
+# 					}
+# 				},
+# 				{
+# 					"bool": {
+# 						"must_not": {
+# 							"prefix": {
+# 								"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|p:event|"
+# 							}
+# 						}
+# 					}
+# 				}
+# 			]
+# 		}
+# 	}
+# }
 
 
-    es.update_by_query(index='hyphe.%s.txt' % corpus, body = body, conflicts="proceed")
+    #es.update_by_query(index='hyphe.%s.txt' % CORPUS, body = body, conflicts="proceed")

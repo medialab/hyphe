@@ -1,6 +1,8 @@
 version: "2"
 services:
   es:
-    image: elasticsearch:6.5.4
+    image: elasticsearch:7.4.0
     ports:
       - "9200:9200"
+    environment:
+      - discovery.type=single-node
