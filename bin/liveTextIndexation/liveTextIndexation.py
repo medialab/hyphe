@@ -25,10 +25,14 @@ def ensure_index_on_pages(mongo_pages_coll):
     print("index done")
 
 
-def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["text/plain", "text/html"]):
+def index_text_page(hyphe_core, mongo, es, CORPUS, content_types=["text/plain", "text/html"]):
+    mongo_pages_coll = mongo["hyphe_%s" % CORPUS]["pages"]
+    mongo_jobs_coll =  mongo["hyphe_%s" % CORPUS]["jobs"]
     throttle = 0.5
     while True:
         # boucle infinie
+
+        # take XXX pages sorted by timestamp if index = false
         query = {
             "status": 200,
             "content_type": {"$in": content_types},
@@ -36,9 +40,10 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["te
             "indexed" : False
         }
         total = 0
+        jobs = set()
         pages = []
         for page in mongo_pages_coll.find(query).sort('timestamp').limit(BATCH_SIZE):
-
+            jobs.add(page['_job'])
             stems = page['lru'].rstrip('|').split('|')
             page_to_index = {
                 'url': page['url'],
@@ -72,6 +77,23 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["te
         # update status in mongo
         mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'indexed': True}}, multi=True, upsert=False)
         print(mongo_update)
+        not_completed_jobs_pipeline = [
+            {
+            "$match": {
+            "_job" : {"$in": list(jobs)},
+            "indexed": False
+            }},{
+            "$group": {
+                "_id": "$_job"
+            }}
+        ]
+        not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
+        print(not_completed_jobs)
+        completed_jobs = jobs - not_completed_jobs
+        if len(completed_jobs) > 0:
+            print(completed_jobs)
+            mongo_jobs_coll.update({'_id':{"$in": list(completed_jobs)}}, {'$set': {'text_indexing_status': 'finished'}}, multi=True)
+        
         # throttle if batch empty
         if len(pages) == 0:
             time.sleep(throttle)
@@ -126,8 +148,10 @@ if __name__ == '__main__':
         es.indices.delete(index='hyphe.%s.txt' % CORPUS)
     if not es.indices.exists(index='hyphe.%s.txt' % CORPUS):
         if RESET_MONGO:
-            mongo_update = dbpages.update({}, {'$set': {'indexed': False}}, multi=True, upsert=False)
+            dbpages.update({}, {'$set': {'indexed': False}}, multi=True, upsert=False)
             print('mongo index created')
+            dbpages.update({'$or': [{'content_type': {"$in": ["text/plain", "text/html"]}}, {'body': {'$exists': False}}]}, {'$set': {'indexed': True}})
+            print('set non-content page to indexed true')
         es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
             "mappings": {
                 "properties": {
@@ -164,73 +188,4 @@ if __name__ == '__main__':
         #     sys.exit(1)
 
     # Run!
-    index_text_page(hyphe, dbpages, es, CORPUS)
-
-    # example of an update_by_query on a prefix lru search to update webentity
-    # will never be executed unless index_text_page() is documented
-#     body = {
-#         "script": {
-#             "source": "ctx._source.webentity_id=params.new_we_id",
-#             "lang": "painless",
-#             "params": {
-#                 "new_we_id": 999
-#             }
-#         },
-#         "query": {
-#                 "bool": {
-#                     "must": {
-#                         "prefix" : { 
-#                             "lru" : "s:https|h:org|h:fosdem|p:2019|p:schedule|"
-#                         }
-#                     },
-#                     "must_not": {
-#                         "term": {
-#                             "webentity_id": 999
-#                         }
-#                     }
-#                 }
-#             }
-#     }
-
-# body2 = 
-#     {
-# 	"script": {
-# 		"source": "ctx._source.webentity_id=params.new_we_id",
-# 		"lang": "painless",
-# 		"params": {
-# 			"new_we_id": 1111
-# 		}
-# 	},
-# 	"query": {
-# 		"bool": {
-# 			"must": [
-# 				{
-# 					"prefix": {
-# 						"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|"
-# 					}
-# 				},
-# 				{
-# 					"bool": {
-# 						"must_not": {
-# 							"term": {
-# 								"webentity_id": 1111
-# 							}
-# 						}
-# 					}
-# 				},
-# 				{
-# 					"bool": {
-# 						"must_not": {
-# 							"prefix": {
-# 								"lru": "s:https|h:org|h:fosdem|p:2019|p:schedule|p:event|"
-# 							}
-# 						}
-# 					}
-# 				}
-# 			]
-# 		}
-# 	}
-# }
-
-
-    #es.update_by_query(index='hyphe.%s.txt' % CORPUS, body = body, conflicts="proceed")
+    index_text_page(hyphe, db, es, CORPUS)

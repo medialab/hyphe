@@ -234,6 +234,8 @@ class PagesCrawler(Spider):
         p = self._make_raw_page(response, lru)
         if STORE_HTML:
             p['body'] = Binary(response.body.encode('zip'))
+            if p['content_type'] in ["text/plain", "text/html"]: 
+                p['indexed'] = False
         p['lrulinks'] = lrulinks
         return p
 
@@ -258,7 +260,7 @@ class PagesCrawler(Spider):
         p['lru'] = lru
         p['depth'] = 0
         p['timestamp'] = int(time.time()*1000)
-        p['indexed'] = False
+        p['indexed'] = True
         p['webentity_when_crawled'] = self.args['webentity_id']
         return p
 
