@@ -108,7 +108,7 @@ class MongoDB(object):
         yield self.conn.drop_database(corpus)
 
     @inlineCallbacks
-    def init_corpus_indexes(self, corpus, retry=True):
+    def init_corpus_indexes(self, corpus, index_content=False, retry=True):
         try:
             yield self.db()['corpus'].create_index(sortdesc('last_activity'), background=True)
             yield self.WEs(corpus).create_index(sortasc('name'), background=True)
@@ -120,6 +120,10 @@ class MongoDB(object):
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
             yield self.pages(corpus).create_index(sortasc('url'), background=True)
+            if index_content:
+                yield self.updates(corpus).create_index(sortasc('indexed'), background=True)
+                yield self.updates(corpus).create_index(sortasc('timestamp'), background=True)
+                yield self.updates(corpus).create_index(sortasc('indexed') + sortasc('timestamp'), background=True)
             yield self.queue(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.queue(corpus).create_index(sortasc('_job'), background=True)
             yield self.queue(corpus).create_index(sortasc('_job') + sortdesc('timestamp'), background=True)
@@ -146,7 +150,7 @@ class MongoDB(object):
                 yield self.db()['corpus'].drop_indexes()
                 for coll in ["webentities", "pages", "queue", "logs", "jobs", "stats"]:
                     yield self._get_coll(corpus, coll).drop_indexes()
-                yield self.init_corpus_indexes(corpus, retry=False)
+                yield self.init_corpus_indexes(corpus, index_content=index_content, retry=False)
             else:
                 raise e
 
@@ -161,6 +165,8 @@ class MongoDB(object):
         return self._get_coll(corpus, "queue")
     def pages(self, corpus):
         return self._get_coll(corpus, "pages")
+    def updates(self, corpus):
+        return self._get_coll(corpus, "WEupdates")
     def jobs(self, corpus):
         return self._get_coll(corpus, "jobs")
     def logs(self, corpus):
@@ -176,6 +182,7 @@ class MongoDB(object):
         yield self.WECRs(corpus).drop()
         yield self.queue(corpus).drop()
         yield self.pages(corpus).drop()
+        yield self.updates(corpus).drop()
         yield self.jobs(corpus).drop()
         yield self.logs(corpus).drop()
         yield self.queries(corpus).drop()

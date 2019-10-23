@@ -324,7 +324,7 @@ class Core(customJSONRPC):
         if not _quiet:
             logger.msg("Starting corpus...", system="INFO - %s" % corpus)
         self.init_corpus(corpus)
-        yield self.db.init_corpus_indexes(corpus)
+        yield self.db.init_corpus_indexes(corpus, index_content=corpus_conf['options']['indexTextContent'])
         yield self.store.jsonrpc_get_webentity_creationrules(corpus=corpus)
         wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
         res = self.traphs.start_corpus(corpus, quiet=_quiet, keepalive=corpus_conf['options']['keepalive'], default_WECR=getWECR(corpus_conf['options']['defaultCreationRule']), WECRs=wecrs)
