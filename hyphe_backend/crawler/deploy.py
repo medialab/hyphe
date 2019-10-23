@@ -41,6 +41,7 @@ corpus_conf = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scr
 if corpus_conf:
     corpus_conf = corpus_conf["options"]
     config["phantom"].update(corpus_conf["phantom"])
+    config["mongo-scrapy"]["store_crawled_html_content"] = corpus_conf["indexTextContent"]
     if corpus_conf["proxy"]["host"]:
         config["mongo-scrapy"]["proxy_host"] = corpus_conf["proxy"]["host"]
     if corpus_conf["proxy"]["port"]:

@@ -119,9 +119,14 @@ class Core(customJSONRPC):
         except Exception as e:
             returnD(format_error(e))
         redeploy = False
-        if ("defaultCreationRule" in options or "defautStartpagesMode" in options) and \
+        if ("defaultCreationRule" in options or "defautStartpagesMode" in options or "indexTextContent" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
+        if "indexTextContent" in options:
+            if options["indexTextContent"] and not config["store_crawled_html_content"]:
+                returnD(format_error("This Hyphe instance does not collect crawled pages' HTML content, and can therefore not index text contents")
+            if options["indexTextContent"] != self.corpora[corpus]["options"]["indexTextContent"]:
+                redeploy = True
         if "defaultCreationRule" in options:
             yield self.traphs.stop_corpus(corpus)
             yield self.db.set_default_WECR(corpus, getWECR(options["defaultCreationRule"]))

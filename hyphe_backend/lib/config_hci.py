@@ -137,6 +137,10 @@ CORPUS_CONF_SCHEMA = {
     "type": int,
     "default": "global/mongo-scrapy/max_depth"
   },
+  "indexTextContent": {
+    "type": bool,
+    "default": "global/mongo-scrapy/store_crawled_html_content"
+  },
   "defaultStartpagesMode": {
     "type": validateStartpagesMode,
     "default": "global/defaultStartpagesMode"
