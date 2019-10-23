@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, re, types, time, json, hashlib
+import os, re, types, time, json, hashlib, defaultdict
 from twisted.web.client import getPage as getPageOrig
 from twisted.internet.task import deferLater
 from twisted.internet import reactor
@@ -29,6 +29,12 @@ indexing_statuses = Enum(['UNINDEXED', 'PENDING', 'BATCH_RUNNING', 'BATCH_FINISH
 
 def now_ts():
     return int(time.time()*1000)
+
+def reverse_dico(d):
+    res = defaultdict(list)
+    for k, v in d.items():
+        res[v].append(k)
+    return res
 
 def urls_match_domainlist(urls, domlist):
     for url in urls:

@@ -1376,6 +1376,10 @@ class Memory_Structure(customJSONRPC):
             new = True
             weid, prefixes = res["result"]["created_webentities"].items()[0]
             yield self.db.add_WE(corpus, weid, prefixes)
+            if self.corpora[corpus]['options']['indexTextContent']:
+                pass
+                #TODO Check WE parent, if one add update
+                #yield self.db.add_update(corpus, old_webentity_id, good_webentity_id)
         res = yield self.return_new_webentity(lru, new, 'page', source_url=url, corpus=corpus)
         returnD(format_result(res))
 
@@ -1473,15 +1477,30 @@ class Memory_Structure(customJSONRPC):
         new_WE = yield self.return_new_webentity(lru_prefixes[0], True, 'lru', corpus=corpus)
         if is_error(new_WE):
             returnD(new_WE)
+
         # Remove potential parent webentities homepages that would belong to the newly created WE
         parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", new_WE["_id"], new_WE["prefixes"])
         if not is_error(parentWEs):
             parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
+            parentPrefixes = {}
             for parent in parentWEs:
+                for pr in parent["prefixes"]:
+                    parentPrefixes[pr] = parent["_id"]
                 if parent["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"]), new_WE["prefixes"]):
                     if config['DEBUG']:
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
                     self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus, _automatic=True)
+
+            # Inform text indexation of change of webentity for pages under each prefix of the new WE
+            if self.corpora[corpus]['options']['indexTextContent']:
+                firstParents = {}
+                for prefix in new_WE["prefixes"]:
+                    matching_parent_prefixes = (pr for pr in parentPrefixes if prefix.startswith(pr))
+                    longest_prefix = max(matching_parent_prefixes, key=len)
+                    firstParents[prefix] = parentPrefixes[longest_prefix]
+                for parent, prefixes in reverse_dico(firstParents).items():
+                    yield self.db.add_update(corpus, old_webentity_id, parent, prefixes)
+
         returnD(format_result(new_WE))
 
 
@@ -1860,6 +1879,8 @@ class Memory_Structure(customJSONRPC):
         new_WE = yield self.add_backend_tags(new_WE, "mergedWebEntities", "%s: %s (%s)" % (old_WE["_id"], old_WE["name"], old_WE["status"]), _commit=False, corpus=corpus)
         new_WE = yield self.jsonrpc_add_webentity_tag_value(new_WE, "CORE", "recrawlNeeded", "true", _commit=False, corpus=corpus)
         yield self.db.upsert_WE(corpus, good_webentity_id, new_WE)
+        if self.corpora[corpus]['options']['indexTextContent']:
+            yield self.db.add_update(corpus, old_webentity_id, good_webentity_id)
         self.corpora[corpus]['recent_changes'] += 1
         self.update_webentities_counts(old_WE, new_WE["status"], deleted=True, corpus=corpus)
         returnD(format_result("Merged %s into %s" % (old_webentity_id, good_webentity_id)))
@@ -2944,7 +2965,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_add_webentity_creationrule(self, lru_prefix, regexp, corpus=DEFAULT_CORPUS):
-        """Adds to a `corpus` a new WebEntityCreationRule set for a `lru_prefix` to a specific `regexp` or one of "subdomain"/"subdomain-N"/"domain"/"path-N"/"prefix+N"/"page" N being an integer. It will immediately by applied to past crawls."""
+        """Adds to a `corpus` a new WebEntityCreationRule set for a `lru_prefix` to a specific `regexp` or one of "subdomain"/"subdomain-N"/"domain"/"path-N"/"prefix+N"/"page" N being an integer. It will immediately be applied to past crawls."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         try:
