@@ -80,13 +80,29 @@ class PagesCrawler(Spider):
             self.name,
             self.crawler.settings['JOBID']
         )
+        if not os.path.exists(self.prefixfiles):
+            os.makedirs(self.prefixfiles)
+            self.log("Using path %s for headless Chromium crawl" % self.prefixfiles, log.INFO)
+            chromedriver_args = []
+            chromedriver_args.append('--verbose')
+            chromedriver_args.append('--log-path=%s-chromedriver.log' % self.prefixfiles)
+            chrome_options = Options()
+            chrome_options.binary_location = CHROME['PATH']
+            chrome_options.add_argument('no-sandbox')
+            chrome_options.add_argument('headless')
+            chrome_options.add_argument('disable-gpu')
+            chrome_options.add_argument('disable-dev-shm-usage')
+            chrome_options.add_argument('disable-software-rasterizer')
+            chrome_options.add_argument('ignore-certificate-errors')
+            chrome_options.add_argument('user-data-dir=%s' % self.prefixfiles)
+            #chrome_options.add_argument('user-agent="%s"' % self.user_agent)
         self.log("Using path %s for PhantomJS crawl" % self.prefixfiles, logging.INFO)
         phantom_args = []
         if PROXY and not PROXY.startswith(':'):
-            proxy = Proxy();
-            proxy.setHttpProxy(PROXY);
-            proxy.setSslProxy(PROXY);
-            chrome_options.setCapability("proxy", proxy);
+            proxy = Proxy()
+            proxy.setHttpProxy(PROXY)
+            proxy.setSslProxy(PROXY)
+            chrome_options.setCapability("proxy", proxy)
         #capabilities['phantomjs.page.settings.javascriptCanCloseWindows'] = False
         #capabilities['phantomjs.page.settings.javascriptCanOpenWindows'] = False
         self.chromium = Chrome(
