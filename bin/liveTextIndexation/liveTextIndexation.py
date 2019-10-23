@@ -33,7 +33,8 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["te
             "status": 200,
             "content_type": {"$in": content_types},
             "body" : {"$exists": True},
-            "indexed" : False
+            "indexed" : False,
+            "forgotten" : False
         }
         total = 0
         pages = []
@@ -43,7 +44,7 @@ def index_text_page(hyphe_core, mongo_pages_coll, es, CORPUS, content_types=["te
             page_to_index = {
                 'url': page['url'],
                 'lru': page['lru'],
-                'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))] 
+                'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))]
             }
             total += 1
 
@@ -179,7 +180,7 @@ if __name__ == '__main__':
 #         "query": {
 #                 "bool": {
 #                     "must": {
-#                         "prefix" : { 
+#                         "prefix" : {
 #                             "lru" : "s:https|h:org|h:fosdem|p:2019|p:schedule|"
 #                         }
 #                     },
@@ -192,7 +193,7 @@ if __name__ == '__main__':
 #             }
 #     }
 
-# body2 = 
+# body2 =
 #     {
 # 	"script": {
 # 		"source": "ctx._source.webentity_id=params.new_we_id",
