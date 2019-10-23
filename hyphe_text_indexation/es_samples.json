@@ -29,8 +29,8 @@
           }
         },
         {
-          "term": {
-            "prefixes": "INSERT WEBENTITY PREFIX"
+          "terms": {
+            "prefixes": "INSERT WEBENTITY PREFIXES"
           }
         }
       ]
