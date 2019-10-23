@@ -15,40 +15,22 @@ except ImportError: #Python3
 
 def textify(html_text,extractor="raw", encoding="UTF8"):
 
-    if not isinstance(html_text, unicode):
-        try:
-            html_text_unicode = unicode(html_text, encoding)
-        except UnicodeDecodeError:
-            try:
-                html_text_unicode = unicode(html_text, 'utf-8')
-            except UnicodeDecodeError:
-                try:
-                    html_text_unicode = unicode(html_text, 'iso-8859-1')
-                except UnicodeDecodeError:
-                    try:
-                        html_text_unicode = unicode(html_text, 'cp1252')
-                    except UnicodeDecodeError as e:
-                        print "ERROR conv to unicode", e
-    else:
-        html_text_unicode = html_text
-    if not html_text_unicode:
-        return ""
 
     if extractor.lower() != "raw":
         try:
             from boilerpipe.extract import Extractor
-            bp = Extractor(extractor=extractor, html=html_text_unicode)
+            bp = Extractor(extractor=extractor, html=html_text)
             return bp.getText()
         except Exception:
             try:
-                bp = Extractor(extractor=extractor, html=html_text_unicode)
+                bp = Extractor(extractor=extractor, html=html_text)
                 return bp.getText()
             except Exception as e:
                 sys.stderr.write("ERROR running %s boilerpipe on %s:\n%s: %s\n" % (extractor, html_text, type(e), e))
                 return ""
         del bp
     else:
-        text = html_text_unicode
+        text = html_text
 
     ### Entity Nonsense from A. Swartz's html2text http://www.aaronsw.com/2002/html2text/html2text.py ###
 
