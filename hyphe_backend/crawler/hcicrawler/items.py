@@ -13,5 +13,5 @@ class Page(Item):
     body = Field()
     lrulinks = Field()
     error = Field()
-    indexed = Field()
+    to_index = Field()
     webentity_when_crawled = Field()
