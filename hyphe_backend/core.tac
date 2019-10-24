@@ -958,26 +958,22 @@ class Core(customJSONRPC):
             res['message'] = "Cannot process url %s : %s." % (url, e)
         if 'message' in res:
             returnD(res)
-        try:
-            assert(response.code == 200 or url in " ".join(response.headers._rawHeaders['location']))
+        if response.code == 200 or url in " ".join(response.headers._rawHeaders.get('location', "")):
             response.code = 200
-        except:
-            try:
-                assert(url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders['server'][0])
-                response.code = 301
-            except:
-                if not (deadline and deadline < time.time()) and \
-                   not (url.startswith("https") and response.code/100 == 4) and \
-                   (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
-                   response.code not in [400, 404, 502]:
-                    if tryout == 3 and use_proxy:
-                        noproxy = True
-                        tryout = 1
-                    if tryout < 3:
-                        if config['DEBUG'] == 2:
-                            logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
-                        res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
-                        returnD(res)
+        elif url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders.get('server', [""])[0]:
+            response.code = 301
+        elif not (deadline and deadline < time.time()) and \
+          not (url.startswith("https") and response.code/100 == 4) and \
+          (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
+          response.code not in [400, 404, 502]:
+            if tryout == 3 and use_proxy:
+                noproxy = True
+                tryout = 1
+            if tryout < 3:
+                if config['DEBUG'] == 2:
+                    logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
+                res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                returnD(res)
         result = format_result(response.code)
         if 300 <= response.code < 400 and response.headers._rawHeaders['location']:
             result['location'] = response.headers._rawHeaders['location'][0]
@@ -2695,9 +2691,9 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No webentity found for id %s" % webentity_id))
         try:
             count = int(count)
-            if count < 1: raise
-        except:
-            returnD(format_error("count should be a positive integer"))
+            if count < 1: raise ValueError()
+        except (TypeError, ValueError):
+            returnD(format_error("count should be a strictly positive integer"))
         if pagination_token:
             try:
                 total, crawled, token = pagination_token.split('|')
@@ -2743,14 +2739,14 @@ class Memory_Structure(customJSONRPC):
             returnD(self.parent.corpus_error(corpus))
         try:
             npages = int(npages)
-            assert(npages > 0)
-        except:
+            if npages < 1: raise ValueError()
+        except (TypeError, ValueError):
             returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
         if max_prefix_distance != None:
             try:
                 max_prefix_distance = int(max_prefix_distance)
-                assert(max_prefix_distance >= 0)
-            except:
+                if max_prefix_distance < 0: raise ValueError()
+            except (TypeError, ValueError):
                 returnD(format_error("ERROR: max_prefix_distance argument must be null or a positive integer"))
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
