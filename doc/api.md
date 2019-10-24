@@ -840,9 +840,10 @@ The API will always answer as such:
   + _`count`_ (optional, default: `5000`)
   + _`pagination_token`_ (optional, default: `null`)
   + _`onlyCrawled`_ (optional, default: `false`)
+  + _`include_page_data`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true".
+ Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status, body size, content_type, encoding, crawl timestamp\ and crawl depth) along with the page's zipped body encoded in base64 when `include_page_data` is set to "true".
 
 
 - __`get_webentity_mostlinked_pages`:__

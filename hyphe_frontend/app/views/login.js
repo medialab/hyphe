@@ -144,7 +144,7 @@ angular.module('hyphe.loginController', [])
     function loadCorpusList(){
       if ($scope.loadingList) return;
       $scope.loadingList = true
-      api.getCorpusList({}, function(list){
+      api.getCorpusList({light: true}, function(list){
         $scope.loadingList = false
         $scope.disconnected = false
         $scope.loading = false

@@ -29,7 +29,7 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
-    
+
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
     API.WEBENTITY_PAGE_LIST_PAGINATE                = 'store.paginate_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
@@ -92,6 +92,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_TEST                                 = 'test_corpus'
     API.CORPUS_PING                                 = 'ping'
     API.CORPUS_STATISTICS                           = 'store.get_webentities_stats'
+    API.CORPUS_TRIGGER_LINKS                        = 'store.trigger_links_build'
 
     ns.getWebentities = buildApiCall(
         API.WEBENTITY_LIST_GET
@@ -266,6 +267,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.count || 5000
               ,settings.token || null
               ,settings.crawledOnly || false
+              ,settings.includePageData || false
               ,corpus.getId()
             ]}
       )
@@ -353,7 +355,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.mergeStartPages = true
           if(settings.mergeNameAndStatus === undefined)
             settings.mergeNameAndStatus = false
-          
+
           return [
               settings.oldWebentityId
               ,settings.goodWebentityId
@@ -373,7 +375,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.mergeTags = true
           if(settings.mergeStartPages === undefined)
             settings.mergeStartPages = true
-          
+
           return [
               settings.oldWebentityId_list
               ,settings.goodWebentityId
@@ -458,7 +460,9 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getCorpusList = buildApiCall(
         API.CORPUS_LIST_GET
         ,function(settings){
-            return []
+            return [
+              settings.light
+            ]
           }
       )
 
@@ -520,7 +524,6 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.getCorpusTLDs = function(){
       if(ns.list_tlds === undefined){
         console.warn('No TLD list loaded. Use downloadCorpusTLDs() before using getCorpusTLDs().')
-        console.log(ns.list_tlds)
       }
       return ns.list_tlds
     }
@@ -590,6 +593,15 @@ angular.module('hyphe.service_hyphe_api', [])
           }
       )
 
+      ns.triggerLinks = buildApiCall(
+          API.CORPUS_TRIGGER_LINKS
+          ,function (settings) {
+              return [
+                  settings.id
+              ]
+          }
+      )
+
     ns.getCrawlJobs = buildApiCall(
         API.CRAWLJOB_LIST_GET
         ,function(settings){
@@ -616,11 +628,12 @@ angular.module('hyphe.service_hyphe_api', [])
         API.WEBENTITY_LIST_GET_LINKS
         ,function(settings){return [
           settings.include_links_from_OUT || false
+          ,settings.include_links_from_DISCOVERED || false
           ,corpus.getId()
         ]}
       )
 
-    
+
     ns.getWECreationRules = buildApiCall(
         API.WE_CREATION_RULE_LIST_GET
         ,function(settings){
@@ -725,7 +738,7 @@ angular.module('hyphe.service_hyphe_api', [])
         } else {
           s = {}
         }
-        
+
         // Abort
         if(s._API_ABORT_QUERY){
           return false
@@ -746,14 +759,14 @@ angular.module('hyphe.service_hyphe_api', [])
           function(response){
             var target = (response.data[0] || {}).result
             if(target !== undefined){
-              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready") {
+              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready" && $location.path()!=='/admin') {
                 // Corpus shut down
                 $location.path('/login')
               }
               // console.log('[OK]', response.data)
               successCallback(target, response.data[0])
             } else {
-              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready") {
+              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready" && $location.path()!=='/admin') {
                 // Corpus shut down
                 $location.path('/login')
               } else {

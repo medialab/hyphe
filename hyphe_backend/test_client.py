@@ -75,7 +75,7 @@ for a in sys.argv[startargs:]:
         elif a == "False" or a == "True":
             args.append(eval(a))
         else:
-            if not auto_convert_integers:
+            if auto_convert_integers:
                 try:
                     a = int(a)
                 except:

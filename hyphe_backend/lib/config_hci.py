@@ -87,6 +87,8 @@ def validateStartpagesMode(modes):
         m = m.lower()
         if not VALID_STARTPAGES_MODES.match(m):
             return False
+    if not modes:
+        return False
     return True
 
 GLOBAL_CONF_SCHEMA = {
@@ -135,7 +137,8 @@ CORPUS_CONF_SCHEMA = {
   },
   "max_depth": {
     "type": int,
-    "default": "global/mongo-scrapy/max_depth"
+    "default": "global/mongo-scrapy/max_depth",
+    "max": "global/mongo-scrapy/max_depth"
   },
   "indexTextContent": {
     "type": bool,
@@ -196,13 +199,13 @@ def clean_missing_corpus_options(conf, globalconf):
 
 error_config = lambda x, ns, nm: Exception("ERROR in %s while reading %s:\n%s" % (nm, "field %s" % ns if ns else "", x))
 
-def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
+def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False, globalconf=None):
     for ns, rules in schema.iteritems():
         if ns not in conf:
             if soft:
                 continue
             raise(error_config("field %s missing" % ns, "", name))
-        test_type(conf[ns], rules["type"], ns, name=name)
+        test_type(conf[ns], rules["type"], ns, name=name, extra_rules=rules, globalconf=globalconf)
         if rules["type"] == dict:
             for f in rules.get("int_fields", []):
                 if f not in conf[ns]:
@@ -229,7 +232,7 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False):
                 for k in conf[ns]:
                     test_type(conf[ns][k], rules["values"], k, ns, name=name)
 
-def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
+def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE, extra_rules=None, globalconf=None):
     if type(otype) == types.FunctionType:
         if not otype(obj):
             raise(error_config("field %s should %s" % (ns, otype.__doc__), ns2, name))
@@ -250,6 +253,17 @@ def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE):
     elif otype == float:
         if type(obj) not in [float, int]:
             raise(error_config("field %s should a number" % ns, ns2, name))
+    elif otype == int:
+        if type(obj) != int:
+            raise(error_config("field %s should a number" % ns, ns2, name))
+        if obj < 0:
+            raise(error_config("field %s should be positive" % ns, ns2, name))
+        if extra_rules and "max" in extra_rules:
+            maxval = extra_rules["max"]
+            if type(maxval) == str and maxval.startswith("global/"):
+                maxval = dict_accessor(maxval[7:], globalconf)
+            if obj > maxval:
+                raise(error_config("field %s must be lower than %s" % (ns, maxval), ns2, name))
     elif otype != bool and type(obj) != otype:
         raise(error_config("field %s should be of type %s" % (ns, str(otype)), ns2, name))
     if otype == list:
