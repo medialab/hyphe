@@ -195,7 +195,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_WEs(self, corpus, query=None, **kwargs):
-        if not query:
+        if not query and query != []:
             res = yield self.WEs(corpus).find({}, **kwargs)
         else:
             if isinstance(query, list) and isinstance(query[0], int):

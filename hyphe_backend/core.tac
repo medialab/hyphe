@@ -479,7 +479,7 @@ class Core(customJSONRPC):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
             jsondump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
-            links = self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, corpus=corpus)
+            links = yield self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
             jsondump(links["result"], f)
@@ -1062,6 +1062,9 @@ class Crawler(customJSONRPC):
             yield self.crawlqueue.send_scrapy_query('cancel', args)
             yield self.crawlqueue.send_scrapy_query('cancel', args)
         yield self.db.drop_corpus_collections(corpus)
+        res = yield self.jsonrpc_deploy_crawler(corpus)
+        if is_error(res):
+            returnD(res)
         if _recreate and not self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].start(10, False)
         returnD(format_result('Crawling database reset.'))
@@ -1479,7 +1482,7 @@ class Memory_Structure(customJSONRPC):
 
         # Remove potential parent webentities homepages that would belong to the newly created WE
         parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", new_WE["_id"], new_WE["prefixes"])
-        if not is_error(parentWEs):
+        if not is_error(parentWEs) and parentWEs["result"]:
             parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
             parentPrefixes = {}
             for parent in parentWEs:
