@@ -1498,7 +1498,7 @@ class Memory_Structure(customJSONRPC):
                     longest_prefix = max(matching_parent_prefixes, key=len)
                     firstParents[prefix] = parentPrefixes[longest_prefix]
                 for parent, prefixes in reverse_dico(firstParents).items():
-                    yield self.db.add_update(corpus, old_webentity_id, parent, prefixes)
+                    yield self.db.add_update(corpus, parent, new_WE['_id'], prefixes)
 
         returnD(format_result(new_WE))
 
