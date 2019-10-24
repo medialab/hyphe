@@ -29,7 +29,7 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
     API.WEBENTITY_PREFIX_REMOVE                     = 'store.rm_webentity_lruprefix'
-    
+
     API.WEBENTITY_PAGE_LIST_GET                     = 'store.get_webentity_pages'
     API.WEBENTITY_PAGE_LIST_PAGINATE                = 'store.paginate_webentity_pages'
     API.WEBENTITY_PAGES_NETWORK_GET                 = 'store.get_webentity_pagelinks_network'
@@ -266,6 +266,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.count || 5000
               ,settings.token || null
               ,settings.crawledOnly || false
+              ,settings.includePageData || false
               ,corpus.getId()
             ]}
       )
@@ -353,7 +354,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.mergeStartPages = true
           if(settings.mergeNameAndStatus === undefined)
             settings.mergeNameAndStatus = false
-          
+
           return [
               settings.oldWebentityId
               ,settings.goodWebentityId
@@ -373,7 +374,7 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.mergeTags = true
           if(settings.mergeStartPages === undefined)
             settings.mergeStartPages = true
-          
+
           return [
               settings.oldWebentityId_list
               ,settings.goodWebentityId
@@ -620,7 +621,7 @@ angular.module('hyphe.service_hyphe_api', [])
         ]}
       )
 
-    
+
     ns.getWECreationRules = buildApiCall(
         API.WE_CREATION_RULE_LIST_GET
         ,function(settings){
@@ -725,7 +726,7 @@ angular.module('hyphe.service_hyphe_api', [])
         } else {
           s = {}
         }
-        
+
         // Abort
         if(s._API_ABORT_QUERY){
           return false
