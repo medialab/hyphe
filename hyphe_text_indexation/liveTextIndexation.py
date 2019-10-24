@@ -42,11 +42,8 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
 
         # take XXX pages sorted by timestamp if index = false
         query = {
-            "status": 200,
-            "content_type": {"$in": content_types},
-            "body" : {"$exists": True},
-            "to_index" : True,
-            "forgotten" : False
+            "to_index": True,
+            "forgotten": False
         }
         total = 0
         jobs = set()
@@ -100,10 +97,65 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
         print(not_completed_jobs)
         completed_jobs = jobs - not_completed_jobs
         if len(completed_jobs) > 0:
-            print(completed_jobs)
-            mongo_jobs_coll.update({'_id':{"$in": list(completed_jobs)}}, {'$set': {'text_indexing_status': 'finished'}}, multi=True)
+            print("%s are fully indexed"%completed_jobs)
+            mongo_jobs_coll.update({'crawljob_id': {"$in": list(completed_jobs)}}, {'$set': {'text_indexed': True}}, multi=True)
 
         # update web entity - page structure
+        mongo_webupdates_coll =  mongo["hyphe_%s" % CORPUS]["WEupdates"]
+        weupdates = mongo_webupdates_coll.find({"index_status": "PENDING"}).sort('timestamp')
+        print("WE updates to process: %s"%weupdates.count())
+        for weupdate in weupdates:
+            print(weupdate)
+            unindexed_jobs = mongo_jobs_coll.find({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}})
+            # don't update WE structure in text index if there is one crawling job
+            print('checking number of unindexed jobs %s'%unindexed_jobs.count())
+            if unindexed_jobs.count() == 0:
+                print('updating index with %s'%weupdate)
+                # two cases , trivial if no prefixes, complexe otherwiase
+                if weupdate['prefixes'] and len(weupdate['prefixes']) > 0:
+                    updateQuery = {
+                        "script": {
+                        "lang": "painless",
+                        "source": "ctx._source.webentity_id = params.new_webentity_id",
+                        "params": {
+                            "new_webentity_id": weupdate['new_webentity']
+                        }
+                        },
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {
+                                        "term": {
+                                            "webentity_id": weupdate['old_webentity']
+                                        }
+                                    },
+                                    {
+                                        "terms": {
+                                            "prefixes": weupdate['prefixes']
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                else:
+                    updateQuery = {
+                        "script": {
+                            "lang": "painless",
+                            "source": "ctx._source.webentity_id = params.new_webentity_id",
+                            "params": {
+                                "new_webentity_id": weupdate['new_webentity']
+                            }
+                        },
+                        "query": {
+                            "term": {
+                                "webentity_id": weupdate['old_webentity']
+                            }
+                        }
+                    }
+                index_result = es.update_by_query(index='hyphe.%s.txt' % CORPUS, body = updateQuery, conflicts="proceed")
+                print(index_result)
+                weupdates = mongo_webupdates_coll.update({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
 
         # throttle if batch empty
         if len(pages) == 0:
@@ -160,7 +212,12 @@ if __name__ == '__main__':
         if RESET_MONGO:
             dbpages.update({}, {'$set': {'to_index': True}}, multi=True, upsert=False)
             print('mongo index created')
-            dbpages.update({'$or': [{'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}}, {'body': {'$exists': False}}]}, {'$set': {'to_index': False}})
+            dbpages.update({'$or': [
+                {'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}},
+                {'body': {'$exists': False}},
+                {'status': {"$ne": 200}},
+                {'size': 0}]},
+                {'$set': {'to_index': False}}, multi=True, upsert=False)
             print('set non-content page to not to_index')
         es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
             "mappings": {
