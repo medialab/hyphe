@@ -53,7 +53,7 @@ if "HYPHE_DEFAULT_CREATION_RULE"    in environ: setConfig("defaultCreationRule",
 if "HYPHE_CREATION_RULES"           in environ: setConfig("creationRules", literal_eval(environ["HYPHE_CREATION_RULES"]),configdata)
 if "HYPHE_FOLLOW_REDIRECTS"         in environ: setConfig("discoverPrefixes", literal_eval(environ["HYPHE_FOLLOW_REDIRECTS"]),configdata)
 
-# TODO: Phantom config
+# TODO: Headless config
 
 if "HYPHE_ADMIN_PASSWORD"  in environ: setConfig("ADMIN_PASSWORD", environ["HYPHE_ADMIN_PASSWORD"] or None,configdata)
 if "HYPHE_OPEN_CORS_API"   in environ: setConfig("OPEN_CORS_API", strToBool(environ["HYPHE_OPEN_CORS_API"]),configdata)

@@ -97,7 +97,7 @@ Typical important options to set depending on your situation are highlighted as 
   see default values for example, a list of domain names for which the crawler will automatically try to resolve redirections in order to avoid having links shorteners in the middle of the graph of links
 
 
-- `phantom [object]`: settings for crawl jobs using PhantomJS to simulate a human browsing the webpages, scrolling and clicking on any possible interactive part (still experimental and unstable, do not modify unless you know what you're doing) (unavailable in Docker installs for now)
+- `headless [object]`: settings for crawl jobs using a headless browser to simulate a human browsing the webpages, scrolling and clicking on any possible interactive part (still experimental and unstable, do not modify unless you know what you're doing) (unavailable in Docker installs for now)
 
   + `autoretry [bool]`:
 
@@ -105,11 +105,11 @@ Typical important options to set depending on your situation are highlighted as 
 
   + `timeout [int]`:
 
-    usually `600`, the maximum time in seconds PhantomJS is allowed to spend on one single page (10 minutes are required for instance to load all hidden content on big Facebook group pages for instance)
+    usually `600`, the maximum time in seconds the headless browser is allowed to spend on one single page (10 minutes are required for instance to load all hidden content on big Facebook group pages for instance)
 
   + `idle_timeout [int]`:
 
-    usually `20`, the maximum time in seconds after which PhantomJS will consider the page properly crawled if nothing happened within during that time
+    usually `20`, the maximum time in seconds after which the headless browser will consider the page properly crawled if nothing happened within during that time
 
   + `ajax_timeout [int]`:
 
@@ -117,7 +117,7 @@ Typical important options to set depending on your situation are highlighted as 
 
   + `whitelist_domains [str array]`:
 
-    empty for now, a list of domain names for which the crawler will automatically use PhantomJS (meant for instance in the long term for Facebook, Twitter or Google)
+    empty for now, a list of domain names for which the crawler will automatically use the headless browser (meant for instance in the long term for Facebook, Twitter or Google)
 
 
 - __`ADMIN_PASSWORD [str]`__ (in Docker: __`HYPHE_ADMIN_PASSWORD`__):

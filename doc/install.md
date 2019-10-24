@@ -239,15 +239,6 @@ By default the starter will display Hyphe's log in the console using `tail`. You
 
 You can always check all logs in the `log` directory.
 
+__Important:__ Crawling with a headless browser is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
 
-## Extra) Install [PhantomJS](http://phantomjs.org/) [Unrequired for now]
-
-__Important:__ Crawling with PhantomJS is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
-
-Hyphe ships with a compiled binary of PhantomJS-2.0 for Ubuntu, unfortunately it is not cross-compatible with other distributions: so when on CentOS or Debian, you should compile your own from sources.
-
-```bash
-./bin/install_phantom.sh
-```
-
-Note that PhantomJS 1.9.7 is easily downloadable as binary, altough it uses a very outdated version of WebKit and PhantomJS 2+ is required to handle modern websites such as Facebook.
+Hyphe ships with a compiled binary of Chromium & Chromedriver for Ubuntu, unfortunately it is not cross-compatible with other distributions: so when on CentOS or Debian, you should compile your own from sources.

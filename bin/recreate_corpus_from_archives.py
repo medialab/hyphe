@@ -220,7 +220,7 @@ def cli(archive_dir, corpus_name, api_url, filter_discovered, destroy_existing, 
                     print >> sys.stderr, "WARNING: skipping crawl on problematic entity not recreated", c
                 continue
         args = c['crawl_arguments']
-        res = hyphe_api.crawl.start(old_to_new[c['webentity_id']], args['start_urls'], args['follow_prefixes'], args['nofollow_prefixes'], args['discover_prefixes'], args['max_depth'], args['phantom'], {}, 1, args['cookies'], cid)
+        res = hyphe_api.crawl.start(old_to_new[c['webentity_id']], args['start_urls'], args['follow_prefixes'], args['nofollow_prefixes'], args['discover_prefixes'], args['max_depth'], args['headless'], {}, 1, args['cookies'], cid)
         if 'code' not in res or res['code'] == 'fail':
             print >> sys.stderr, 'WARNING: Could not start crawl', c, res
 

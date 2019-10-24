@@ -266,7 +266,7 @@
                               <p ng-if="job.finished_at" class="subtitle">
                                 Finished in {{job.finished_at - job.created_at|duration}}
                               </p>
-                              <p class="subtitle" ng-if="job.crawl_arguments.phantom">
+                              <p class="subtitle" ng-if="job.crawl_arguments.headless">
                                 <md-icon>find_in_page</md-icon> Cautious crawl
                               </p>
                               <p class="subtitle">

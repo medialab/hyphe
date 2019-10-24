@@ -17,7 +17,7 @@ log_file = 'start_crawling_webentities_from_csv.log'
 log_level = logging.DEBUG
 webentities_file = 'start_crawling_webentities_from_csv.csv'
 depth_crawl = 1
-phantom_crawl = False
+headless_crawl = False
 # Should be of this format : 'http://hyphe.medialab.sciences-po.fr/INSTANCE-api/'
 # if you usually access Hyphe from : 'http://hyphe.medialab.sciences-po.fr/INSTANCE/'
 api_url = 'url_of_your_own_api'
@@ -54,7 +54,7 @@ def main():
 				logging.info(result['result'])
 			# Add the web entity to be crawled, if it STATUS is 'IN' and it has not been crawled before, ie. CRAWLING STATUS is 'UNCRAWLED'
 			if webentity['STATUS'] == 'IN' and webentity['CRAWLING STATUS'] == 'UNCRAWLED' :
-				result = hyphe_core.crawl_webentity(webentity['ID'], depth_crawl, phantom_crawl, webentity['STATUS'], 'prefixes', {}, corpus)
+				result = hyphe_core.crawl_webentity(webentity['ID'], depth_crawl, headless_crawl, webentity['STATUS'], 'prefixes', {}, corpus)
 				if result['code'] == 'fail' :
 					logging.error(result['message'])
 				else :

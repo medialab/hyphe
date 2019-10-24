@@ -105,7 +105,7 @@
                         <p ng-if="job.finished_at" class="subtitle">
                           Finished in {{job.finished_at - job.created_at|duration}}
                         </p>
-                        <p class="subtitle" ng-if="job.crawl_arguments.phantom">
+                        <p class="subtitle" ng-if="job.crawl_arguments.headless">
                           <md-icon>find_in_page</md-icon> Cautious crawl
                         </p>
                         <p class="subtitle">
@@ -339,10 +339,10 @@
                   <dd><span class="badge">{{crawljobsIndex[focusedJobId].crawl_arguments.max_depth}}</span></dd>
 
                   <dt><span hyphe-glossary="Cautious crawl"/></dt>
-                  <dd ng-if="crawljobsIndex[focusedJobId].crawl_arguments.phantom">
+                  <dd ng-if="crawljobsIndex[focusedJobId].crawl_arguments.headless">
                     <md-icon>find_in_page</md-icon> YES
                   </dd>
-                  <dd ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.phantom">
+                  <dd ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.headless">
                     No
                   </dd>
                   
@@ -422,16 +422,16 @@
                 <dl ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.start_urls.length" class="key-value-pairs">
                   <dd>None</dd>
                 </dl>
-
-                <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.phantom">
+                <code>{{crawljobsIndex[focusedJobId]}}</code>
+                <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.headless">
                   <h3 style="margin-bottom:0px">CAUTIOUS CRAWL SETTINGS</h3>
                   <dl class="key-value-pairs">
                     <dt>Page Timeout</dt>
-                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_timeout}}</dd>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.headless_timeout}}</dd>
                     <dt>Ajax queries Timeout</dt>
-                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_ajax_timeout}}</dd>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.headless_ajax_timeout}}</dd>
                     <dt>Idle Timeout</dt>
-                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_idle_timeout}}</dd>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.headless_idle_timeout}}</dd>
                   </dl>
                 </div>
 

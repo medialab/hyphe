@@ -40,7 +40,7 @@ except:
 corpus_conf = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"]), int(os.environ.get('HYPHE_MONGODB_PORT', config["mongo-scrapy"]["mongo_port"])))[config["mongo-scrapy"]["db_name"]]["corpus"].find_one({"_id": project})
 if corpus_conf:
     corpus_conf = corpus_conf["options"]
-    config["phantom"].update(corpus_conf["phantom"])
+    config["headless"].update(corpus_conf["headless"])
     if corpus_conf["proxy"]["host"]:
         config["mongo-scrapy"]["proxy_host"] = corpus_conf["proxy"]["host"]
     if corpus_conf["proxy"]["port"]:
@@ -78,7 +78,7 @@ try:
     config['mongo-scrapy']['log_level'] = 'DEBUG' if config['DEBUG'] > 1 else 'INFO'
     config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"])
     for _to in ["", "idle_", "ajax_"]:
-        config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
+        config['mongo-scrapy']['headless_%stimeout' % _to] = config['headless']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:

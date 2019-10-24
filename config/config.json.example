@@ -52,7 +52,7 @@
     "wp.me",
     "ow.ly"
   ],
-  "phantom": {
+  "headless": {
     "autoretry": true,
     "timeout": 150,
     "idle_timeout": 20,

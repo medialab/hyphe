@@ -48,9 +48,9 @@ def load_config():
     if "creationRules" not in conf:
         conf["creationRules"] = {}
 
-  # Auto unset phantomJs autoretry if missing
-    if "phantom" in conf and "autoretry" not in conf["phantom"]:
-        conf["phantom"]["autoretry"] = False
+  # Auto unset headless browser autoretry if missing
+    if "headless" in conf and "autoretry" not in conf["headless"]:
+        conf["headless"]["autoretry"] = False
 
   # Check sanity
     try:
@@ -116,7 +116,7 @@ GLOBAL_CONF_SCHEMA = {
     "values": creationrules.testPreset
   }, "discoverPrefixes": {
     "type": list
-  }, "phantom": {
+  }, "headless": {
     "type": dict,
     "int_fields": ["timeout", "idle_timeout", "ajax_timeout"],
     "extra_fields": {
@@ -155,14 +155,14 @@ CORPUS_CONF_SCHEMA = {
     "int_fields": ["port"],
     "default": "global/mongo-scrapy/proxy"
   },
-  "phantom": {
+  "headless": {
     "type": dict,
     "int_fields": ["timeout", "idle_timeout", "ajax_timeout"],
     "extra_fields": {
       "whitelist_domains": list,
       "autoretry": bool
     },
-    "default": "global/phantom"
+    "default": "global/headless"
   }
 }
 

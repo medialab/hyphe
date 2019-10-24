@@ -86,13 +86,13 @@
                 <dl class="key-value-pairs">
 
                   <dt>Timeout</dt>
-                  <dd>{{options.phantom.timeout}}</dd>
+                  <dd>{{options.headless.timeout}}</dd>
 
                   <dt>Ajax Timeout</dt>
-                  <dd>{{options.phantom.ajax_timeout}}</dd>
+                  <dd>{{options.headless.ajax_timeout}}</dd>
                   
                   <dt>Idle Timeout</dt>
-                  <dd>{{options.phantom.idle_timeout}}</dd>
+                  <dd>{{options.headless.idle_timeout}}</dd>
 
                 </dl>
 
@@ -104,11 +104,11 @@
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">CAUTIOUS DOMAINS</h3>
 
-                <dl class="key-value-pairs" ng-if="options.phantom.whitelist_domains.length>0">
-                  <dd ng-repeat="domain in options.phantom.whitelist_domains" >{{domain}}</dd>
+                <dl class="key-value-pairs" ng-if="options.headless.whitelist_domains.length>0">
+                  <dd ng-repeat="domain in options.headless.whitelist_domains" >{{domain}}</dd>
                 </dl>
 
-                <dl class="key-value-pairs" ng-if="!options.phantom.whitelist_domains.length>0">
+                <dl class="key-value-pairs" ng-if="!options.headless.whitelist_domains.length>0">
                   <dd><em>None</em></dd>
                 </dl>
 

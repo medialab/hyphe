@@ -128,18 +128,18 @@ class Core(customJSONRPC):
             wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
             res = self.traphs.start_corpus(corpus, keepalive=self.corpora[corpus]['options']['keepalive'], default_WECR=getWECR(options["defaultCreationRule"]), WECRs=wecrs)
 
-        if "proxy" in options or ("phantom" in options and (\
-          "timeout" in options["phantom"] or \
-          "ajax_timeout" in options["phantom"] or \
-          "idle_timeout" in options["phantom"])):
+        if "proxy" in options or ("headless" in options and (\
+          "timeout" in options["headless"] or \
+          "ajax_timeout" in options["headless"] or \
+          "idle_timeout" in options["headless"])):
             if self.corpora[corpus]['crawls_running']:
                 returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
             else:
                 redeploy = True
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
-        if "phantom" in options:
+        if "headless" in options:
             redeploy = True
-            self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
+            self.corpora[corpus]["options"]["headless"].update(options.pop("headless"))
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus)
         if redeploy:
@@ -757,13 +757,13 @@ class Core(customJSONRPC):
         if len(update_ids):
             yield self.db.update_jobs(corpus, update_ids, {'indexing_status': indexing_statuses.FINISHED, 'finished_at': now_ts()})
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
-            if corpus in self.corpora and self.corpora[corpus]['options']['phantom'].get('autoretry', False):
-                # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
-                res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.max_depth': {'$gt': 0}})
+            if corpus in self.corpora and self.corpora[corpus]['options']['headless'].get('autoretry', False):
+                # Try to restart in headless mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
+                res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.headless': False, 'crawl_arguments.max_depth': {'$gt': 0}})
                 for job in res:
-                    logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
+                    logger.msg("Crawl job %s seems to have failed, trying to restart it in headless mode" % job['_id'], system="INFO - %s" % corpus)
                     yield self.jsonrpc_crawl_webentity(job['webentity_id'], min(job['crawl_arguments']['max_depth'], 2), True, corpus=corpus)
-                    yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_PHANTOM")
+                    yield self.db.add_log(corpus, job['_id'], "CRAWL_RETRIED_AS_HEADLESS")
                     yield self.db.update_jobs(corpus, job['_id'], {'crawling_status': crawling_statuses.RETRIED})
 
     re_linkedpages = re.compile(r'pages-(\d+)$')
@@ -811,8 +811,8 @@ class Core(customJSONRPC):
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status="IN", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, headless_crawl=False, status="IN", headless_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use a headless browser by setting `headless_crawl` to "true" and adjust specific `headless_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         WE = yield self.db.get_WE(corpus, webentity_id)
@@ -821,12 +821,12 @@ class Core(customJSONRPC):
         startmode = "startpages"
         if not WE["startpages"]:
             startmode = "default"
-        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, phantom_timeouts=phantom_timeouts, corpus=corpus)
+        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, headless_crawl=headless_crawl, status=status, startmode=startmode, headless_timeouts=headless_timeouts, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", cookies_string=None, phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, headless_crawl=False, status="IN", startmode="default", cookies_string=None, headless_timeouts={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use a headless browser by setting `headless_crawl` to "true" and adjust specific `headless_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -837,7 +837,7 @@ class Core(customJSONRPC):
             depth = self.corpora[corpus]["options"]['max_depth']
         if depth > self.corpora[corpus]["options"]['max_depth']:
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
-        phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
+        headless_timeouts.update(self.corpora[corpus]["options"]["headless"])
         # Get WebEntity if webentity_id not already one from internal call
         try:
             tmpid = webentity_id["_id"]
@@ -876,7 +876,7 @@ class Core(customJSONRPC):
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
             yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, cookies_string=cookies_string, corpus=corpus, _autostarts=autostarts)
+        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, headless_crawl, headless_timeouts, cookies_string=cookies_string, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
     @inlineCallbacks
@@ -1063,12 +1063,12 @@ class Crawler(customJSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], cookies_string=None, corpus=DEFAULT_CORPUS, _autostarts=[]):
-        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- a known `cookies_string` with auth rights to a protected website."""
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, headless_crawl=False, headless_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], cookies_string=None, corpus=DEFAULT_CORPUS, _autostarts=[]):
+        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `headless_crawl` set to "true" to use a headless browser for this crawl and optional `headless_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- a known `cookies_string` with auth rights to a protected website."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        if not phantom_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['phantom']['whitelist_domains']):
-            phantom_crawl = True
+        if not headless_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['headless']['whitelist_domains']):
+            headless_crawl = True
         if not follow_redirects:
             follow_redirects = self.corpora[corpus]["options"]["follow_redirects"]
         try:
@@ -1083,7 +1083,7 @@ class Crawler(customJSONRPC):
         args = {
           'project': corpus_project(corpus),
           'spider': 'pages',
-          'phantom': phantom_crawl,
+          'headless': headless_crawl,
           'setting': 'DOWNLOAD_DELAY=' + str(download_delay),
           'max_depth': depth,
           'start_urls': list(starts),
@@ -1094,10 +1094,10 @@ class Crawler(customJSONRPC):
           'user_agent': get_random_user_agent(),
           'cookies': cookies_string
         }
-        if phantom_crawl:
-            phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
+        if headless_crawl:
+            headless_timeouts.update(self.corpora[corpus]["options"]["headless"])
             for t in ["", "ajax_", "idle_"]:
-                args['phantom_%stimeout' % t] = phantom_timeouts["%stimeout" % t]
+                args['headless_%stimeout' % t] = headless_timeouts["%stimeout" % t]
         res = yield self.crawlqueue.add_job(args, corpus, webentity_id)
         yield self.db.upsert_WE(corpus, webentity_id, {"crawled": True})
         self.corpora[corpus]["webentities_in_uncrawled"] -= 1

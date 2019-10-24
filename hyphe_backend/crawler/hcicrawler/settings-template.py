@@ -50,9 +50,9 @@ CHROME = {
   "PATH": chromium_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
   "DRIVER_PATH": chrome_driver_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
   "JS_PATH": JS_PATH,
-  "TIMEOUT": {{phantom_timeout}},
-  "IDLE_TIMEOUT": {{phantom_idle_timeout}},
-  "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
+  "TIMEOUT": {{headless_timeout}},
+  "IDLE_TIMEOUT": {{headless_idle_timeout}},
+  "AJAX_TIMEOUT": {{headless_ajax_timeout}}
 }
 
 STORE_HTML = {{store_crawled_html_content}}

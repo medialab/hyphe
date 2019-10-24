@@ -48,14 +48,14 @@ class PagesCrawler(Spider):
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
         self.resolved_links = {}
         self.user_agent = args['user_agent']
-        self.headless = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
+        self.headless = 'headless' in args and args['headless'] and args['headless'].lower() != "false"
         self.cookies = None
         if 'cookies' in args:
             self.cookies = dict(cookie.split('=', 1) for cookie in re.split(r'\s*;\s*', args['cookies']) if '=' in cookie)
         if self.headless:
-            self.ph_timeout = int(args.get('phantom_timeout', CHROME['TIMEOUT']))
-            self.ph_idle_timeout = int(args.get('phantom_idle_timeout', CHROME['IDLE_TIMEOUT']))
-            self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', CHROME['AJAX_TIMEOUT']))
+            self.ph_timeout = int(args.get('headless_timeout', CHROME['TIMEOUT']))
+            self.ph_idle_timeout = int(args.get('headless_idle_timeout', CHROME['IDLE_TIMEOUT']))
+            self.ph_ajax_timeout = int(args.get('headless_ajax_timeout', CHROME['AJAX_TIMEOUT']))
         self.errors = 0
 
     @classmethod
@@ -96,14 +96,14 @@ class PagesCrawler(Spider):
             chrome_options.add_argument('ignore-certificate-errors')
             chrome_options.add_argument('user-data-dir=%s' % self.prefixfiles)
             chrome_options.add_argument('user-agent="%s"' % self.user_agent)
-        phantom_args = []
+        headless_args = []
         if PROXY and not PROXY.startswith(':'):
             proxy = Proxy()
             proxy.setHttpProxy(PROXY)
             proxy.setSslProxy(PROXY)
             chrome_options.setCapability("proxy", proxy)
-        #capabilities['phantomjs.page.settings.javascriptCanCloseWindows'] = False
-        #capabilities['phantomjs.page.settings.javascriptCanOpenWindows'] = False
+        #capabilities['headlessjs.page.settings.javascriptCanCloseWindows'] = False
+        #capabilities['headlessjs.page.settings.javascriptCanOpenWindows'] = False
         self.log("START CHROME DRIVER")
         self.log(CHROME['PATH'])
         self.log(CHROME['DRIVER_PATH'])
