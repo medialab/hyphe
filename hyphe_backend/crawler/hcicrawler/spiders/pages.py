@@ -48,11 +48,11 @@ class PagesCrawler(Spider):
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
         self.resolved_links = {}
         self.user_agent = args['user_agent']
-        self.chromium = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
+        self.headless = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         self.cookies = None
         if 'cookies' in args:
             self.cookies = dict(cookie.split('=', 1) for cookie in re.split(r'\s*;\s*', args['cookies']) if '=' in cookie)
-        if self.chromium:
+        if self.headless:
             self.ph_timeout = int(args.get('phantom_timeout', CHROME['TIMEOUT']))
             self.ph_idle_timeout = int(args.get('phantom_idle_timeout', CHROME['IDLE_TIMEOUT']))
             self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', CHROME['AJAX_TIMEOUT']))
@@ -68,7 +68,7 @@ class PagesCrawler(Spider):
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
         self.log("ARGUMENTS : "+str(self.args), logging.INFO)
-        if self.chromium:
+        if self.headless:
             self.init_chrome()
         for url in self.start_urls:
             yield self._request(url)
@@ -82,7 +82,7 @@ class PagesCrawler(Spider):
         )
         if not os.path.exists(self.prefixfiles):
             os.makedirs(self.prefixfiles)
-            self.log("Using path %s for headless Chromium crawl" % self.prefixfiles, log.INFO)
+            self.log("Using path %s for headless Chromium crawl" % self.prefixfiles, logging.INFO)
             chromedriver_args = []
             chromedriver_args.append('--verbose')
             chromedriver_args.append('--log-path=%s-chromedriver.log' % self.prefixfiles)
@@ -90,13 +90,12 @@ class PagesCrawler(Spider):
             chrome_options.binary_location = CHROME['PATH']
             chrome_options.add_argument('no-sandbox')
             chrome_options.add_argument('headless')
-            chrome_options.add_argument('disable-gpu')
+            # chrome_options.add_argument('disable-gpu')
             chrome_options.add_argument('disable-dev-shm-usage')
             chrome_options.add_argument('disable-software-rasterizer')
             chrome_options.add_argument('ignore-certificate-errors')
             chrome_options.add_argument('user-data-dir=%s' % self.prefixfiles)
-            #chrome_options.add_argument('user-agent="%s"' % self.user_agent)
-        self.log("Using path %s for PhantomJS crawl" % self.prefixfiles, logging.INFO)
+            chrome_options.add_argument('user-agent="%s"' % self.user_agent)
         phantom_args = []
         if PROXY and not PROXY.startswith(':'):
             proxy = Proxy()
@@ -105,10 +104,13 @@ class PagesCrawler(Spider):
             chrome_options.setCapability("proxy", proxy)
         #capabilities['phantomjs.page.settings.javascriptCanCloseWindows'] = False
         #capabilities['phantomjs.page.settings.javascriptCanOpenWindows'] = False
+        self.log("START CHROME DRIVER")
+        self.log(CHROME['PATH'])
+        self.log(CHROME['DRIVER_PATH'])
         self.chromium = Chrome(
             executable_path=CHROME['DRIVER_PATH'],
             service_args=chromedriver_args,
-            chrome_options=chrome_options
+            options=chrome_options
         )
         self.chromium.implicitly_wait(10)
         self.chromium.set_page_load_timeout(60)
@@ -143,31 +145,34 @@ class PagesCrawler(Spider):
             bod_w_iframes = self.chromium.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
+            self.log('response.status :')
+            self.log(response.status)
+
           # Try to scroll and unfold page
-            self.log("Start PhantomJS scrolling and unfolding page with status " + str(response.status), logging.INFO)
-            with open(os.path.join(CHROME["JS_PATH"], "scrolldown_and_unfold.js")) as js:
-                try:
-                    signal.signal(signal.SIGALRM, timeout_alarm)
-                    signal.alarm(self.ph_timeout + 30)
-                    timedout = self.chromium.execute_async_script(
-                        js.read(), self.ph_timeout,
-                        self.ph_idle_timeout, self.ph_ajax_timeout)
-                    signal.alarm(0)
-                    if timedout:
-                        raise SeleniumTimeout
-                    self.log("Scrolling/Unfolding finished", logging.INFO)
-                except SeleniumTimeout:
-                    self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout, logging.WARNING)
-                    self.errors += 1
-                except WebDriverException as e:
-                    err = json.loads(e.msg)['errorMessage']
-                    self.log("Scrolling/Unfolding crashed: %s" % err, logging.ERROR)
-                    self.errors += 1
-                except Exception as e:
-                    self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e), logging.ERROR)
-                    self.errors += 1
-                    return self._make_raw_page(response, lru)
-            bod_w_iframes = self.chromium.execute_script(get_bod_w_iframes)
+            # self.log("Start PhantomJS scrolling and unfolding page with status " + str(response.status), logging.INFO)
+            # with open(os.path.join(CHROME["JS_PATH"], "scrolldown_and_unfold.js")) as js:
+            #     try:
+            #         signal.signal(signal.SIGALRM, timeout_alarm)
+            #         signal.alarm(self.ph_timeout + 30)
+            #         timedout = self.chromium.execute_async_script(
+            #             js.read(), self.ph_timeout,
+            #             self.ph_idle_timeout, self.ph_ajax_timeout)
+            #         signal.alarm(0)
+            #         if timedout:
+            #             raise SeleniumTimeout
+            #         self.log("Scrolling/Unfolding finished", logging.INFO)
+            #     except SeleniumTimeout:
+            #         self.log("Scrolling/Unfolding timed-out (%ss)" % self.ph_timeout, logging.WARNING)
+            #         self.errors += 1
+            #     except WebDriverException as e:
+            #         err = json.loads(e.msg)['errorMessage']
+            #         self.log("Scrolling/Unfolding crashed: %s" % err, logging.ERROR)
+            #         self.errors += 1
+            #     except Exception as e:
+            #         self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e), logging.ERROR)
+            #         self.errors += 1
+            #         return self._make_raw_page(response, lru)
+            # bod_w_iframes = self.chromium.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
       # Cleanup pages with base64 images embedded that make scrapy consider them not htmlresponses
