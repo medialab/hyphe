@@ -1057,6 +1057,9 @@ class Crawler(customJSONRPC):
             yield self.crawlqueue.send_scrapy_query('cancel', args)
             yield self.crawlqueue.send_scrapy_query('cancel', args)
         yield self.db.drop_corpus_collections(corpus)
+        res = yield self.crawler.jsonrpc_deploy_crawler(corpus)
+        if is_error(res):
+            returnD(res)
         if _recreate and not self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].start(10, False)
         returnD(format_result('Crawling database reset.'))
