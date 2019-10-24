@@ -1482,7 +1482,7 @@ class Memory_Structure(customJSONRPC):
 
         # Remove potential parent webentities homepages that would belong to the newly created WE
         parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", new_WE["_id"], new_WE["prefixes"])
-        if not is_error(parentWEs):
+        if not is_error(parentWEs) and parentWEs["result"]:
             parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
             parentPrefixes = {}
             for parent in parentWEs:
