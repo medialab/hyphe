@@ -404,7 +404,7 @@ class MongoDB(object):
     def add_update(self, corpus, oldWE, newWE, prefixes=None):
         yield self.updates(corpus).insert_one({
             "old_webentity": oldWE,
-            "new_webentity": new_WE,
+            "new_webentity": newWE,
             "prefixes": prefixes,
             "index_status": indexing_statuses.PENDING,
             "timestamp": now_ts()
