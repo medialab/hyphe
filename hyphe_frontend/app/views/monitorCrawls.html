@@ -20,6 +20,11 @@
               Monitor and manage <span hyphe-glossary="crawl jobs"></span>. For a new <span hyphe-glossary="crawl"></span>, use the <a href="#/project/{{corpusId}}/importurls">IMPORT</a> page.
             </span>
           </div>
+          <md-button class="icon-to-right md-primary" ng-click="downloadCrawlsCSV()" ng-show="selectedTab === 1 && crawlJobs.length">
+            <md-tooltip md-direction="top">Export all crawls metadata as CSV</md-tooltip>
+            <md-icon>file_download</md-icon>
+              Download Metadata
+          </md-button>
           <md-tabs md-border-bottom flex md-selected="selectedTab">
 
             <!-- Tab: last crawls -->

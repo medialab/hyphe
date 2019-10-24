@@ -170,9 +170,10 @@
     network="network"
     download-network="downloadNetwork"
     on-node-click="networkNodeClick"
-  ></sigma-network>
+    on-stage-click="networkStageClick"
+  >
+  </sigma-network>
 
-</div>
 
 <!-- Side Nav -->
 <md-sidenav
@@ -196,10 +197,33 @@
   </md-toolbar>
 
   <md-content>
+
+    <div layout ="row" style=""
+         md-colors="{'background': 'default-background-200-0.5'}"
+    >
+      <md-icon style="margin-left:10px;margin-right:10px">search</md-icon>
+      <md-autocomplete
+              md-item-text="WE"
+              md-items="WE in autoComplete(query)"
+              md-min-length=0
+              md-search-text="query"
+              md-selected-item="selectedItem"
+              md-floating-label="Search a WebEntity"
+              md-selected-item-change = "findNode(selectedItem)"
+              md-clear-button="true"
+              style="width:350px; margin-bottom:0px"
+      >
+        <md-item-template>
+          <span md-highlight-text="query">{{WE}}</span>
+        </md-item-template>
+      </md-autocomplete>
+    </div>
+
     <div
       layout="column"
       md-colors="{'background': 'default-background-200'}"
       style="padding: 8px"
+      ng-show = "!selectedItem"
     >
       <p class="md-title">Filtering</p>
       <hyphe-status-box
@@ -250,6 +274,60 @@
         </md-button>
       </div>
     </div>
+
+    <div
+            layout="column"
+            md-colors="{'background': 'default-background-200'}"
+            style="padding: 12px"
+            ng-show = "selectedItem"
+    >
+      <p class="md-title">Selected WebEntity :</p>
+
+      <p flex layout="row">
+        <a
+                href="{{WEHomepage}}"
+                target="_blank"
+                ng-click="$event.stopPropagation();"
+                style="margin-right:2px"
+        >
+          <md-tooltip md-direction="left">{{WEHomepage}}</md-tooltip>
+          <md-icon>link</md-icon>
+        </a>
+        <span md-truncate flex>
+          {{selectedItem}}
+        </span>
+      </p>
+
+      <div layout = "row" >
+        <md-button class="md-raised"
+                   flex
+                   target="_blank"
+                   ng-href="#/project/{{corpusId}}/webentity/{{WEId}}"
+                   ng-click="$event.stopPropagation();"
+                   ng-disabled="!selectedItem">
+          <md-tooltip md-direction="up">Edit this WebEntity</md-tooltip>
+          EDIT &nbsp;
+        </md-button>
+      </div>
+
+      <p class="md-title" style="margin-bottom: 0px">Links</p>
+      <p layout="column" style="margin-top: 0px">
+      <div>
+        <md-icon style="transform: rotate(-30deg); color: #0053c2; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+        &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINKS
+
+      </div>
+      <div>
+        <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+        &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINKS
+      </div>
+      <div>
+        <md-icon style="transform: rotate(-30deg); color: #6e246c
+; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+        &nbsp; &nbsp; <span>{{bothDegree}}</span> SYMMETRIC LINKS
+      </div>
+
+    </div>
     <div
       style="padding: 8px"
       layout="column"
@@ -280,14 +358,14 @@
         </div>
       </div>
 
-      <div layout="column" ng-if="network">
+      <div layout="column" ng-show="network">
 
         <md-input-container>
           <label>NODE COLOR</label>
           <md-select ng-model="$parent.nodeColorMode">
             <md-option value=""><em>No color</em></md-option>
             <md-option value="_webentitystatus">Web entity status</md-option>
-            <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-if="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
+            <md-option value="{{tagCat}}" ng-repeat="(tagCat, tagValues) in tagCategories" ng-show="tagCat != 'FREETAGS'">{{tagCat}} (tag)</md-option>
           </md-select>
         </md-input-container>
 
@@ -298,7 +376,7 @@
           <div flex layout="column" layout-align="center start" style="padding-left: 8px">
             <div class="network-key-text">
               {{item.name}}
-              <span ng-if="item.count">({{item.count}})</span>
+              <span ng-show="item.count">({{item.count}})</span>
             </div>
           </div>
         </div>

@@ -190,8 +190,7 @@ class TraphCorpus(object):
         self.log("Traph stopped")
         if not self.error:
             self.status = "stopped"
-        else:
-            self.checkAndRemovePID()
+        self.checkAndRemovePID()
 
     def checkAndRemovePID(self, warn=False):
         if os.path.exists(self.pidfile):
@@ -258,7 +257,7 @@ class TraphProcessProtocol(ProcessProtocol):
         self.corpus.status = "stopping"
         self.transport.loseConnection()
         rc = reason.value.exitCode
-        if rc == 0:
+        if not rc:
             self.corpus.status = "stopped"
             self.corpus.log("Traph process exited cleanly")
         else:
@@ -269,6 +268,7 @@ class TraphProcessProtocol(ProcessProtocol):
 
     def stop(self):
         self.corpus.status = "stopping"
+        self.transport.loseConnection()
         if self.transport.pid:
             self.transport.signalProcess("TERM")
 

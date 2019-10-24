@@ -129,7 +129,7 @@ angular.module('hyphe.directives', [])
           if(value === "true") {
             $timeout(function() {
               element[0].focus()
-            })
+            }, 100)
           }
         })
       }

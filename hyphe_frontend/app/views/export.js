@@ -324,13 +324,14 @@ angular.module('hyphe.exportController', [])
 
     function finalize(){
       console.log('Finalize', $scope.data)
-
       if($scope.backupCorpus){
         $scope.backupCorpus = false
         api.backupCorpus({
           id: $scope.corpusId
         }, function(){
-        }, function(){})
+        }, function(){
+          $scope.status = {message: 'Error during backup of '+ id, background:'danger'}
+        })
       }
 
       // Gather necessary webentities
@@ -372,7 +373,7 @@ angular.module('hyphe.exportController', [])
                 if(value === undefined){
                   tv = ''
                 } else {
-                  tv = translateValue(value, field.type, 'JSON')
+                  tv = utils.translateValue(value, field.type, 'JSON')
                 }
                 if(tv === undefined){
                   console.error('A value could not be translated',value,we,field)
@@ -414,7 +415,7 @@ angular.module('hyphe.exportController', [])
             if(value === undefined){
               tv = ''
             } else {
-              tv = translateValue(value, field.type, 'MD')
+              tv = utils.translateValue(value, field.type, 'MD')
             }
             if(tv === undefined){
               console.error('A value could not be transferred',value,we,field)
@@ -481,7 +482,7 @@ angular.module('hyphe.exportController', [])
             if(value === undefined){
               tv = ''
             } else {
-              tv = translateValue(value, valType)
+              tv = utils.translateValue(value, valType)
             }
             if(tv === undefined){
               console.error('A value could not be translated',value,we,field)
@@ -543,55 +544,4 @@ angular.module('hyphe.exportController', [])
 
     }
 
-    function translateValue(value, type, mode){
-      
-      mode = mode || 'TEXT'
-
-      var array_separator = ' '
-      if (type === 'array of string with pipe') {
-        array_separator = '|'
-        type = 'array of string'
-      }
-
-      if (type == 'string') {
-        return value
-      
-      } else if (type == 'number') {
-        if (mode == 'TEXT') {
-          return ''+value
-        } else {
-          return value
-        }
-
-      } else if (type == 'array of string'){
-
-        if (value instanceof Array) {
-          if(mode == 'JSON') {
-            return value
-          } else if(mode == 'MD') {
-            return value
-              .map(function(d) {
-                return '* ' + d
-              })
-              .join('\n')
-          } else {
-            return value.sort()
-              .join(array_separator)
-          }
-        } else {
-          console.log(value,'is not an array')
-        }
-
-      } else if(type == 'json'){
-
-        if(mode == 'JSON'){
-          return value
-        } else if(mode == 'MD'){
-          return '```sh\n' + JSON.stringify(value) + '\n```'
-        } else {
-          return JSON.stringify(value)
-        }
-
-      }
-    }
   }])
