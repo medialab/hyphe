@@ -617,6 +617,7 @@ angular.module('hyphe.service_hyphe_api', [])
         API.WEBENTITY_LIST_GET_LINKS
         ,function(settings){return [
           settings.include_links_from_OUT || false
+          ,settings.include_links_from_DISCOVERED || false
           ,corpus.getId()
         ]}
       )
