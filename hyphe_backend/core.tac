@@ -1471,7 +1471,7 @@ class Memory_Structure(customJSONRPC):
             returnD(new_WE)
         # Remove potential parent webentities homepages that would belong to the newly created WE
         parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", new_WE["_id"], new_WE["prefixes"])
-        if not is_error(parentWEs):
+        if not is_error(parentWEs) and parentWEs["result"]:
             parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
             for parent in parentWEs:
                 if parent["homepage"] and urllru.has_prefix(urllru.url_to_lru_clean(parent["homepage"], self.corpora[corpus]["tlds"]), new_WE["prefixes"]):
