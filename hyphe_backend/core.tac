@@ -851,7 +851,7 @@ class Core(customJSONRPC):
             try:
                 webentity_id = int(webentity_id)
             except (ValueError, TypeError):
-                returnD(self.format_error("WebEntity ID must be an integer")
+                returnD(self.format_error("WebEntity ID must be an integer"))
             WE = yield self.db.get_WE(corpus, webentity_id)
             if not WE:
                 returnD(format_error("No WebEntity with id %s found" % webentity_id))
