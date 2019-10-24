@@ -819,6 +819,10 @@ class Core(customJSONRPC):
         """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
+        try:
+            webentity_id = int(webentity_id)
+        except (ValueError, TypeError):
+            returnD(self.format_error("WebEntity ID must be an integer"))
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
