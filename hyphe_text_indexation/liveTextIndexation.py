@@ -103,6 +103,8 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
             print(completed_jobs)
             mongo_jobs_coll.update({'_id':{"$in": list(completed_jobs)}}, {'$set': {'text_indexing_status': 'finished'}}, multi=True)
         
+        # update web entity - page structure
+
         # throttle if batch empty
         if len(pages) == 0:
             time.sleep(throttle)
@@ -158,7 +160,7 @@ if __name__ == '__main__':
         if RESET_MONGO:
             dbpages.update({}, {'$set': {'indexed': False}}, multi=True, upsert=False)
             print('mongo index created')
-            dbpages.update({'$or': [{'content_type': {"$in": ["text/plain", "text/html"]}}, {'body': {'$exists': False}}]}, {'$set': {'indexed': True}})
+            dbpages.update({'$or': [{'content_type': {'$not':{"$in": ["text/plain", "text/html"]}}}, {'body': {'$exists': False}}]}, {'$set': {'indexed': True}})
             print('set non-content page to indexed true')
         es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
             "mappings": {
