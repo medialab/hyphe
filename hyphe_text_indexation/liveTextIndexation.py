@@ -29,7 +29,7 @@ ESPORT = 9200
 
 def ensure_index_on_pages(mongo_pages_coll):
     print("building mongo index")
-    mongo_pages_coll.create_index([('indexed', pymongo.ASCENDING), ("content_type", pymongo.ASCENDING), ("status", pymongo.ASCENDING)])
+    mongo_pages_coll.create_index([('to_index', pymongo.ASCENDING), ("content_type", pymongo.ASCENDING), ("status", pymongo.ASCENDING)])
     print("index done")
 
 
@@ -45,7 +45,7 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
             "status": 200,
             "content_type": {"$in": content_types},
             "body" : {"$exists": True},
-            "indexed" : False,
+            "to_index" : True,
             "forgotten" : False
         }
         total = 0
@@ -84,13 +84,13 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
         index_result = helpers.bulk(es, [{'_op_type': 'update', "doc_as_upsert" : True, "_id": md5(page['url'].encode('UTF8')).hexdigest(), 'doc':p} for p in pages], index='hyphe.%s.txt' % CORPUS)
         #print index_result
         # update status in mongo
-        mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'indexed': True}}, multi=True, upsert=False)
+        mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'to_index': False}}, multi=True, upsert=False)
         print(mongo_update)
         not_completed_jobs_pipeline = [
             {
             "$match": {
             "_job" : {"$in": list(jobs)},
-            "indexed": False
+            "to_index": True
             }},{
             "$group": {
                 "_id": "$_job"
@@ -102,7 +102,7 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
         if len(completed_jobs) > 0:
             print(completed_jobs)
             mongo_jobs_coll.update({'_id':{"$in": list(completed_jobs)}}, {'$set': {'text_indexing_status': 'finished'}}, multi=True)
-        
+
         # update web entity - page structure
 
         # throttle if batch empty
@@ -158,10 +158,10 @@ if __name__ == '__main__':
         es.indices.delete(index='hyphe.%s.txt' % CORPUS)
     if not es.indices.exists(index='hyphe.%s.txt' % CORPUS):
         if RESET_MONGO:
-            dbpages.update({}, {'$set': {'indexed': False}}, multi=True, upsert=False)
+            dbpages.update({}, {'$set': {'to_index': True}}, multi=True, upsert=False)
             print('mongo index created')
-            dbpages.update({'$or': [{'content_type': {'$not':{"$in": ["text/plain", "text/html"]}}}, {'body': {'$exists': False}}]}, {'$set': {'indexed': True}})
-            print('set non-content page to indexed true')
+            dbpages.update({'$or': [{'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}}, {'body': {'$exists': False}}]}, {'$set': {'to_index': False}})
+            print('set non-content page to not to_index')
         es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
             "mappings": {
                 "properties": {
