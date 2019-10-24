@@ -367,7 +367,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_pages(self, corpus, urls):
-        result = yield self.pages(corpus).find({"url": {"$in": urls}})
+        result = yield self.pages(corpus).find({"url": {"$in": urls}}, {"lrulinks": 0})
         returnD(result)
 
     @inlineCallbacks
