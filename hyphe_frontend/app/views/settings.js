@@ -137,7 +137,7 @@ angular.module('hyphe.settingsController', [])
       //define the current number of most cited pages as start pages
       for (var i=0; i<$scope.options.defaultStartpagesMode.length; i++){
         if ($scope.ed_defaultStartpagesMode[i].startsWith('pages')){
-          $scope.nbOfPages = parseInt($scope.ed_defaultStartpagesMode[i].slice(-1));
+          $scope.nbOfPages = parseInt($scope.ed_defaultStartpagesMode[i].split(/-/)[1]);
           break;
         }
       }
