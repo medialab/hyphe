@@ -114,17 +114,19 @@ if (typeof(arguments) == "undefined") {
         relaunch = true,
         isClick = function(el){
             // Identify not already clicked clickable elements
-            return !el.hasAttribute('hyphantomas_clicked') &&
-              (el.href);
-            // || el.onclick || el.ondblclick || el.onmousedown);
+            return !el.hasAttribute('hyphantomas_clicked') && el.href || el.onclick || el.ondblclick || el.onmousedown;
+            // && el.tagName === "A" && el.target !== "_blank";
         },
         simulateClick = function(element) {
+            const listener = e => e.preventDefault();
+            element.addEventListener('click', listener);
             // Try clicking all ways
             try { element.click(); } catch(e0) {
             try { element.onclick(); } catch(e1) {
             try { element.ondblclick(); } catch(e2) {
             try { element.onmousedown(); } catch(e3) {
             }}}}
+            element.removeEventListener(listener);
         },
         unfold = function() {
             // Never run twice simultaneously, plan restart for concurrent calls

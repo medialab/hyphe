@@ -1,6 +1,8 @@
 import os, uuid
 
-HYPHE_PROJECT = '{{db_name}}.{{project}}'
+from chromium_utils import is_docker, chromium_executable, chrome_driver_executable
+
+HYPHE_PROJECT = '{{db_name}}_{{project}}'
 BOT_NAME = 'hcicrawler'
 
 LOG_LEVEL = '{{log_level}}'
@@ -39,9 +41,15 @@ MONGO_DB = '{{db_name}}_{{project}}'
 MONGO_QUEUE_COL = 'queue'
 MONGO_PAGESTORE_COL = 'pages'
 
-PHANTOM = {
-  "PATH": os.path.join('{{hyphePath}}', 'bin', 'hyphe-phantomjs-2.0.0'),
-  "JS_PATH": os.path.join('{{hyphePath}}', 'hyphe_backend', 'crawler', BOT_NAME, 'spiders', 'js'),
+if is_docker():
+    JS_PATH = '/app/scrapers_js'
+else:
+    JS_PATH = os.path.join('{{crawlerPath}}', 'hcicrawler', 'spiders', 'js')
+
+CHROME = {
+  "PATH": chromium_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
+  "DRIVER_PATH": chrome_driver_executable(os.path.join('{{crawlerPath}}', 'local-chromium')),
+  "JS_PATH": JS_PATH,
   "TIMEOUT": {{phantom_timeout}},
   "IDLE_TIMEOUT": {{phantom_idle_timeout}},
   "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
