@@ -518,7 +518,9 @@ class Core(customJSONRPC):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
+        yield self.db.init_corpus_indexes(corpus)
         yield self.init_creationrules(corpus)
+        yield self.store.jsonrpc_get_webentity_creationrules(corpus=corpus)
 
         res = yield self.store.reinitialize(corpus, _noloop=_noloop, _quiet=_quiet, _restart=(not _noloop))
         if is_error(res):
@@ -2960,7 +2962,7 @@ class Memory_Structure(customJSONRPC):
             deleted += 1
 
         if deleted:
-            self.jsonrpc_get_webentity_creationrules(corpus=corpus)
+            yield self.jsonrpc_get_webentity_creationrules(corpus=corpus)
             returnD(format_result('WebEntityCreationRule for prefix %s deleted.' % lru_prefix))
         returnD(format_error("No existing WebEntityCreationRule found for prefix %s." % lru_prefix))
 
@@ -2989,7 +2991,7 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['webentities_discovered'] += new
             news += new
         self.corpora[corpus]['recent_changes'] += news
-        self.jsonrpc_get_webentity_creationrules(corpus=corpus)
+        yield self.jsonrpc_get_webentity_creationrules(corpus=corpus)
 
         # Remove potential homepage from parent WE that would belong to the new WEs
         for variation in variations:
