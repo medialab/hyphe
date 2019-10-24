@@ -614,7 +614,10 @@ angular.module('hyphe.service_hyphe_api', [])
 
     ns.getNetwork = buildApiCall(
         API.WEBENTITY_LIST_GET_LINKS
-        ,function(settings){return [corpus.getId()]}
+        ,function(settings){return [
+          settings.include_links_from_OUT || false
+          ,corpus.getId()
+        ]}
       )
 
     

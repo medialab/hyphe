@@ -65,7 +65,7 @@ class Core(customJSONRPC):
   # CORPUS HANDLING
 
     def jsonrpc_test_corpus(self, corpus=DEFAULT_CORPUS, _msg=None):
-        """Returns the current status of a `corpus`: "ready"/"starting"/"stopped"/"error"."""
+        """Returns the current status of a `corpus`: "ready"/"starting"/"missing"/"stopped"/"error"."""
         res = {
           "corpus_id": corpus,
           "ready": False,
@@ -118,6 +118,8 @@ class Core(customJSONRPC):
             check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True)
         except Exception as e:
             returnD(format_error(e))
+        if "max_depth" in options and options["max_depth"] > config["max_depth"]:
+            returnD(format_error("This Hyphe instance does not allow max_depth do be higher than %s" % config["max_depth"]))
         redeploy = False
         if ("defaultCreationRule" in options or "defautStartpagesMode" in options or "indexTextContent" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
@@ -477,7 +479,7 @@ class Core(customJSONRPC):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
             jsondump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
-            links = self.store.jsonrpc_get_webentities_network(corpus=corpus)
+            links = self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
             jsondump(links["result"], f)
@@ -606,6 +608,7 @@ class Core(customJSONRPC):
             self.corpora[corpus]['crawls_running'] = 0
         corpus_status = {
           'name': self.corpora[corpus]['name'],
+          'idle': not (self.corpora[corpus]['crawls_pending'] + self.corpora[corpus]['crawls_running'] + self.corpora[corpus]['pages_queued'] + self.corpora[corpus]["recent_changes"]),
           'options': self.corpora[corpus]['options'],
           'crawler': {
             'jobs_finished': self.corpora[corpus]['crawls'] - self.corpora[corpus]['crawls_pending'] - self.corpora[corpus]['crawls_running'],
@@ -960,26 +963,22 @@ class Core(customJSONRPC):
             res['message'] = "Cannot process url %s : %s." % (url, e)
         if 'message' in res:
             returnD(res)
-        try:
-            assert(response.code == 200 or url in " ".join(response.headers._rawHeaders['location']))
+        if response.code == 200 or url in " ".join(response.headers._rawHeaders.get('location', "")):
             response.code = 200
-        except:
-            try:
-                assert(url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders['server'][0])
-                response.code = 301
-            except:
-                if not (deadline and deadline < time.time()) and \
-                   not (url.startswith("https") and response.code/100 == 4) and \
-                   (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
-                   response.code not in [400, 404, 502]:
-                    if tryout == 3 and use_proxy:
-                        noproxy = True
-                        tryout = 1
-                    if tryout < 3:
-                        if config['DEBUG'] == 2:
-                            logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
-                        res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
-                        returnD(res)
+        elif url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders.get('server', [""])[0]:
+            response.code = 301
+        elif not (deadline and deadline < time.time()) and \
+          not (url.startswith("https") and response.code/100 == 4) and \
+          (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
+          response.code not in [400, 404, 502]:
+            if tryout == 3 and use_proxy:
+                noproxy = True
+                tryout = 1
+            if tryout < 3:
+                if config['DEBUG'] == 2:
+                    logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
+                res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                returnD(res)
         result = format_result(response.code)
         if 300 <= response.code < 400 and response.headers._rawHeaders['location']:
             result['location'] = response.headers._rawHeaders['location'][0]
@@ -1651,6 +1650,8 @@ class Memory_Structure(customJSONRPC):
         res = yield self.update_webentity(oldWE, "status", status, corpus=corpus, _commit=_commit)
         if not is_error(res):
             self.update_webentities_counts(oldWE, status, corpus=corpus)
+            if "OUT" in [status, oldWE["status"]]:
+                yield self.rank_webentities(corpus)
         returnD(res)
 
     def update_webentities_counts(self, WE, newStatus, new=False, deleted=False, corpus=DEFAULT_CORPUS):
@@ -1973,11 +1974,15 @@ class Memory_Structure(customJSONRPC):
         returnD(True)
 
     @inlineCallbacks
-    def rank_webentities(self, corpus=DEFAULT_CORPUS):
+    def rank_webentities(self, corpus=DEFAULT_CORPUS, include_links_from_OUT=False):
         if corpus not in self.corpora or not self.corpora[corpus]["webentities_links"]:
             returnD(None)
+        inlinks = defaultdict(set)
         outlinks = defaultdict(set)
         alllinks = defaultdict(set)
+        if not include_links_from_OUT:
+            outWEs = yield self.db.get_WEs(corpus, {"status": "OUT"}, projection=["_id"])
+            outWEs = set(we["_id"] for we in outWEs)
         for target, links in self.corpora[corpus]['webentities_links'].items():
             for key in ['crawled', 'uncrawled', 'total']:
                 if 'pages_'+key not in links:
@@ -1985,14 +1990,18 @@ class Memory_Structure(customJSONRPC):
             links['pages_total'] = links['pages_crawled'] + links['pages_uncrawled']
             for key in ['undirected_', 'in', 'out']:
                 links[key + 'degree'] = links.get(key + 'degree', 0)
-            links['indegree'] = len(links) - 6
             for source in links:
+                # Filter links coming from WEs set as OUT
+                if not include_links_from_OUT and source in outWEs:
+                    continue
                 if isinstance(source, int):
                     outlinks[source].add(target)
                     alllinks[source].add(target)
                     alllinks[target].add(source)
+                    inlinks[target].add(source)
         for target, links in self.corpora[corpus]['webentities_links'].items():
             links["undirected_degree"] = len(alllinks[target])
+            links["indegree"] = len(inlinks[target])
             links["outdegree"] = len(outlinks[target])
         yield self.parent.update_corpus(corpus, False, True)
 
@@ -2709,9 +2718,9 @@ class Memory_Structure(customJSONRPC):
             returnD(format_error("No webentity found for id %s" % webentity_id))
         try:
             count = int(count)
-            if count < 1: raise
-        except:
-            returnD(format_error("count should be a positive integer"))
+            if count < 1: raise ValueError()
+        except (TypeError, ValueError):
+            returnD(format_error("count should be a strictly positive integer"))
         if pagination_token:
             try:
                 total, crawled, token = pagination_token.split('|')
@@ -2757,14 +2766,14 @@ class Memory_Structure(customJSONRPC):
             returnD(self.parent.corpus_error(corpus))
         try:
             npages = int(npages)
-            assert(npages > 0)
-        except:
+            if npages < 1: raise ValueError()
+        except (TypeError, ValueError):
             returnD(format_error("ERROR: npages argument must be a stricly positive integer"))
         if max_prefix_distance != None:
             try:
                 max_prefix_distance = int(max_prefix_distance)
-                assert(max_prefix_distance >= 0)
-            except:
+                if max_prefix_distance < 0: raise ValueError()
+            except (TypeError, ValueError):
                 returnD(format_error("ERROR: max_prefix_distance argument must be null or a positive integer"))
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
@@ -2908,20 +2917,27 @@ class Memory_Structure(customJSONRPC):
                     res.append([source, target, weight])
         returnD(format_result(res))
 
-    def jsonrpc_get_webentities_network(self, corpus=DEFAULT_CORPUS):
+    @inlineCallbacks
+    def jsonrpc_get_webentities_network(self, include_links_from_OUT=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the list of all agregated weighted links between WebEntities."""
         if not self.parent.corpus_ready(corpus):
-            return self.parent.corpus_error(corpus)
+            returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating WebEntities network...", system="INFO - %s" % corpus)
+        if not include_links_from_OUT:
+            outWEs = yield self.db.get_WEs(corpus, {"status": "OUT"}, projection=["_id"])
+            outWEs = set(we["_id"] for we in outWEs)
         res = []
         for target, sources in self.corpora[corpus]["webentities_links"].items():
             for source, weight in sources.items():
                 if not isinstance(source, int):
                     continue
+                # Filter links coming from WEs set as OUT
+                if not include_links_from_OUT and source in outWEs:
+                    continue
                 res.append([source, target, weight])
         logger.msg("...JSON network generated in %ss" % str(time.time()-s), system="INFO - %s" % corpus)
-        return handle_standard_results(res)
+        returnD(handle_standard_results(res))
 
   # CREATION RULES
 
