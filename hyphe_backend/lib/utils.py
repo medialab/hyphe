@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os, re, types, time, json, hashlib, defaultdict
+import os, re, types, time, json, hashlib
+from collections import defaultdict
 from twisted.web.client import getPage as getPageOrig
 from twisted.internet.task import deferLater
 from twisted.internet import reactor
