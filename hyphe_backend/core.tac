@@ -479,7 +479,7 @@ class Core(customJSONRPC):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
             jsondump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
-            links = self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, corpus=corpus)
+            links = yield self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
             jsondump(links["result"], f)
