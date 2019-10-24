@@ -2658,7 +2658,7 @@ class Memory_Structure(customJSONRPC):
   # PAGES, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
-    def format_page(self, page, linked=False, data=None):
+    def format_page(self, page, linked=False, data=None, include_body=False):
         if data is None:
             res = {
                 'lru': page['lru'],
@@ -2681,7 +2681,7 @@ class Memory_Structure(customJSONRPC):
             if data['error']:
                 res['error'] = data['error']
 
-            if 'body' in data:
+            if include_body and 'body' in data:
                 res['body'] = unicode(base64.b64encode(data['body']))
 
         if linked:
@@ -2689,7 +2689,7 @@ class Memory_Structure(customJSONRPC):
 
         return res
 
-    def format_pages(self, pages, linked=False, data=None):
+    def format_pages(self, pages, linked=False, data=None, include_body=False):
         index = None
 
         if data is not None:
@@ -2700,7 +2700,7 @@ class Memory_Structure(customJSONRPC):
 
         if is_error(pages):
             return pages
-        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None) for page in pages]
+        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_body=include_body) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2731,7 +2731,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_data=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) along with the page's zipped body encoded in base64 when `include_page_data` is set to "true"."""
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) when `include_page_data` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         onlyCrawled = test_bool_arg(onlyCrawled)
@@ -2780,11 +2780,11 @@ class Memory_Structure(customJSONRPC):
         page_data = None
 
         if include_page_data:
-            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']])
+            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']], include_body=include_page_body)
 
         returnD(format_result({
             'token': token,
-            'pages': self.format_pages(pages['pages'], data=page_data)
+            'pages': self.format_pages(pages['pages'], data=page_data, include_body=include_page_body)
         }))
 
     @inlineCallbacks
