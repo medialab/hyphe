@@ -3,7 +3,7 @@
   layout="column"
   layout-align="center center"
   layout-fill
-  ng-if="!corpusList"
+  ng-if="!corpusList.length"
 >
   <!-- If password error -->
   <div ng-if="passwordError" md-colors="{'background':'default-warn'}" style="padding: 8px">
@@ -40,7 +40,7 @@
 <div
   layout="row"
   layout-fill
-  ng-if="corpusList"
+  ng-show="corpusList.length"
 >
 
   <!-- Left column -->
@@ -50,7 +50,9 @@
       layout="column"
       layout-align="start center"
     >
-      <img src="img/HYPHE.svg" title="hyphe-logo" style="width: 180px">
+      <a href="#/login">
+        <img src="img/HYPHE.svg" title="hyphe-logo" style="width: 180px">
+      </a>
       <h1 style="font-weight: 100; font-family: Roboto;font-size: 3.5em;">hyphe</h1>
     </div>
     <div layout="column">
@@ -94,10 +96,23 @@
         </md-checkbox>
       </div>
         <md-divider></md-divider>
-      <md-button class="md-raised md-primary" ng-click="api.backupCorpus()">
+      <md-button class="md-raised md-primary"
+                 ng-click="backupAll()"
+                 flex
+                 ng-disabled = "query || working" >
         <md-tooltip md-direction="right">Backup all corpora</md-tooltip>
         <md-icon>backup</md-icon>
-        &nbsp;Backup
+        &nbsp;BACKUP ALL
+      </md-button>
+      <md-button
+              class="md-warn md-raised md-primary"
+              ng-click="destroyAll(currentSort, reverse)"
+              flex
+              ng-disabled= "query || working"
+      >
+        <md-tooltip md-direction="right">Destroy everything</md-tooltip>
+        <md-icon>delete_forever</md-icon>
+        DESTROY ALL
       </md-button>
 
     </div>
@@ -105,20 +120,25 @@
   <div flex layout="row" style="overflow-y: auto" layout-wrap>
     <div
       flex="50"
-      ng-repeat="corpus in corpusList  | orderBy:currentSort:reverse | filter:query"
+      ng-repeat="corpus in corpusList  | sortByField:currentSort:reverse | nonSensitiveFilter:query"
     >
       <md-card
         style="background-color: #FFF"
       >
         <md-card-title>
-          <md-card-title-text>
-            <span class="md-headline">
-              {{corpus.name}}
-            </span>
-            <span class="md-subhead">
-              ID: {{corpus.corpus_id}}
-            </span>
+          <md-card-title-text flex>
+            <div layout="column" flex>
+              <span class="md-headline">
+                {{corpus.name}}
+              </span>
+              <span class="md-subhead">
+                ID: {{corpus.corpus_id}}
+              </span>
+            </div>
           </md-card-title-text>
+          <div ng-if="busy[corpus.corpus_id]">
+            <spinner></spinner>
+          </div>
           <md-card-title-media>
             <div class="md-media-lg card-media" style="padding: 8px" layout="column">
               <div layout="row" class="webentity-color-in">
@@ -141,12 +161,6 @@
                 <div style="width: 80px; text-align: right; padding-right: 8px"><em>{{corpus.total_webentities|number}}</em></div>
                 <div><em>TOTAL</em></div>
               </div>
-              <div style="width: 160px; text-align: right">
-                <md-button  class="md-raised" ng-click="api.backupCorpus(corpus)">
-                  <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
-                  <md-icon>backup</md-icon>
-                </md-button>
-              </div>
             </div>
           </md-card-title-media>
         </md-card-title>
@@ -166,33 +180,53 @@
             </div>
             <div flex="40" layout="column" style="padding: 0px 8px 0px 8px">
               <div>
-                Created
-                <span>
+                Created:
+                <b>
                   <md-tooltip md-direction="right">{{corpus.created_at|date}}</md-tooltip>
                   {{corpus.created_at|prettyDate}}
-                </span>
+                </b>
               </div>
               <div>
-                Last activity
-                <span>
+                Last activity:
+                <b>
                   <md-tooltip md-direction="right">{{corpus.last_activity|date}}</md-tooltip>
                   {{corpus.last_activity|prettyDate}}
-                </span>
+                </b>
               </div>
               <div>
-                Last index
-                <span>
+                Last index:
+                <b>
                   <md-tooltip md-direction="right">{{corpus.last_index_loop|date}}</md-tooltip>
                   {{corpus.last_index_loop|prettyDate}}
-                </span>
+                </b>
+              </div>
+              <div>
+                Links duration:
+                <b>
+                  <md-tooltip md-direction="right">{{corpus.links_duration|number}} s</md-tooltip>
+                  {{corpus.links_duration|number}}s
+                </b>
+              </div>
+              <div ng-show="corpus.last_links_loop">
+                Last links:
+                <b>
+                  <md-tooltip md-direction="right">{{corpus.last_links_loop*1000|date}}</md-tooltip>
+                  {{corpus.last_links_loop*1000|prettyDate}}
+                </b>
               </div>
             </div>
             <div flex="30" layout="column">
               <div>
-                {{corpus.total_crawls|number}} crawls
+                Default rule:
+                <b>
+                  {{corpus.options.defaultCreationRule}}
+                </b>
               </div>
               <div>
-                {{corpus.total_pages_crawled|number}} crawled pages
+                {{corpus.total_crawls|number}} crawls <b ng-show="corpus.crawls_running + corpus.crawls_pending">({{corpus.crawls_running|number}} running/{{corpus.crawls_pending|number}} pending)</b>
+              </div>
+              <div>
+                {{corpus.total_pages_crawled|number}} crawled pages <b ng-show="corpus.total_pages_queued">({{corpus.total_pages_queued|number}} unindexed yet)</b>
               </div>
               <div>
                 {{corpus.total_pages|number}} pages
@@ -200,57 +234,91 @@
             </div>
           </div>
         </md-card-content>
-        <md-card-actions layout="row" layout-align="end center" >
 
-          <md-button
-            class="md-warn"
-            ng-click="destroyCorpus(corpus.corpus_id)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-icon>delete_forever</md-icon>
-            DESTROY
-          </md-button>
+        <md-card-actions layout="column"  >
+          <div layout="row" style="height: 30px; margin-bottom: 10px" >
+            <md-button
+                    class="md-warn"
+                    ng-click="resetCorpus(corpus.corpus_id)"
+                    ng-show="corpus.ready"
+                    flex
+                    ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-tooltip md-direction="down">Reset this corpus, all data will be lost</md-tooltip>
+              <md-icon>delete</md-icon>
+               RESET
+            </md-button>
 
-          <md-button
-            class="md-warn"
-            ng-click="resetCorpus(corpus.corpus_id)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-icon>delete</md-icon>
-            RESET
-          </md-button>
+            <md-button  class=""
+                        ng-click="triggerLinks(corpus.corpus_id)"
+                        ng-if="corpus.ready"
+                        flex
+                        ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-tooltip md-direction="down">Reindex links on this corpus</md-tooltip>
+              <md-icon>refresh</md-icon>
+              REFRESH
+            </md-button>
 
-          <md-button
-                  layout-align="end center"
-                  class="md-raised md-primary"
-                  ng-click="startCorpus(corpus.corpus_id, corpus.password)"
-                  ng-if="!corpus.ready"
-          >
-            <md-icon>play_arrow</md-icon>
-            START
-          </md-button>
+            <md-button
+                    class="md-primary"
+                    ng-click="openCorpus(corpus.corpus_id, corpus.name)"
+                    ng-if="corpus.ready"
+                    flex
+                    ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-tooltip md-direction="down">Open this corpus</md-tooltip>
+              <md-icon>arrow_forward</md-icon>
+              OPEN
+            </md-button>
+          </div>
 
-          <md-button
-            class=""
-            ng-click="stopCorpus(corpus.corpus_id)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-icon>stop</md-icon>
-            STOP
-          </md-button>
-          
-          <md-button
-            class="md-primary"
-            ng-click="openCorpus(corpus.corpus_id, corpus.name)"
-            ng-if="corpus.ready"
-            flex
-          >
-            <md-icon>arrow_forward</md-icon>
-            OPEN
-          </md-button>
+          <div layout="row">
+
+            <md-button
+                    class="md-warn"
+                    ng-click="destroyWarning(corpus.corpus_id)"
+                    flex
+                    ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-tooltip md-direction="down">Destroy entirely this corpus</md-tooltip>
+              <md-icon>delete_forever</md-icon>
+              DESTROY
+            </md-button>
+
+            <md-button  class=""
+                        ng-click="backupCorpus(corpus.corpus_id)"
+                        flex
+                        ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-tooltip md-direction="down">Backup this corpus </md-tooltip>
+              <md-icon>backup</md-icon>
+              BACKUP
+            </md-button>
+
+            <md-button
+                    class="md-raised md-primary"
+                    ng-click="startCorpus(corpus.corpus_id, corpus.password)"
+                    ng-if="!corpus.ready"
+                    flex
+                    ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-icon>play_arrow</md-icon>
+              START
+            </md-button>
+
+            <md-button
+                    class="md-raised"
+                    ng-click="stopCorpus(corpus.corpus_id)"
+                    ng-if="corpus.ready"
+                    flex
+                    ng-disabled="busy[corpus.corpus_id]"
+            >
+              <md-tooltip md-direction="down">Stop this corpus</md-tooltip>
+              <md-icon>stop</md-icon>
+              STOP
+            </md-button>
+          </div>
 
         </md-card-actions>
       </md-card>

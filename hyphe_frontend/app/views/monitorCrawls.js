@@ -2,7 +2,7 @@
 
 angular.module('hyphe.monitorcrawlsController', [])
 
-  .controller('monitorCrawls', 
+  .controller('monitorCrawls',
   function(
     $scope,
     api,
@@ -20,17 +20,102 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     $scope.selectedTab = 0
     $scope.focusedJobId
-    
+
     $scope.crawlJobs = []
     $scope.crawljobsIndex = {}
     $scope.lastCrawlJobs = []
     $scope.dynamicCrawlJobs // Virtual repeat
     $scope.sort = null
-    
+
     $scope.webentityIndex = {}
 
     $scope.listLoaded = false
     $scope.status = {message: 'Loading'}
+
+    $scope.CSVfields = {
+      webentity_name: {
+        type: 'string'
+      }
+      ,webentity_id: {
+        type: 'number'
+      }
+      ,crawljob_id: {
+        type: 'string'
+      }
+      ,_id: {
+        type: 'string'
+      }
+      ,max_depth: {
+        type: 'number'
+      }
+      ,start_urls: {
+        type: 'array of string'
+      }
+      ,user_agent: {
+        type: 'string'
+      }
+      ,cookies: {
+        type: "string"
+      }
+      ,phantom: {
+        type: "string"
+      }
+      ,globalStatus: {
+        type: 'string'
+      }
+      ,crawling_status: {
+        type: 'string'
+      }
+      ,indexing_status: {
+        type: 'string'
+      }
+      ,nb_pages: {
+        type: 'number'
+      }
+      ,nb_crawled_pages: {
+        type: 'number'
+      }
+      ,nb_pages_indexed: {
+        type: 'number'
+      }
+      ,nb_unindexed_pages: {
+        type: 'number'
+      }
+      ,nb_links: {
+        type: 'number'
+      }
+      ,created_at: {
+        type: 'date'
+      }
+      ,scheduled_at: {
+        type: 'date'
+      }
+      ,started_at: {
+        type: 'date'
+      }
+      ,crawled_at: {
+        type: 'date'
+      }
+      ,finished_at: {
+        type: 'date'
+      }
+      ,durationOfCrawl: {
+        type: 'number'
+      }
+      ,durationTotal: {
+        type: 'number'
+      }
+      ,follow_prefixes: {
+        type: 'array of string'
+      }
+      ,nofollow_prefixes: {
+        type : 'array of string'
+      }
+      ,discover_prefixes: {
+        type :'array of string'
+      }
+    }
+
 
     $scope.focusOnJob = function(job){
       if (!job || !job._id) return
@@ -41,15 +126,15 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     $scope.abortCrawl = function(job){
       $scope.status = {message: 'Aborting crawl job'}
-      
+
       job.crawling_status = 'CANCELED'
 
       api.abortCrawlJobs(
         {id:job._id}
         ,function(){
-          
+
           $scope.status = {}
-      
+
         }, function(){
           $scope.status = {message: 'Error aborting crawl job', background:'danger'}
         }
@@ -59,7 +144,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.reCrawl = function(job){
       var webentity = $scope.webentityIndex[job.webentity_id]
       ,obj = {webentity: webentity}
-      
+
       if(webentity !== undefined){
         store.set('webentities_toCrawl', [obj])
         store.set('webentity_old_crawljob', job)
@@ -112,16 +197,16 @@ angular.module('hyphe.monitorcrawlsController', [])
           })
         , updateLastCrawlJobs // Callback
       )
-      
+
     }
 
-    function loadRequiredWebentities(minIndex, maxIndex){
+    function loadRequiredWebentities(minIndex, maxIndex, callback){
 
       minIndex = minIndex || 0 // Inclusive
       maxIndex = maxIndex || $scope.crawlJobs.length // Exclusive
 
       var webentityId_list = $scope.crawlJobs
-        
+
         // Find web entities in the list of crawl jobs
         .map(function(job){
             return job.webentity_id
@@ -141,7 +226,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         webentityId_list = utils.extractCases(webentityId_list)
 
         // Batch query them!
-        loadWebentities(webentityId_list)
+        loadWebentities(webentityId_list, callback)
     }
 
     function updateSingleCrawlJobs(jobId){
@@ -230,13 +315,14 @@ angular.module('hyphe.monitorcrawlsController', [])
           $scope.status = {message: 'Error loading crawl jobs', background:'danger'}
         }
       )
-      
+
     }
 
     function updateCrawlJobsIndex() {
       $scope.crawlJobs.forEach(function(job){
         $scope.crawljobsIndex[job._id] = deepmerge(job, $scope.crawljobsIndex[job._id] || {})
       })
+
     }
 
     function populateWebEntityNames(){
@@ -248,7 +334,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       updateCrawlJobsIndex()
     }
 
-    function loadWebentities(list) {
+    function loadWebentities(list, callback) {
       if(list.length > 0){
         $scope.status = {message: 'Loading'}
         api.getWebentities(
@@ -261,14 +347,16 @@ angular.module('hyphe.monitorcrawlsController', [])
             webentities.forEach(function(we){
               $scope.webentityIndex[we.id] = we
             })
-            populateWebEntityNames()
+            populateWebEntityNames();
+            if (callback) callback();
           }, function(){
             $scope.status = {message: 'Error loading web entities', background:'danger'}
           }
         )
       } else {
         $scope.status = {}
-        populateWebEntityNames()
+        populateWebEntityNames();
+        if (callback) callback();
       }
     }
 
@@ -276,7 +364,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
       // This function sends back last jobs to the main list,
       // because we have up to date information on them
-      
+
       var crawljobsIndex = {}
       var lastCrawljobsIndex = {}
       var changes = []
@@ -323,11 +411,11 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     function getDynamicCrawlJobs() {
-      
+
       // Here, we set up our model using a class.
       // Using a plain object would work too. All that matters
       // is that we implement getItemAtIndex and getLength.
-      
+
       var DynamicCrawlJobs = function() {
         /**
          * @type {!Object<?Array>} Data pages, keyed by page number (0-index).
@@ -386,7 +474,7 @@ angular.module('hyphe.monitorcrawlsController', [])
       DynamicCrawlJobs.prototype.fetchNumItems_ = function() {
         this.numItems = $scope.crawlJobs.length
       }
-      
+
       return new DynamicCrawlJobs()
     }
 
@@ -491,4 +579,52 @@ angular.module('hyphe.monitorcrawlsController', [])
       $scope.dynamicCrawlJobs = getDynamicCrawlJobs() // Virtual repeat
     }
 
+    //Download Metadata
+    $scope.downloadCrawlsCSV = function() {
+      $scope.status = {message: 'Downloading Crawls as CSV'}
+      api.getCrawlJobs(
+          {id_list: []}
+          , function (listCrawls) {
+            // Build Headline
+            var headline = Object.keys($scope.CSVfields)
+            loadRequiredWebentities(0,listCrawls.length, function () {
+              // Build Table Content
+              var tableContent = listCrawls.map(function (crawl) {
+                crawl = utils.consolidateRichJob(crawl)
+                crawl.webentity_name = $scope.webentityIndex[crawl.webentity_id].name
+                return headline.map(function(field){
+                  var value = crawl[field]
+                  let type = $scope.CSVfields[field].type
+                  if (type == 'date' && value) {
+                    value = new Date(+value).toISOString()
+                  } else if (type == 'array of string') {
+                    value = value.sort().join(' ')
+                  }
+                  return value;
+                })
+              })
+              // Parsing
+              var fileContent = []
+                  ,csvElement = function(txt){
+                txt = ''+txt //cast
+                return '"'+txt.replace(/"/gi, '""')+'"'
+              }
+              fileContent.push(headline.join(','))
+              tableContent.forEach(function (row) {
+                fileContent.push('\n' + row.map(csvElement).join(','))
+              })
+              var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
+              saveAs(blob, $scope.corpusName + "_crawls.csv", true);
+
+              $scope.status = {}
+            })
+          }
+          , function (data, status, headers, config) {
+            // API call fail
+            // Note: cannot access global status bar from modal
+            $scope.status = {message: 'Error downloading crawls', background: 'danger'}
+            console.error('Your file could not be downloaded', data, status, headers, config)
+          }
+      )
+    }
   })
