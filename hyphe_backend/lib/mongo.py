@@ -366,6 +366,11 @@ class MongoDB(object):
         returnD(tot)
 
     @inlineCallbacks
+    def get_pages(self, corpus, urls):
+        result = yield self.pages(corpus).find({"url": {"$in": urls}})
+        returnD(result)
+
+    @inlineCallbacks
     def update_job_pages(self, corpus, job_id):
         crawled_pages = yield self.count_pages(corpus, job_id)
         unindexed_pages = yield self.count_queue(corpus, job_id)
