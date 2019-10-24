@@ -78,8 +78,15 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
                 page_to_index["dragnet"] = None
             pages.append(page_to_index)
         # index batch to ES
-        index_result = helpers.bulk(es, [{'_op_type': 'update', "doc_as_upsert" : True, "_id": md5(page['url'].encode('UTF8')).hexdigest(), 'doc':p} for p in pages], index='hyphe.%s.txt' % CORPUS)
-        #print index_result
+        index_result, _ = helpers.bulk(es, [{
+            "_op_type": "update",
+            "doc_as_upsert": True,
+            "_id": md5(p['url'].encode('UTF8')).hexdigest(),
+            'doc':p}
+                for p in pages],
+            index='hyphe.%s.txt' % CORPUS)
+        if index_result > 0:
+            print("%s pages inserted"%(index_result))
         # update status in mongo
         mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'to_index': False}}, multi=True, upsert=False)
         print(mongo_update)
@@ -97,20 +104,20 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
         print(not_completed_jobs)
         completed_jobs = jobs - not_completed_jobs
         if len(completed_jobs) > 0:
-            print("%s are fully indexed"%completed_jobs)
-            mongo_jobs_coll.update({'crawljob_id': {"$in": list(completed_jobs)}}, {'$set': {'text_indexed': True}}, multi=True)
-
+            r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}, 'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']}}, {'$set': {'text_indexed': True}})
+            if r.matched_count > 0:
+                print("%s of %s were fully indexed"%(r.matched_count, completed_jobs))
         # update web entity - page structure
         mongo_webupdates_coll =  mongo["hyphe_%s" % CORPUS]["WEupdates"]
         weupdates = mongo_webupdates_coll.find({"index_status": "PENDING"}).sort('timestamp')
         print("WE updates to process: %s"%weupdates.count())
         for weupdate in weupdates:
-            print(weupdate)
-            unindexed_jobs = mongo_jobs_coll.find({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}})
+            unindexed_jobs = mongo_jobs_coll.find({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}, "started_at":{"$lt":weupdate['timestamp']}})
             # don't update WE structure in text index if there is one crawling job
             print('checking number of unindexed jobs %s'%unindexed_jobs.count())
             if unindexed_jobs.count() == 0:
-                print('updating index with %s'%weupdate)
+                print('updating index')
+                print(weupdate)
                 # two cases , trivial if no prefixes, complexe otherwiase
                 if weupdate['prefixes'] and len(weupdate['prefixes']) > 0:
                     updateQuery = {
@@ -153,6 +160,7 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
                             }
                         }
                     }
+                print(updateQuery)
                 index_result = es.update_by_query(index='hyphe.%s.txt' % CORPUS, body = updateQuery, conflicts="proceed")
                 print(index_result)
                 weupdates = mongo_webupdates_coll.update({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
@@ -160,7 +168,7 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
         # throttle if batch empty
         if len(pages) == 0:
             time.sleep(throttle)
-            if throttle < 2:
+            if throttle < 5:
                 throttle += 0.5
         else :
             throttle = 0.5
@@ -218,6 +226,9 @@ if __name__ == '__main__':
                 {'status': {"$ne": 200}},
                 {'size': 0}]},
                 {'$set': {'to_index': False}}, multi=True, upsert=False)
+            db["hyphe_%s" % CORPUS]["WEupdates"].update_many({},{'$set':{'index_status': 'PENDING'}})
+            db["hyphe_%s" % CORPUS]["jobs"].update_many({},{'$unset':{'text_indexed':True}})
+            
             print('set non-content page to not to_index')
         es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
             "mappings": {
