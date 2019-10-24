@@ -197,21 +197,8 @@ angular.module('hyphe.filters', [])
     }
   }])
 
-  .filter('sortByField', [function(){
-    return function(list, field, asc){
-      var result = list.slice(0)
-      
-      result.sort(function(a,b){
-        var alc = a[field].toLowerCase(),
-            blc = b[field].toLowerCase()
-        if (alc < blc) return -1
-        if (alc > blc) return 1
-        return 0
-      })
-
-      if (asc) return result
-      return result.reverse()
-    }
+  .filter('sortByField', ['utils', function(utils){
+    return utils.sortByField;
   }])
 
   .filter('toSortedKeysArray', [function(){
@@ -454,5 +441,16 @@ angular.module('hyphe.filters', [])
       return arr.toString().replace(/,/g, ', ')
     }
   }])
+
+
+  //A filter that handles accents and other characters
+    .filter('nonSensitiveFilter', ['autocompletion', function(autocompletion){
+      return function(list, query) {
+        var searchableQuery = autocompletion.searchable(query)
+        return list.filter(function (elem) {
+          return ~autocompletion.searchable(elem.name).indexOf(searchableQuery)
+        })
+      }
+    }])
 ;
 

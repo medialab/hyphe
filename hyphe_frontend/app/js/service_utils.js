@@ -7,7 +7,7 @@ angular.module('hyphe.service_utils', [])
   utils = angular.element(document.body).injector().get('utils')
   */
 
-  .factory('utils', ['api', '$routeParams', function(api, $routeParams){
+  .factory('utils', ['api', '$routeParams', 'autocompletion', function(api, $routeParams, autocompletion){
     var ns = {} // Namespace
 
     ns.readWebentityIdFromRoute = function(){
@@ -677,6 +677,108 @@ angular.module('hyphe.service_utils', [])
       return job
     }
 
-    return ns
+      ns.consolidateRichJob = function(job){
+        var richJob = ns.consolidateJob(job)
 
+        richJob.max_depth = job.crawl_arguments.max_depth
+        richJob.cookies = job.crawl_arguments.cookies
+        richJob.phantom = job.crawl_arguments.phantom
+        richJob.discover_prefixes = job.crawl_arguments.discover_prefixes
+        richJob.follow_prefixes = job.crawl_arguments.follow_prefixes
+        richJob.nofollow_prefixes = job.crawl_arguments.nofollow_prefixes
+        richJob.start_urls = job.crawl_arguments.start_urls
+        richJob.user_agent = job.crawl_arguments.user_agent
+        richJob.durationTotal = (job.finished_at - job.scheduled_at) / 1000
+        richJob.durationOfCrawl = (job.finished_at - job.started_at) / 1000
+
+        return richJob
+      }
+
+
+    ns.translateValue = function(value, type, mode){
+
+      mode = mode || 'TEXT'
+
+      var array_separator = ' '
+      if (type === 'array of string with pipe') {
+          array_separator = '|'
+          type = 'array of string'
+      }
+
+      if (type == 'string') {
+          return value
+
+      } else if (type == 'number') {
+          if (mode == 'TEXT') {
+              return ''+value
+          } else {
+              return value
+          }
+
+      } else if (type == 'array of string'){
+
+          if (value instanceof Array) {
+              if(mode == 'JSON') {
+                  return value
+              } else if(mode == 'MD') {
+                  return value
+                      .map(function(d) {
+                          return '* ' + d
+                      })
+                      .join('\n')
+              } else {
+                  return value.sort()
+                      .join(array_separator)
+              }
+          } else {
+              console.log(value,'is not an array')
+          }
+
+      } else if(type == 'json'){
+
+          if(mode == 'JSON'){
+              return value
+          } else if(mode == 'MD'){
+              return '```sh\n' + JSON.stringify(value) + '\n```'
+          } else {
+              return JSON.stringify(value)
+          }
+
+      }
+    }
+
+
+    ns.waiter = function(array, worker, callback){
+        var i = -1;
+        function doTheWork(){
+            i++;
+            if( i >= array.length )
+                return callback()
+            var item = array[i]
+            worker(item, function(){
+                return doTheWork();
+            })
+        }
+        return doTheWork();
+
+      }
+
+      ns.sortByField = function(array, field, asc){
+          var result = array.slice();
+          result.sort(function(a,b) {
+              if (typeof(a[field])==='string'){
+                  let alc = autocompletion.searchable(a[field]),
+                      blc = autocompletion.searchable(b[field]);
+                  if (alc < blc) return -1;
+                  if (alc > blc) return 1;
+                  return 0
+              }
+              return a[field]-b[field]
+          });
+          if (asc)
+              return result;
+          else
+              return result.reverse()
+      };
+    return ns
   }])
