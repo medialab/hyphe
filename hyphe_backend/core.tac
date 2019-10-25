@@ -2677,11 +2677,10 @@ class Memory_Structure(customJSONRPC):
             res['status'] = data['status']
             res['crawl_timestamp'] = unicode(data['timestamp'])
             res['depth'] = data['depth']
-            res['content_type'] = data['content_type'],
-            res['size'] = data['size'],
-            res['encoding'] = data['encoding']
-            if data['error']:
-                res['error'] = data['error']
+            res['content_type'] = data.get('content_type')
+            res['size'] = data['size']
+            res['encoding'] = data.get('encoding')
+            res['error'] = data.get('error')
 
         if include_body and 'body' in data:
             res['body'] = unicode(base64.b64encode(data['body']))
