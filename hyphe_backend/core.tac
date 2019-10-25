@@ -1396,10 +1396,7 @@ class Memory_Structure(customJSONRPC):
             new = True
             weid, prefixes = res["result"]["created_webentities"].items()[0]
             yield self.db.add_WE(corpus, weid, prefixes)
-            if self.corpora[corpus]['options']['indexTextContent']:
-                pass
-                #TODO Check WE parent, if one add update
-                #yield self.db.add_update(corpus, old_webentity_id, good_webentity_id)
+            yield self.report_webentity_change_for_text_indexation(weid, prefixes, corpus=corpus)
         res = yield self.return_new_webentity(lru, new, 'page', source_url=url, corpus=corpus)
         returnD(format_result(res))
 
@@ -1511,17 +1508,36 @@ class Memory_Structure(customJSONRPC):
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
                     self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus, _automatic=True)
 
-            # Inform text indexation of change of webentity for pages under each prefix of the new WE
-            if self.corpora[corpus]['options']['indexTextContent']:
-                firstParents = {}
-                for prefix in new_WE["prefixes"]:
-                    matching_parent_prefixes = (pr for pr in parentPrefixes if prefix.startswith(pr))
-                    longest_prefix = max(matching_parent_prefixes, key=len)
-                    firstParents[prefix] = parentPrefixes[longest_prefix]
-                for parent, prefixes in reverse_dico(firstParents).items():
-                    yield self.db.add_update(corpus, parent, new_WE['_id'], prefixes)
+            yield self.report_webentity_change_for_text_indexation(new_WE['_id'], new_WE['prefixes'], parentPrefixes=parentPrefixes, corpus=corpus)
 
         returnD(format_result(new_WE))
+
+    # Inform text indexation of change of webentity for pages under each prefix of the new WE
+    @inlineCallbacks
+    def report_webentity_change_for_text_indexation(self, we_id, we_prefixes, parentPrefixes=None, corpus=DEFAULT_CORPUS):
+        if not self.corpora[corpus]['options']['indexTextContent']:
+            returnD()
+
+        if parentPrefixes is None:
+            parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", we_id, we_prefixes)
+            if is_error(parentWEs) or not parentWEs["result"]:
+                returnD()
+            parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
+            parentPrefixes = {}
+            for parent in parentWEs:
+                for pr in parent["prefixes"]:
+                    parentPrefixes[pr] = parent["_id"]
+        if not parentPrefixes:
+            returnD()
+
+        firstParents = {}
+        for prefix in we_prefixes:
+            matching_parent_prefixes = (pr for pr in parentPrefixes if prefix.startswith(pr))
+            longest_prefix = max(matching_parent_prefixes, key=len)
+            firstParents[prefix] = parentPrefixes[longest_prefix]
+
+        for parent, prefixes in reverse_dico(firstParents).items():
+            yield self.db.add_update(corpus, parent, we_id, prefixes)
 
 
   # EDIT WEBENTITIES
