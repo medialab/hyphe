@@ -529,7 +529,7 @@ class Core(customJSONRPC):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
-        yield self.db.init_corpus_indexes(corpus)
+        yield self.db.init_corpus_indexes(corpus, index_content=self.corpora[corpus]['options']['indexTextContent'])
         yield self.init_creationrules(corpus)
         yield self.store.jsonrpc_get_webentity_creationrules(corpus=corpus)
 
