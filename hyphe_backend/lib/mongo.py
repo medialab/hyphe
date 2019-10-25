@@ -366,15 +366,28 @@ class MongoDB(object):
         returnD(tot)
 
     @inlineCallbacks
-    def get_pages(self, corpus, urls, include_body=False):
-        projection = {
-            'lrulinks': 0
-        }
+    def get_pages(self, corpus, urls, include_metas=False, include_body=False, include_links=False):
+        projection = {}
+
+        if not include_links:
+            projection['lrulinks'] = 0
+
+        if not include_metas:
+            projection['status'] = 0
+            projection['timestamp'] = 0
+            projection['depth'] = 0
+            projection['content_type'] = 0
+            projection['size'] = 0
+            projection['encoding'] = 0
 
         if not include_body:
             projection['body'] = 0
 
-        result = yield self.pages(corpus).find({"url": {"$in": urls}}, projection=projection)
+        kwargs = {}
+        if projection:
+            kwargs["projection"] = projection
+
+        result = yield self.pages(corpus).find({"url": {"$in": urls}}, **kwargs)
         returnD(result)
 
     @inlineCallbacks
