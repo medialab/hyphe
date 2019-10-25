@@ -1942,8 +1942,15 @@ class Memory_Structure(customJSONRPC):
         yield self.db.update_jobs(corpus, {'webentity_id': WE["_id"]}, {'webentity_id': None, 'previous_webentity_id': WE["_id"], 'previous_webentity_name': WE["name"]})
         self.corpora[corpus]['recent_changes'] += 1
         self.update_webentities_counts(WE, WE["status"], deleted=True, corpus=corpus)
+        if self.corpora[corpus]['options']['indexTextContent']:
+            parents = defaultdict(list)
+            for prefix in WE['prefixes']:
+                prefixParent = yield self.traphs.call(corpus, "retrieve_webentity", prefix)
+                if not is_error(variationParent):
+                    parents[variationParent["result"]].append(prefix)
+            for parentWE, parentPrefixes in parents.items():
+                yield self.db.add_update(corpus, webentity_id, parentWE, parentPrefixes)
         returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE["name"])))
-
 
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
