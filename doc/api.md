@@ -147,6 +147,7 @@ The API will always answer as such:
 
 
 - __`list_corpus`:__
+  + _`light`_ (optional, default: `true`)
 
  Returns the list of all existing corpora with metas.
 
@@ -840,10 +841,11 @@ The API will always answer as such:
   + _`count`_ (optional, default: `5000`)
   + _`pagination_token`_ (optional, default: `null`)
   + _`onlyCrawled`_ (optional, default: `false`)
-  + _`include_page_data`_ (optional, default: `false`)
+  + _`include_page_metas`_ (optional, default: `false`)
+  + _`include_page_body`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status, body size, content_type, encoding, crawl timestamp\ and crawl depth) along with the page's zipped body encoded in base64 when `include_page_data` is set to "true".
+ Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status, body size, content_type, encoding, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true").
 
 
 - __`get_webentity_mostlinked_pages`:__
@@ -921,7 +923,8 @@ The API will always answer as such:
 
 
 - __`get_webentities_network`:__
-  + _`include_links_from_OUT`_ (optional, default: `false`)
+  + _`include_links_from_OUT`_ (optional, default: `INCLUDE_LINKS_FROM_OUT`)
+  + _`include_links_from_DISCOVERED`_ (optional, default: `INCLUDE_LINKS_FROM_DISCOVERED`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` the list of all agregated weighted links between WebEntities.

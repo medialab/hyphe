@@ -2685,49 +2685,47 @@ class Memory_Structure(customJSONRPC):
   # PAGES, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
-    def format_page(self, page, linked=False, data=None):
-        if data is None:
-            res = {
-                'lru': page['lru'],
-                'crawled': page.get('crawled', None),
-                'url': urllru.lru_to_url(page['lru'])
-            }
-        else:
-            res = {
-                'lru': page['lru'],
-                'crawled': page.get('crawled', None),
-                'url': data['url'],
-                'status': data['status'],
-                'crawl_timestamp': unicode(data['timestamp']),
-                'depth': data['depth'],
-                'content_type': data['content_type'],
-                'size': data['size'],
-                'encoding': data['encoding']
-            }
-
-            if data['error']:
-                res['error'] = data['error']
-
-            if 'body' in data:
-                res['body'] = unicode(base64.b64encode(data['body']))
+    def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False):
+        res = {
+            'lru': page['lru'],
+            'crawled': page.get('crawled', None)
+        }
 
         if linked:
             res['linked'] = page.get('indegree', None)
 
+        if data is None:
+            res['url'] = urllru.lru_to_url(page['lru'])
+            return res
+
+        res['url'] = data['url']
+
+        if include_metas:
+            res['status'] = data['status']
+            res['crawl_timestamp'] = unicode(data['timestamp'])
+            res['depth'] = data['depth']
+            res['content_type'] = data['content_type'],
+            res['size'] = data['size'],
+            res['encoding'] = data['encoding']
+            if data['error']:
+                res['error'] = data['error']
+
+        if include_body and 'body' in data:
+            res['body'] = unicode(base64.b64encode(data['body']))
+
         return res
 
-    def format_pages(self, pages, linked=False, data=None):
+    def format_pages(self, pages, linked=False, data=None, include_metas=False, include_body=False):
         index = None
-
         if data is not None:
             index = {}
-
             for p in data:
                 index[p['lru']] = p
 
         if is_error(pages):
             return pages
-        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None) for page in pages]
+
+        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2757,10 +2755,12 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
-    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_data=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) along with the page's zipped body encoded in base64 when `include_page_data` is set to "true"."""
+    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_metas=False, include_page_body=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true")."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        if include_page_body and not config["mongo-scrapy"]["store_crawled_html_content"]:
+            returnD(format_error("This Hyphe instance is not configured to collect crawled pages body content, so include_page_body cannot be set to true."))
         onlyCrawled = test_bool_arg(onlyCrawled)
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
@@ -2806,12 +2806,12 @@ class Memory_Structure(customJSONRPC):
 
         page_data = None
 
-        if include_page_data:
-            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']])
+        if include_page_metas or include_page_body:
+            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']], include_metas=include_page_metas, include_body=include_page_body)
 
         returnD(format_result({
             'token': token,
-            'pages': self.format_pages(pages['pages'], data=page_data)
+            'pages': self.format_pages(pages['pages'], data=page_data, include_metas=include_page_metas, include_body=include_page_body)
         }))
 
     @inlineCallbacks
