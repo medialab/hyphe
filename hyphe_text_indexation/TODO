@@ -1,7 +1,7 @@
 - [X] populate WEupdates when merging entities
 - [ ] populate WEupdates when splitting entities
   + [X] populate WEupdates when creating a new entity which has a parent (declare_page, declare_we_by_...
-  + [ ] populate WEupdates when applying a new WECR
+  + [X] populate WEupdates when applying a new WECR
   + [ ] populate WEupdates when deleting a WE ?
   + [ ] handle cases of prefix add ?
   + [ ] handle cases of prefix removal ?

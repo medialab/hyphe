@@ -3079,6 +3079,15 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['total_webentities'] += new
             self.corpora[corpus]['webentities_discovered'] += new
             news += new
+
+            # Inform text indexation of change of webentity for pages under each prefix of the new WE
+            if new and self.corpora[corpus]['options']['indexTextContent']:
+                variationParent = yield self.traphs.call(corpus, "retrieve_webentity", variation)
+                if not is_error(variationParent):
+                    parentID = variationParent["result"]
+                    for weid, prefixes in res["created_webentities"].items():
+                        yield self.db.add_update(corpus, parentID, weid, prefixes)
+
         self.corpora[corpus]['recent_changes'] += news
         yield self.jsonrpc_get_webentity_creationrules(corpus=corpus)
 
