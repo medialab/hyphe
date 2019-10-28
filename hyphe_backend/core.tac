@@ -529,7 +529,7 @@ class Core(customJSONRPC):
             logger.msg("Problem while reinitializing crawler... %s" % res, system="ERROR - %s" % corpus)
             returnD(res)
         self.init_corpus(corpus)
-        yield self.db.init_corpus_indexes(corpus)
+        yield self.db.init_corpus_indexes(corpus, index_content=self.corpora[corpus]['options']['indexTextContent'])
         yield self.init_creationrules(corpus)
         yield self.store.jsonrpc_get_webentity_creationrules(corpus=corpus)
 
@@ -1396,10 +1396,7 @@ class Memory_Structure(customJSONRPC):
             new = True
             weid, prefixes = res["result"]["created_webentities"].items()[0]
             yield self.db.add_WE(corpus, weid, prefixes)
-            if self.corpora[corpus]['options']['indexTextContent']:
-                pass
-                #TODO Check WE parent, if one add update
-                #yield self.db.add_update(corpus, old_webentity_id, good_webentity_id)
+            yield self.report_webentity_change_for_text_indexation(weid, prefixes, corpus=corpus)
         res = yield self.return_new_webentity(lru, new, 'page', source_url=url, corpus=corpus)
         returnD(format_result(res))
 
@@ -1511,17 +1508,36 @@ class Memory_Structure(customJSONRPC):
                         logger.msg("Removing homepage %s from parent WebEntity %s" % (parent["homepage"], parent["name"]), system="DEBUG - %s" % corpus)
                     self.jsonrpc_set_webentity_homepage(parent["_id"], "", corpus=corpus, _automatic=True)
 
-            # Inform text indexation of change of webentity for pages under each prefix of the new WE
-            if self.corpora[corpus]['options']['indexTextContent']:
-                firstParents = {}
-                for prefix in new_WE["prefixes"]:
-                    matching_parent_prefixes = (pr for pr in parentPrefixes if prefix.startswith(pr))
-                    longest_prefix = max(matching_parent_prefixes, key=len)
-                    firstParents[prefix] = parentPrefixes[longest_prefix]
-                for parent, prefixes in reverse_dico(firstParents).items():
-                    yield self.db.add_update(corpus, parent, new_WE['_id'], prefixes)
+            yield self.report_webentity_change_for_text_indexation(new_WE['_id'], new_WE['prefixes'], parentPrefixes=parentPrefixes, corpus=corpus)
 
         returnD(format_result(new_WE))
+
+    # Inform text indexation of change of webentity for pages under each prefix of the new WE
+    @inlineCallbacks
+    def report_webentity_change_for_text_indexation(self, we_id, we_prefixes, parentPrefixes=None, corpus=DEFAULT_CORPUS):
+        if not self.corpora[corpus]['options']['indexTextContent']:
+            returnD()
+
+        if parentPrefixes is None:
+            parentWEs = yield self.traphs.call(corpus, "get_webentity_parent_webentities", we_id, we_prefixes)
+            if is_error(parentWEs) or not parentWEs["result"]:
+                returnD()
+            parentWEs = yield self.db.get_WEs(corpus, parentWEs["result"])
+            parentPrefixes = {}
+            for parent in parentWEs:
+                for pr in parent["prefixes"]:
+                    parentPrefixes[pr] = parent["_id"]
+        if not parentPrefixes:
+            returnD()
+
+        firstParents = {}
+        for prefix in we_prefixes:
+            matching_parent_prefixes = (pr for pr in parentPrefixes if prefix.startswith(pr))
+            longest_prefix = max(matching_parent_prefixes, key=len)
+            firstParents[prefix] = parentPrefixes[longest_prefix]
+
+        for parent, prefixes in reverse_dico(firstParents).items():
+            yield self.db.add_update(corpus, parent, we_id, prefixes)
 
 
   # EDIT WEBENTITIES
@@ -1926,8 +1942,15 @@ class Memory_Structure(customJSONRPC):
         yield self.db.update_jobs(corpus, {'webentity_id': WE["_id"]}, {'webentity_id': None, 'previous_webentity_id': WE["_id"], 'previous_webentity_name': WE["name"]})
         self.corpora[corpus]['recent_changes'] += 1
         self.update_webentities_counts(WE, WE["status"], deleted=True, corpus=corpus)
+        if self.corpora[corpus]['options']['indexTextContent']:
+            parents = defaultdict(list)
+            for prefix in WE['prefixes']:
+                prefixParent = yield self.traphs.call(corpus, "retrieve_webentity", prefix)
+                if not is_error(variationParent):
+                    parents[variationParent["result"]].append(prefix)
+            for parentWE, parentPrefixes in parents.items():
+                yield self.db.add_update(corpus, webentity_id, parentWE, parentPrefixes)
         returnD(format_result("WebEntity %s (%s) was removed" % (webentity_id, WE["name"])))
-
 
     @inlineCallbacks
     def index_batch(self, page_items, job, corpus=DEFAULT_CORPUS):
@@ -2685,49 +2708,47 @@ class Memory_Structure(customJSONRPC):
   # PAGES, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
-    def format_page(self, page, linked=False, data=None):
-        if data is None:
-            res = {
-                'lru': page['lru'],
-                'crawled': page.get('crawled', None),
-                'url': urllru.lru_to_url(page['lru'])
-            }
-        else:
-            res = {
-                'lru': page['lru'],
-                'crawled': page.get('crawled', None),
-                'url': data['url'],
-                'status': data['status'],
-                'crawl_timestamp': unicode(data['timestamp']),
-                'depth': data['depth'],
-                'content_type': data['content_type'],
-                'size': data['size'],
-                'encoding': data['encoding']
-            }
-
-            if data['error']:
-                res['error'] = data['error']
-
-            if 'body' in data:
-                res['body'] = unicode(base64.b64encode(data['body']))
+    def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False):
+        res = {
+            'lru': page['lru'],
+            'crawled': page.get('crawled', None)
+        }
 
         if linked:
             res['linked'] = page.get('indegree', None)
 
+        if data is None:
+            res['url'] = urllru.lru_to_url(page['lru'])
+            return res
+
+        res['url'] = data['url']
+
+        if include_metas:
+            res['status'] = data['status']
+            res['crawl_timestamp'] = unicode(data['timestamp'])
+            res['depth'] = data['depth']
+            res['content_type'] = data['content_type'],
+            res['size'] = data['size'],
+            res['encoding'] = data['encoding']
+            if data['error']:
+                res['error'] = data['error']
+
+        if include_body and 'body' in data:
+            res['body'] = unicode(base64.b64encode(data['body']))
+
         return res
 
-    def format_pages(self, pages, linked=False, data=None):
+    def format_pages(self, pages, linked=False, data=None, include_metas=False, include_body=False):
         index = None
-
         if data is not None:
             index = {}
-
             for p in data:
                 index[p['lru']] = p
 
         if is_error(pages):
             return pages
-        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None) for page in pages]
+
+        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2757,10 +2778,12 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
-    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_data=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) along with the page's zipped body encoded in base64 when `include_page_data` is set to "true"."""
+    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_metas=False, include_page_body=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true")."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
+        if include_page_body and not self.corpora[corpus]['options']['indexTextContent']:
+            returnD(format_error("This corpus is not configured to collect crawled pages body content, so include_page_body cannot be set to true."))
         onlyCrawled = test_bool_arg(onlyCrawled)
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
@@ -2806,12 +2829,12 @@ class Memory_Structure(customJSONRPC):
 
         page_data = None
 
-        if include_page_data:
-            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']])
+        if include_page_metas or include_page_body:
+            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']], include_metas=include_page_metas, include_body=include_page_body)
 
         returnD(format_result({
             'token': token,
-            'pages': self.format_pages(pages['pages'], data=page_data)
+            'pages': self.format_pages(pages['pages'], data=page_data, include_metas=include_page_metas, include_body=include_page_body)
         }))
 
     @inlineCallbacks
@@ -3063,6 +3086,15 @@ class Memory_Structure(customJSONRPC):
             self.corpora[corpus]['total_webentities'] += new
             self.corpora[corpus]['webentities_discovered'] += new
             news += new
+
+            # Inform text indexation of change of webentity for pages under each prefix of the new WE
+            if new and self.corpora[corpus]['options']['indexTextContent']:
+                variationParent = yield self.traphs.call(corpus, "retrieve_webentity", variation)
+                if not is_error(variationParent):
+                    parentID = variationParent["result"]
+                    for weid, prefixes in res["created_webentities"].items():
+                        yield self.db.add_update(corpus, parentID, weid, prefixes)
+
         self.corpora[corpus]['recent_changes'] += news
         yield self.jsonrpc_get_webentity_creationrules(corpus=corpus)
 

@@ -267,7 +267,8 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.count || 5000
               ,settings.token || null
               ,settings.crawledOnly || false
-              ,settings.includePageData || false
+              ,settings.includePageMetas || false
+              ,settings.includePageBody || false
               ,corpus.getId()
             ]}
       )
