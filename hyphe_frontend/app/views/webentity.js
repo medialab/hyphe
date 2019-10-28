@@ -10,7 +10,9 @@ angular.module('hyphe.webentityController', [])
     corpus,
     store,
     $location,
+    $window,
     $timeout,
+    $mdColors,
     autocompletion
   ){
     $scope.currentPage = 'webentity'
@@ -33,6 +35,28 @@ angular.module('hyphe.webentityController', [])
     $scope.pagesLoading = true
     $scope.pagesToken = null
     $scope.loadAllPages = false
+
+    $scope.data = {
+      in: {
+        loading: false,
+        loaded: false,
+        token: undefined,
+        page: 0,
+        total: 0,
+        retry: 0,
+        webentities: []
+      },
+      links: {
+        loading: false,
+        loaded: false,
+        links: []
+      }
+    }
+
+    $scope.$on("$destroy", function(){
+      $scope.data = {}
+    })
+
 
     $scope.$watch('tagCategories', synchronizeTags, true)
 
@@ -392,5 +416,215 @@ angular.module('hyphe.webentityController', [])
         }
       )
     }
+
+    // Ego Network Section
+    loadInWebentities()
+    loadLinks()
+
+
+    $scope.downloadNetwork = function() {
+      if ($scope.egoNetwork) {
+        var blob = new Blob([gexf.write($scope.egoNetwork)], {'type': 'text/gexf+xml;charset=utf-8'});
+        saveAs(blob, $scope.corpusId+"_"+$scope.webentity.name+"_egoNetwork.gexf", true);
+      }
+    }
+
+    $scope.networkNodeClick = function(node) {
+      var url = $scope.egoNetwork.getNodeAttribute(node, 'homepage')
+      $window.open(url, '_blank');
+    }
+
+    function loadLinks() {
+      if (!$scope.data.links.loaded) {
+        $scope.loading = true
+        $scope.status = {message: 'Loading links'}
+        $scope.data.links.loading = true
+        $scope.data.links.loaded = false
+        api.getWebentityEgoNetwork(
+            {webentityId: $scope.webentity.id,
+            corpus: $scope.corpusId
+            }
+            ,function(links){
+
+              $scope.data.links.links = links
+              $scope.data.links.loading = false
+              $scope.data.links.loaded = true
+              $scope.status = {}
+              buildEgoNetwork()
+            }
+            ,function(data, status, headers, config){
+              $scope.data.links.loading = false
+              $scope.data.links.loaded = false
+              $scope.status = {message: 'Error loading links', background:'danger'}
+            }
+        )}
+    }
+
+
+    function loadInWebentities(thisToken) {
+      $scope.loading = true
+      if ($scope.data.in.loading && $scope.data.in.token) {
+        // Retrieve from query token
+        $scope.status = {message:'Loading IN web entities', progress: Math.round(100 * $scope.data.in.webentities.length/$scope.data.in.total)}
+        api.getResultsPage(
+            {
+              token: $scope.data.in.token
+              ,page: ++$scope.data.in.page
+            }
+            ,function(result){
+              // Stop if this function was called in the meanwhile
+              if ($scope.data.in.token != thisToken) { return }
+              $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
+              if ($scope.data.in.webentities.length >= $scope.data.in.total) {
+                $scope.data.in.loading = false
+                $scope.data.in.loaded = true
+                $scope.status = {}
+                loadLinks()
+              } else {
+                loadInWebentities(thisToken)
+              }
+            }
+            ,function(data, status, headers, config){
+              // Stop if this function was called in the meanwhile
+              if ($scope.data.in.token != thisToken) { return }
+
+              if ($scope.data.in.retry++ < 3){
+                console.warn('Error loading results page: Retry', $scope.data.in.retry)
+                loadInWebentities(thisToken)
+              } else {
+                console.log('Error loading results page:', data, headers, config)
+                $scope.status = {message: 'Error loading results page', background: 'danger'}
+              }
+            }
+        )
+      } else {
+        // Initial query
+        $scope.status = {message:'Loading IN web entities'}
+        $scope.data.in.loading = true
+        $scope.data.in.loaded = false
+        $scope.data.in.token = undefined
+        $scope.data.in.page = 0
+        $scope.data.in.retry = 0
+        api.getWebentities_byStatus(
+            {
+              status: 'IN'
+              ,count: 1000
+              ,semiLight: true
+              ,page: 0
+            }
+            ,function(result){
+
+              $scope.data.in.total = result.total_results
+              $scope.data.in.token = result.token
+
+              $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
+              if ($scope.data.in.webentities.length >= $scope.data.in.total) {
+                $scope.data.in.loading = false
+                $scope.data.in.loaded = true
+                $scope.status = {}
+                loadLinks()
+              } else {
+                loadInWebentities(result.token)
+              }
+            }
+            ,function(data, headers, config){
+              // Stop if this function was called in the meanwhile
+              if (data.in.token != thisToken) { return }
+
+              if ($scope.data.in.retry++ < 3){
+                console.warn('Error loading web entities: Retry', $scope.data.in.retry)
+                loadInWebentities(thisToken)
+              } else {
+                $scope.status = {message: 'Error loading web entities', background: 'danger'}
+              }
+            }
+        )
+      }
+    }
+
+    function buildEgoNetwork() {
+      delete $scope.data.in.webentities[$scope.webentity]
+      var weIndex = {}
+      $scope.data.in.webentities.forEach(function(we){
+        if(we.name!==$scope.webentity){
+           weIndex[we.id] = we
+        }
+      })
+      var validLinks = $scope.data.links.links
+          .filter(function(l){
+            return weIndex[l[0]] !== undefined && weIndex[l[1]] !== undefined
+          })
+          .map(function(l, i){
+            return {
+              key: l[0] + '>' + l[1],
+              source: l[0],
+              target: l[1],
+              attributes: {count:l[2]}
+            }
+          })
+
+      var g = new Graph({type: 'directed', allowSelfLoops: false})
+
+      for (var k in weIndex)
+        g.addNode(k, Object.assign({}, weIndex[k]))
+
+      validLinks.forEach(function(l) {
+        g.importEdge(l)
+      })
+
+      g.nodes().forEach(function(nid){
+        var n = g.getNodeAttributes(nid)
+        n.color = '#AAA'
+      })
+
+      // Size nodes by indegree
+      // TODO: size by other means
+      var averageNonNormalizedArea = g.size / g.order // because node area = indegree
+      var minSize = 1
+      var totalArea = 0
+      g.nodes().forEach(function(nid){
+        var n = g.getNodeAttributes(nid)
+        n.initialsize = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
+        n.size = n.initialsize
+        totalArea += Math.PI * n.size * n.size
+      })
+
+      // Init Label and coordinates
+      var nodesArea = totalArea
+      g.nodes().forEach(function(nid){
+        var n = g.getNodeAttributes(nid)
+        var xy = utils.generateRandomCoordinates(nodesArea)
+        n.x = xy.x
+        n.y = xy.y
+        n.label = n.name
+      })
+
+      // Default color for edges
+      g.edges().forEach(function(eid){
+        var e = g.getEdgeAttributes(eid)
+        e.color = $mdColors.getThemeColor('default-background-100')
+      })
+
+      // Make the graph global for console tinkering
+      window.g = g
+
+      $scope.egoNetwork = g
+      updateNetwork()
+    }
+
+    function updateNetwork() {
+      var g = $scope.egoNetwork
+      if (g === undefined) {
+        return
+      }
+
+      // Build webentity index
+      var webentityIndex = {}
+      $scope.data.in.webentities.forEach(function (we) {
+        webentityIndex[we.id] = {selected: false, displayed: false}
+      })
+    }
+
+
 
   })
