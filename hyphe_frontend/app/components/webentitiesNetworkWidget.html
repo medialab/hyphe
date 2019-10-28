@@ -235,7 +235,7 @@
 
       <md-input-container>
         <label>Filter DISCOVERED web entities</label>
-        <md-select ng-model="limitDiscovered">
+        <md-select ng-model="limitDiscovered" ng-disabled="!statuses.discovered">
           <md-option value=""><em>No filtering</em></md-option>
           <md-option value="1+">Display only connected DISCOVERED</md-option>
           <md-option value="2+">Display only DISCOVERED with 2+ links</md-option>

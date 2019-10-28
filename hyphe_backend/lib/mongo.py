@@ -188,7 +188,7 @@ class MongoDB(object):
 
     @inlineCallbacks
     def get_WEs(self, corpus, query=None, **kwargs):
-        if not query:
+        if not query and query != []:
             res = yield self.WEs(corpus).find({}, **kwargs)
         else:
             if isinstance(query, list) and isinstance(query[0], int):
@@ -364,6 +364,31 @@ class MongoDB(object):
     def count_pages(self, corpus, job, **kwargs):
         tot = yield self.pages(corpus).count({"_job": job, "forgotten": False}, **kwargs)
         returnD(tot)
+
+    @inlineCallbacks
+    def get_pages(self, corpus, urls, include_metas=False, include_body=False, include_links=False):
+        projection = {}
+
+        if not include_links:
+            projection['lrulinks'] = 0
+
+        if not include_metas:
+            projection['status'] = 0
+            projection['timestamp'] = 0
+            projection['depth'] = 0
+            projection['content_type'] = 0
+            projection['size'] = 0
+            projection['encoding'] = 0
+
+        if not include_body:
+            projection['body'] = 0
+
+        kwargs = {}
+        if projection:
+            kwargs["projection"] = projection
+
+        result = yield self.pages(corpus).find({"url": {"$in": urls}}, **kwargs)
+        returnD(result)
 
     @inlineCallbacks
     def update_job_pages(self, corpus, job_id):

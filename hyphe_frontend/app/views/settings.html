@@ -84,30 +84,30 @@
                 <h3 style="margin:0px">CRAWLING</h3>
                 <dl class="key-value-pairs">
                   <dt>Maximum Depth</dt>
-                  <md-input-container>
+                  <md-input-container style="margin: 0px; height: 28px">
                     <input type="number" min="0" max="{{maxmax_depth}}" ng-model="ed_max_depth" aria-label="editMaxDepth">
                   </md-input-container>
 
                   <div layout = "column">
-                    <dt style="margin-bottom: 18px">What pages to use as startpages of the WebEntity?</dt>
+                    <dt style="margin-bottom: 18px">What StartPages to use by default when crawling a new Web Entity?</dt>
                     <div flex="50">
                       <md-checkbox ng-model="startpages_homepage" aria-label="StartPagesCheckbox">
-                        The Homepage of the WebEntity
+                        its homepage
                       </md-checkbox>
                     </div>
                     <div flex="50">
                       <md-checkbox ng-model="startpages_prefixes" aria-label="prefixes-Checkbox">
-                        The prefixes of the WebEntity
+                        its prefixes
                       </md-checkbox>
                     </div>
 
                     <div flex="50">
                       <md-checkbox ng-model="startpages_pages" aria-label="pages-n-Checkbox">
-                        The most cited known pages of the WebEntity:
                       </md-checkbox>
-                      <md-input-container  style="width:60px ; margin:0px; height:33px">
-                        <input ng-disabled="!startpages_pages" type="number" min="1" max="{{MAXPAGES}}"  ng-model="nbOfPages" aria-label="nbOfPagesAsStartpages">
-                      </md-input-container>
+                      its
+                      <md-input-container style="width: 38px; margin: 0px; height: 33px">
+                        <input ng-disabled="!startpages_pages" type="number" min="1" max="{{MAXPAGES}}" ng-model="nbOfPages" aria-label="nbOfPagesAsStartpages">
+                      </md-input-container> most cited known pages
                     </div>
                   </div>
                 </dl>
@@ -121,12 +121,12 @@
                 <dl class="key-value-pairs">
 
                   <dt>Host</dt>
-                  <md-input-container>
+                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
                     <input ng-model="ed_proxy_host" aria-label="editHost">
                   </md-input-container>
 
                   <dt>Port</dt>
-                  <md-input-container>
+                  <md-input-container style="width: 60px; margin: 0px; height: 28px">
                     <input type="number" min="0" ng-model="ed_proxy_port" aria-label="editPort">
                   </md-input-container>
 
@@ -209,7 +209,7 @@
                     <md-radio-button value="page" class="md-primary">page</md-radio-button>
                   </md-radio-group>
                 </dl>
-
+                <p>To add other domain specific creation rule, you should use the "Add a rule to split this in different Web Entities" button within the "As folders" section of an existing Web Entity</p>
               </md-content>
             </div>
           </form>
@@ -226,7 +226,7 @@
                 <dt>Maximum Depth</dt>
                 <dd>{{options.max_depth}}</dd>
 
-                <dt>Startpages mode</dt>
+                <dt>What Startpages to use by default when crawling a new Web Entity?</dt>
                 <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>
 
               </dl>

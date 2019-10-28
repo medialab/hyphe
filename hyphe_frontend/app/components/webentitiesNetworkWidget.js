@@ -23,7 +23,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.checkLoadAndUpdateCurrentToken = 0
         $scope.corpusId = corpus.getId()
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
-        $scope.limitDiscovered = ''
+        $scope.limitDiscovered = '1+'
         $scope.limitAll = ''
 
         $scope.settings = {
@@ -31,7 +31,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         , undecided: $scope.statuses.undecided
         , out: $scope.statuses.out
         , discovered: $scope.statuses.discovered
-        , limitDiscovered: ''
+        , limitDiscovered: '1+'
         , limitAll: ''
         }
         $scope.settingsChanged

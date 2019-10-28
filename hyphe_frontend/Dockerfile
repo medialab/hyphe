@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM nginx:1.17-alpine
 
 ENV BACKEND_PORT=6978
 ENV BACKEND_HOST=backend
