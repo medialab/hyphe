@@ -7,31 +7,19 @@ import sys
 import time
 import zlib
 import json
+import requests
 from hashlib import md5
-from argparse import ArgumentParser
-
-
 import pymongo
 from dragnet import extract_content, extract_content_and_comments
 from elasticsearch import Elasticsearch, helpers
 from html2text import textify
-
-# default configuration
-BATCH_SIZE = 1000
-DELETE_INDEX = True
-RESET_MONGO = True
-CORPUS = "wikipedia"
-MONGOHOST = "localhost"
-MONGOPORT = 27017
-ESHOST = "localhost"
-ESPORT = 9200
-
+# load config variables
+from config import *
 
 def ensure_index_on_pages(mongo_pages_coll):
     print("building mongo index")
     mongo_pages_coll.create_index([('to_index', pymongo.ASCENDING), ("content_type", pymongo.ASCENDING), ("status", pymongo.ASCENDING)])
     print("index done")
-
 
 def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]):
     mongo_pages_coll = mongo["hyphe_%s" % CORPUS]["pages"]
@@ -175,44 +163,52 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
 
 if __name__ == '__main__':
 
-    #load conf
-    with open('config.json', 'r', encoding='utf8') as f:
-        conf = json.load(f)
-        BATCH_SIZE = conf['batch_size']
-        DELETE_INDEX = conf['DELETE_INDEX']
-        RESET_MONGO = conf['RESET_MONGO']
-        CORPUS = conf['corpus']
-        MONGOHOST = conf['mongo']['host']
-        MONGOPORT = int(conf['mongo']['port'])
-        ESHOST = conf['elasticsearch']['host']
-        ESPORT = conf['elasticsearch']['port']
-
-    parser = ArgumentParser()
-    parser.add_argument('corpus')
-    parser.add_argument('--batch-size', type=int, default=1000)
-    parser.add_argument('--delete-index', action='store_true')
-    parser.add_argument('--reset-mongo', action='store_true')
-    args = parser.parse_args()
-    if args.corpus:
-        CORPUS = args.corpus
-    if args.batch_size:
-        BATCH_SIZE = args.batch_size
-    if args.delete_index:
-        DELETE_INDEX = args.delete_index
-    if args.reset_mongo:
-        RESET_MONGO = args.reset_mongo
+    print("starting text indexation")
 
     # Initiate MongoDB connection and build index on pages
     try:
-        db = pymongo.MongoClient(MONGOHOST, MONGOPORT)
+        print("connecting to mongo...")
+        db = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
         dbpages = db["hyphe_%s" % CORPUS]["pages"]
     except Exception as e:
+        print("can't connect to mongo")
         exit('Could not initiate connection to MongoDB')
     ensure_index_on_pages(dbpages)
 
     # connect to ES
-    es = Elasticsearch('%s:%s'%(ESHOST, ESPORT))
 
+    # Wait for Elasticsearch to come up.
+    # Don't print NewConnectionError's while we're waiting for Elasticsearch
+    # to come up.
+    print('request to %s:%s...'%(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT))
+    port_opened = False
+    while not port_opened:
+        try:
+            r = requests.get('http://%s:%s'%(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT))
+            print(r.status_code)
+            port_opened = r.status_code == 200
+        except Exception as e:
+            print(e)
+            print("Exception in requests")
+        finally:
+            if not port_opened:
+                print("ES replied with a bad HTTP code, retry in 1s")
+                time.sleep(1)
+            else:
+                print('Elasticsearch is responding')
+    es = Elasticsearch('%s:%s'%(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT))
+    start = time.time()
+    for _ in range(0, ELASTICSEARCH_TIMEOUT_SEC):
+        try:
+            es.cluster.health(wait_for_status='yellow')
+            print('Elasticsearch took %d seconds to come up.' % (time.time()-start))
+            break
+        except ConnectionError:
+            print('Elasticsearch not up yet, will try again.')
+            time.sleep(1)
+    else:
+        raise EnvironmentError("Elasticsearch failed to start.")
+    print('Elasticsearch started!')
     if es.indices.exists(index='hyphe.%s.txt' % CORPUS) and DELETE_INDEX:
         print('index deleted')
         es.indices.delete(index='hyphe.%s.txt' % CORPUS)
