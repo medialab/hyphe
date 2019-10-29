@@ -137,7 +137,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
           g.forEachEdge(nid, function(edge, attributes, source, target){
             if (source === nid){
-              if (g.edge(target, source)){
+              if (g.hasEdge(target, source)){
                 g.setEdgeAttribute(edge, 'color', '#6e246c');
                 $scope.bothDegree++;
               }
@@ -147,7 +147,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
             }
             else if(target === nid){
-              if (g.edge(target, source)) {
+              if (g.hasEdge(target, source)) {
                 g.setEdgeAttribute(edge, 'color', '#6e246c');
                 $scope.bothDegree++;
               }
@@ -157,6 +157,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
             }
           });
+          $scope.bothDegree = $scope.bothDegree/2;  //the bothDegree was counted from the two nodes so we have to divide it by 2.
         };
 
         $scope.networkStageClick = function(){
