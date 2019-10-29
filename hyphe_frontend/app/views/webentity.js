@@ -418,7 +418,6 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Ego Network Section
-    loadInWebentities()
     loadLinks()
 
 
@@ -430,7 +429,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     $scope.networkNodeClick = function(node) {
-      var url = $scope.egoNetwork.getNodeAttribute(node, 'homepage')
+      var url = "#/project/"+$scope.corpusId+"/webentity/"+$scope.egoNetwork.getNodeAttribute(node, 'id')
       $window.open(url, '_blank');
     }
 
@@ -450,7 +449,7 @@ angular.module('hyphe.webentityController', [])
               $scope.data.links.loading = false
               $scope.data.links.loaded = true
               $scope.status = {}
-              buildEgoNetwork()
+              loadEgoWebentities()
             }
             ,function(data, status, headers, config){
               $scope.data.links.loading = false
@@ -461,91 +460,38 @@ angular.module('hyphe.webentityController', [])
     }
 
 
-    function loadInWebentities(thisToken) {
-      $scope.loading = true
-      if ($scope.data.in.loading && $scope.data.in.token) {
-        // Retrieve from query token
-        $scope.status = {message:'Loading IN web entities', progress: Math.round(100 * $scope.data.in.webentities.length/$scope.data.in.total)}
-        api.getResultsPage(
-            {
-              token: $scope.data.in.token
-              ,page: ++$scope.data.in.page
-            }
-            ,function(result){
-              // Stop if this function was called in the meanwhile
-              if ($scope.data.in.token != thisToken) { return }
-              $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
-              if ($scope.data.in.webentities.length >= $scope.data.in.total) {
-                $scope.data.in.loading = false
-                $scope.data.in.loaded = true
-                $scope.status = {}
-                loadLinks()
-              } else {
-                loadInWebentities(thisToken)
-              }
-            }
-            ,function(data, status, headers, config){
-              // Stop if this function was called in the meanwhile
-              if ($scope.data.in.token != thisToken) { return }
-
-              if ($scope.data.in.retry++ < 3){
-                console.warn('Error loading results page: Retry', $scope.data.in.retry)
-                loadInWebentities(thisToken)
-              } else {
-                console.log('Error loading results page:', data, headers, config)
-                $scope.status = {message: 'Error loading results page', background: 'danger'}
-              }
-            }
-        )
-      } else {
-        // Initial query
-        $scope.status = {message:'Loading IN web entities'}
-        $scope.data.in.loading = true
-        $scope.data.in.loaded = false
-        $scope.data.in.token = undefined
-        $scope.data.in.page = 0
-        $scope.data.in.retry = 0
-        api.getWebentities_byStatus(
-            {
-              status: 'IN'
-              ,count: 1000
-              ,semiLight: true
-              ,page: 0
-            }
-            ,function(result){
-
-              $scope.data.in.total = result.total_results
-              $scope.data.in.token = result.token
-
-              $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
-              if ($scope.data.in.webentities.length >= $scope.data.in.total) {
-                $scope.data.in.loading = false
-                $scope.data.in.loaded = true
-                $scope.status = {}
-                loadLinks()
-              } else {
-                loadInWebentities(result.token)
-              }
-            }
-            ,function(data, headers, config){
-              // Stop if this function was called in the meanwhile
-              if (data.in.token != thisToken) { return }
-
-              if ($scope.data.in.retry++ < 3){
-                console.warn('Error loading web entities: Retry', $scope.data.in.retry)
-                loadInWebentities(thisToken)
-              } else {
-                $scope.status = {message: 'Error loading web entities', background: 'danger'}
-              }
-            }
-        )
+    function loadEgoWebentities() {
+      var egoWebentities = new Set([]);
+      for (var c = 0; c < $scope.data.links.links.length; c++) {
+        egoWebentities.add($scope.data.links.links[c][0]);
+        egoWebentities.add($scope.data.links.links[c][1]);
       }
+      egoWebentities = Array.from(egoWebentities)
+      api.getWebentities({
+            id_list: egoWebentities,
+            count: -1,
+            light: true
+          }
+          , function (result) {
+            $scope.data.egoWebentities = result
+            buildEgoNetwork()
+          }
+          , function () {
+            $scope.status = {message: 'Error loading Web Entities from the ego network', background: 'danger'}
+          }
+      )
     }
 
     function buildEgoNetwork() {
-      delete $scope.data.in.webentities[$scope.webentity]
+      //delete the current webentity from the IN webentities to get a proper egoNetwork
+      for (var c = 0; c < $scope.data.egoWebentities.length; c++){
+        if ($scope.data.egoWebentities[c].id === $scope.webentity.id){
+          $scope.data.egoWebentities.splice(c,1)
+          break;
+        }
+      }
       var weIndex = {}
-      $scope.data.in.webentities.forEach(function(we){
+      $scope.data.egoWebentities.forEach(function(we){
         if(we.name!==$scope.webentity){
            weIndex[we.id] = we
         }
@@ -574,7 +520,18 @@ angular.module('hyphe.webentityController', [])
 
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        n.color = '#AAA'
+        if(n.status === "DISCOVERED"){
+          n.color = '#93BDE0'
+        }
+        if(n.status === "IN"){
+          n.color = '#333'
+        }
+        if(n.status === "UNDECIDED"){
+          n.color = '#ADA299'
+        }
+        if(n.status === "OUT"){
+          n.color = '#FAA'
+        }
       })
 
       // Size nodes by indegree
@@ -620,11 +577,8 @@ angular.module('hyphe.webentityController', [])
 
       // Build webentity index
       var webentityIndex = {}
-      $scope.data.in.webentities.forEach(function (we) {
+      $scope.data.egoWebentities.forEach(function (we) {
         webentityIndex[we.id] = {selected: false, displayed: false}
       })
     }
-
-
-
   })
