@@ -124,8 +124,8 @@ class Core(customJSONRPC):
             check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True, globalconf=config)
         except Exception as e:
             returnD(format_error(e))
-        if "max_depth" in options and options["max_depth"] > config["max_depth"]:
-            returnD(format_error("This Hyphe instance does not allow max_depth do be higher than %s" % config["max_depth"]))
+        if "max_depth" in options and options["max_depth"] > config["mongo-scrapy"]["max_depth"]:
+            returnD(format_error("This Hyphe instance does not allow max_depth do be higher than %s" % config["mongo-scrapy"]["max_depth"]))
         redeploy = False
         if ("defaultCreationRule" in options or "defautStartpagesMode" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
