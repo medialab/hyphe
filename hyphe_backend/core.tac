@@ -143,9 +143,11 @@ class Core(customJSONRPC):
           "idle_timeout" in options["phantom"])):
             if self.corpora[corpus]['crawls_running']:
                 returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
-        if 'proxy' in options and options['proxy'] == self.corpora[corpus]['options']['proxy']:
+        if 'proxy' in options and options['proxy'] != self.corpora[corpus]['options']['proxy']:
+            # TODO Test new Proxy
             redeploy = True
-        if 'phantom' in options and options['phantom'] == self.corpora[corpus]['options']['phantom']:
+            self.corpora[corpus]['options']['proxy'].update(options.pop("proxy"))
+        if 'phantom' in options and options['phantom'] != self.corpora[corpus]['options']['phantom']:
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
