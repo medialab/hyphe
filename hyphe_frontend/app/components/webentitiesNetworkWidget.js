@@ -126,7 +126,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.networkNodeClick = function(nid) {
           $scope.seeInfo = true;
           var n = g.getNodeAttributes(nid);
-          $scope.WECrawled = n.crawled;
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
           $scope.WEHomepage = n.homepage;

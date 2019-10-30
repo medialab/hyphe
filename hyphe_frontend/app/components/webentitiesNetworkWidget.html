@@ -177,7 +177,7 @@
 
 <!-- Side Nav -->
 <md-sidenav
-  class="md-sidenav-right"
+  class="md-sidenav-right network-sidebar"
   md-component-id="right"
   md-disable-backdrop
   md-whiteframe="4"
@@ -198,10 +198,8 @@
 
   <md-content>
 
-    <div layout ="row" style=""
-         md-colors="{'background': 'default-background-200-0.5'}"
-    >
-      <md-icon style="margin-left:10px;margin-right:10px">search</md-icon>
+    <div layout="row" md-colors="{'background': 'default-background-200-0.5'}">
+      <md-icon style="margin-left:10px; margin-right:10px">search</md-icon>
       <md-autocomplete
               md-item-text="WE"
               md-items="WE in autoComplete(query)"
@@ -209,9 +207,9 @@
               md-search-text="query"
               md-selected-item="selectedItem"
               md-floating-label="Search a WebEntity"
-              md-selected-item-change = "findNode(selectedItem)"
+              md-selected-item-change="findNode(selectedItem)"
               md-clear-button="true"
-              style="width:350px; margin-bottom:0px"
+              class="network-search"
       >
         <md-item-template>
           <span md-highlight-text="query">{{WE}}</span>
@@ -223,7 +221,7 @@
       layout="column"
       md-colors="{'background': 'default-background-200'}"
       style="padding: 8px"
-      ng-show = "!selectedItem"
+      ng-show="!selectedItem"
     >
       <p class="md-title">Filtering</p>
       <hyphe-status-box
@@ -279,11 +277,11 @@
             layout="column"
             md-colors="{'background': 'default-background-200'}"
             style="padding: 12px"
-            ng-show = "selectedItem"
+            ng-show="selectedItem"
     >
-      <p class="md-title">Selected WebEntity :</p>
+      <p class="md-title">Selected Web Entity:</p>
 
-      <p flex layout="row">
+      <p class="webentity-link" flex layout="row">
         <a
                 href="{{WEHomepage}}"
                 target="_blank"
@@ -292,25 +290,22 @@
         >
           <md-tooltip md-direction="left">{{WEHomepage}}</md-tooltip>
           <md-icon>link</md-icon>
+          <span md-truncate flex>{{selectedItem}}</span>
         </a>
-        <span md-truncate flex>
-          {{selectedItem}}
-        </span>
       </p>
 
-      <div layout = "row" >
+      <div layout="row" >
         <md-button class="md-raised"
                    flex
                    target="_blank"
                    ng-href="#/project/{{corpusId}}/webentity/{{WEId}}"
                    ng-click="$event.stopPropagation();"
                    ng-disabled="!selectedItem">
-          <md-tooltip md-direction="up">Edit this WebEntity</md-tooltip>
+          <md-tooltip md-direction="up">Edit this Web Entity</md-tooltip>
           EDIT &nbsp;
         </md-button>
       </div>
 
-      <p class="md-title" style="margin-bottom: 0px">Links</p>
       <p layout="column" style="margin-top: 0px">
       <div>
         <md-icon style="transform: rotate(-30deg); color: #0053c2; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
