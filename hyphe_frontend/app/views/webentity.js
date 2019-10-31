@@ -427,31 +427,28 @@ angular.module('hyphe.webentityController', [])
     function loadLinks() {
       if (!$scope.ego.loaded) {
         $scope.loading = true
-        $scope.status = {message: 'Loading links'}
+        $scope.status = {message: 'Loading ego network links'}
         $scope.ego.loading = true
         $scope.ego.loaded = false
         api.getWebentityEgoNetwork(
-            {webentityId: $scope.webentity.id,
-            corpus: $scope.corpusId
-            }
+            {webentityId: $scope.webentity.id}
             ,function(links){
-
               $scope.ego.links = links
               $scope.ego.loading = false
               $scope.ego.loaded = true
-              $scope.status = {}
               loadEgoWebentities()
             }
             ,function(egonetwork, status, headers, config){
               $scope.ego.loading = false
               $scope.ego.loaded = false
-              $scope.status = {message: 'Error loading links', background:'danger'}
+              $scope.status = {message: 'Error loading links for Ego network', background:'danger'}
             }
         )}
     }
 
 
     function loadEgoWebentities() {
+      $scope.status = {message: 'Loading ego network web entities'}
       var egoWebentities = new Set([]);
       for (var c = 0; c < $scope.ego.links.length; c++) {
         egoWebentities.add($scope.ego.links[c][0]);
@@ -464,17 +461,18 @@ angular.module('hyphe.webentityController', [])
             light: true
           }
           , function (result) {
+            $scope.status = {}
             $scope.ego.webentities = result
             buildEgoNetwork()
           }
           , function () {
-            $scope.status = {message: 'Error loading Web Entities from the ego network', background: 'danger'}
+            $scope.status = {message: 'Error loading Web Entities for Ego network', background: 'danger'}
           }
       )
     }
 
     function buildEgoNetwork() {
-      //delete the current webentity from the IN webentities to get a proper egoNetwork
+      //delete the current webentity from the ego webentities to get a proper egoNetwork
       for (var c = 0; c < $scope.ego.webentities.length; c++){
         if ($scope.ego.webentities[c].id === $scope.webentity.id){
           $scope.ego.webentities.splice(c,1)
@@ -483,67 +481,55 @@ angular.module('hyphe.webentityController', [])
       }
       var weIndex = {}
       $scope.ego.webentities.forEach(function(we){
-        if(we.name!==$scope.webentity){
-           weIndex[we.id] = we
-        }
+         weIndex[we.id] = we
       })
-      var validLinks = $scope.ego.links
-          .filter(function(l){
-            return weIndex[l[0]] !== undefined && weIndex[l[1]] !== undefined
-          })
-          .map(function(l, i){
-            return {
-              key: l[0] + '>' + l[1],
-              source: l[0],
-              target: l[1],
-              attributes: {count:l[2]}
-            }
-          })
 
       var g = new Graph({type: 'directed', allowSelfLoops: false})
 
       for (var k in weIndex)
         g.addNode(k, Object.assign({}, weIndex[k]))
 
-      validLinks.forEach(function(l) {
-        g.importEdge(l)
+      $scope.ego.links.forEach(function(l) {
+        if (l[0] === $scope.webentity.id || l[1] === $scope.webentity.id)
+          return;
+        g.importEdge({
+          key: l[0] + '>' + l[1],
+          source: l[0],
+          target: l[1],
+          attributes: {count: l[2]}
+        })
       })
 
+      var averageNonNormalizedArea = g.size / g.order // because node area = indegree
+      var minSize = 4
+      var totalArea = 0
+      var nodesArea = totalArea
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
         if(n.status === "DISCOVERED"){
           n.color = '#93BDE0'
         }
-        if(n.status === "IN"){
+        else if(n.status === "IN"){
           n.color = '#333'
         }
-        if(n.status === "UNDECIDED"){
+        else if(n.status === "UNDECIDED"){
           n.color = '#ADA299'
         }
-        if(n.status === "OUT"){
+        else if(n.status === "OUT"){
           n.color = '#FAA'
         }
-      })
 
-      // Size nodes by indegree
-      // TODO: size by other means
-      var averageNonNormalizedArea = g.size / g.order // because node area = indegree
-      var minSize = 1
-      var totalArea = 0
-      g.nodes().forEach(function(nid){
-        var n = g.getNodeAttributes(nid)
+        // Size nodes by indegree
+        // TODO: size by other means
         n.initialsize = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
         n.size = n.initialsize
         totalArea += Math.PI * n.size * n.size
-      })
 
-      // Init Label and coordinates
-      var nodesArea = totalArea
-      g.nodes().forEach(function(nid){
-        var n = g.getNodeAttributes(nid)
+        // Init Label and coordinates
         var xy = utils.generateRandomCoordinates(nodesArea)
         n.x = xy.x
         n.y = xy.y
+
         n.label = n.name
       })
 
@@ -555,21 +541,6 @@ angular.module('hyphe.webentityController', [])
 
       // Make the graph global for console tinkering
       window.g = g
-
       $scope.ego.network = g
-      updateNetwork()
-    }
-
-    function updateNetwork() {
-      var g = $scope.ego.network
-      if (g === undefined) {
-        return
-      }
-
-      // Build webentity index
-      var webentityIndex = {}
-      $scope.ego.webentities.forEach(function (we) {
-        webentityIndex[we.id] = {selected: false, displayed: false}
-      })
     }
   })
