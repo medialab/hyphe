@@ -63,6 +63,8 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WE_CREATION_RULE_LIST_GET                   = 'store.get_webentity_creationrules'
     API.SIMULATE_WE_CREATION_RULES                  = 'store.simulate_creationrules_for_urls'
 
+    API.WE_EGO_NETWORK_GET                          = 'store.get_webentity_ego_network';
+
     API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET      = 'store.get_lru_definedprefixes'
 
     API.PAGE_LIST_DECLARE                           = 'declare_pages'
@@ -182,6 +184,15 @@ angular.module('hyphe.service_hyphe_api', [])
             settings.urlList || []
             ,corpus.getId()
           ]}
+      )
+
+      ns.getWebentityEgoNetwork = buildApiCall(
+          API.WE_EGO_NETWORK_GET
+          , function(settings){
+              return [
+                  settings.webentityId
+                  ,corpus.getId()
+              ]}
       )
 
     ns.getLruParentWebentities = buildApiCall(

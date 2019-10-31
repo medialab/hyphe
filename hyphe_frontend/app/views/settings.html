@@ -115,7 +115,7 @@
             </div>
 
             <!-- Proxy -->
-            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-show="true">
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">PROXY</h3>
                 <dl class="key-value-pairs">
@@ -235,16 +235,16 @@
           </div>
 
           <!-- Proxy -->
-          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px" ng-if="true">
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
             <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
               <h3 style="margin:0px">PROXY</h3>
               <dl class="key-value-pairs">
 
                 <dt>Host</dt>
-                <dd>{{options.proxy.host}}</dd>
+                <dd style="min-height: 22px">{{options.proxy.host}}</dd>
 
                 <dt>Port</dt>
-                <dd>{{options.proxy.port}}</dd>
+                <dd style="min-height: 22px">{{options.proxy.port}}</dd>
 
               </dl>
 

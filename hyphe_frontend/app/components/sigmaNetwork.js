@@ -153,9 +153,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
           }
           if ($scope.onStageClick !== undefined) {
             renderer.on('clickStage', function(e){
-              $timeout(function(){
-                $scope.onStageClick()
-              })
+              $timeout($scope.onStageClick)
             })
           }
 

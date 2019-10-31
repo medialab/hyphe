@@ -91,12 +91,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
         $scope.selectedItem = null
-        $scope.seeInfo = true;
 
-
-        $scope.toggleInfos = function(){
-          $scope.seeInfo = !$scope.seeInfo;
-        }
         $scope.findNode = function(name){
           g.forEachNode(function(node){
             var n = g.getNodeAttributes(node)
@@ -124,9 +119,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         });
 
         $scope.networkNodeClick = function(nid) {
-          $scope.seeInfo = true;
           var n = g.getNodeAttributes(nid);
-          $scope.WECrawled = n.crawled;
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
           $scope.WEHomepage = n.homepage;
@@ -137,7 +130,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
           g.forEachEdge(nid, function(edge, attributes, source, target){
             if (source === nid){
-              if (g.edge(target, source)){
+              if (g.hasEdge(target, source)){
                 g.setEdgeAttribute(edge, 'color', '#6e246c');
                 $scope.bothDegree++;
               }
@@ -147,7 +140,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
             }
             else if(target === nid){
-              if (g.edge(target, source)) {
+              if (g.hasEdge(target, source)) {
                 g.setEdgeAttribute(edge, 'color', '#6e246c');
                 $scope.bothDegree++;
               }
@@ -157,6 +150,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
             }
           });
+          $scope.bothDegree = $scope.bothDegree/2;  //the bothDegree was counted from the two nodes so we have to divide it by 2.
         };
 
         $scope.networkStageClick = function(){
