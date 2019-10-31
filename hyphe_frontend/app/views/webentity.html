@@ -170,20 +170,18 @@
                 <!-- Tab: Ego Network -->
                 <md-tab>
                   <md-tab-label>
-                    <md-tooltip md-direction="up"> The Network of the web entities that are linked with this one
-                    </md-tooltip>
+                    <md-tooltip md-direction="up">The network of links between the web entities that are linked with this one</md-tooltip>
                     <md-icon>bubble_chart</md-icon>Ego network</md-tab-label>
                   <md-tab-body>
-                    <div layout-fill layout="column" layout-align="center center" ng-if="!data.links.loaded">
+                    <div layout-fill layout="column" layout-align="center center" ng-if="!ego.loaded">
                       <spinner text="'LOADING LINKS'"></spinner>
                     </div>
-                    <div layout-fill layout="column" ng-if="data.links.loaded" style="position: relative">
+                    <div layout-fill layout="column" ng-if="ego.loaded" style="position: relative">
                       <sigma-network
-                              layout-fill
-                              network="egoNetwork "
-                              download-network="downloadNetwork"
-                              on-node-click="networkNodeClick"
-
+                          layout-fill
+                          network="ego.network "
+                          download-network="downloadNetwork"
+                          on-node-click="networkNodeClick"
                       ></sigma-network>
                     </div>
                   </md-tab-body>

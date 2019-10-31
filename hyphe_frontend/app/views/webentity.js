@@ -36,25 +36,16 @@ angular.module('hyphe.webentityController', [])
     $scope.pagesToken = null
     $scope.loadAllPages = false
 
-    $scope.data = {
-      in: {
-        loading: false,
-        loaded: false,
-        token: undefined,
-        page: 0,
-        total: 0,
-        retry: 0,
-        webentities: []
-      },
-      links: {
-        loading: false,
-        loaded: false,
-        links: []
-      }
+    $scope.ego = {
+      loading: false,
+      loaded: false,
+      webentities: [],
+      links: [],
+      network: null
     }
 
     $scope.$on("$destroy", function(){
-      $scope.data = {}
+      $scope.ego = {}
     })
 
 
@@ -422,38 +413,38 @@ angular.module('hyphe.webentityController', [])
 
 
     $scope.downloadNetwork = function() {
-      if ($scope.egoNetwork) {
-        var blob = new Blob([gexf.write($scope.egoNetwork)], {'type': 'text/gexf+xml;charset=utf-8'});
+      if ($scope.ego.network) {
+        var blob = new Blob([gexf.write($scope.ego.network)], {'type': 'text/gexf+xml;charset=utf-8'});
         saveAs(blob, $scope.corpusId+"_"+$scope.webentity.name+"_egoNetwork.gexf", true);
       }
     }
 
     $scope.networkNodeClick = function(node) {
-      var url = "#/project/"+$scope.corpusId+"/webentity/"+$scope.egoNetwork.getNodeAttribute(node, 'id')
+      var url = "#/project/"+$scope.corpusId+"/webentity/"+$scope.ego.network.getNodeAttribute(node, 'id')
       $window.open(url, '_blank');
     }
 
     function loadLinks() {
-      if (!$scope.data.links.loaded) {
+      if (!$scope.ego.loaded) {
         $scope.loading = true
         $scope.status = {message: 'Loading links'}
-        $scope.data.links.loading = true
-        $scope.data.links.loaded = false
+        $scope.ego.loading = true
+        $scope.ego.loaded = false
         api.getWebentityEgoNetwork(
             {webentityId: $scope.webentity.id,
             corpus: $scope.corpusId
             }
             ,function(links){
 
-              $scope.data.links.links = links
-              $scope.data.links.loading = false
-              $scope.data.links.loaded = true
+              $scope.ego.links = links
+              $scope.ego.loading = false
+              $scope.ego.loaded = true
               $scope.status = {}
               loadEgoWebentities()
             }
-            ,function(data, status, headers, config){
-              $scope.data.links.loading = false
-              $scope.data.links.loaded = false
+            ,function(egonetwork, status, headers, config){
+              $scope.ego.loading = false
+              $scope.ego.loaded = false
               $scope.status = {message: 'Error loading links', background:'danger'}
             }
         )}
@@ -462,9 +453,9 @@ angular.module('hyphe.webentityController', [])
 
     function loadEgoWebentities() {
       var egoWebentities = new Set([]);
-      for (var c = 0; c < $scope.data.links.links.length; c++) {
-        egoWebentities.add($scope.data.links.links[c][0]);
-        egoWebentities.add($scope.data.links.links[c][1]);
+      for (var c = 0; c < $scope.ego.links.length; c++) {
+        egoWebentities.add($scope.ego.links[c][0]);
+        egoWebentities.add($scope.ego.links[c][1]);
       }
       egoWebentities = Array.from(egoWebentities)
       api.getWebentities({
@@ -473,7 +464,7 @@ angular.module('hyphe.webentityController', [])
             light: true
           }
           , function (result) {
-            $scope.data.egoWebentities = result
+            $scope.ego.webentities = result
             buildEgoNetwork()
           }
           , function () {
@@ -484,19 +475,19 @@ angular.module('hyphe.webentityController', [])
 
     function buildEgoNetwork() {
       //delete the current webentity from the IN webentities to get a proper egoNetwork
-      for (var c = 0; c < $scope.data.egoWebentities.length; c++){
-        if ($scope.data.egoWebentities[c].id === $scope.webentity.id){
-          $scope.data.egoWebentities.splice(c,1)
+      for (var c = 0; c < $scope.ego.webentities.length; c++){
+        if ($scope.ego.webentities[c].id === $scope.webentity.id){
+          $scope.ego.webentities.splice(c,1)
           break;
         }
       }
       var weIndex = {}
-      $scope.data.egoWebentities.forEach(function(we){
+      $scope.ego.webentities.forEach(function(we){
         if(we.name!==$scope.webentity){
            weIndex[we.id] = we
         }
       })
-      var validLinks = $scope.data.links.links
+      var validLinks = $scope.ego.links
           .filter(function(l){
             return weIndex[l[0]] !== undefined && weIndex[l[1]] !== undefined
           })
@@ -565,19 +556,19 @@ angular.module('hyphe.webentityController', [])
       // Make the graph global for console tinkering
       window.g = g
 
-      $scope.egoNetwork = g
+      $scope.ego.network = g
       updateNetwork()
     }
 
     function updateNetwork() {
-      var g = $scope.egoNetwork
+      var g = $scope.ego.network
       if (g === undefined) {
         return
       }
 
       // Build webentity index
       var webentityIndex = {}
-      $scope.data.egoWebentities.forEach(function (we) {
+      $scope.ego.webentities.forEach(function (we) {
         webentityIndex[we.id] = {selected: false, displayed: false}
       })
     }
