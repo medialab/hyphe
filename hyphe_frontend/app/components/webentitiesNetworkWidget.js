@@ -91,12 +91,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeBaseRatio = 1
         $scope.tagCategories = {}
         $scope.selectedItem = null
-        $scope.seeInfo = true;
 
-
-        $scope.toggleInfos = function(){
-          $scope.seeInfo = !$scope.seeInfo;
-        }
         $scope.findNode = function(name){
           g.forEachNode(function(node){
             var n = g.getNodeAttributes(node)
@@ -124,7 +119,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         });
 
         $scope.networkNodeClick = function(nid) {
-          $scope.seeInfo = true;
           var n = g.getNodeAttributes(nid);
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
