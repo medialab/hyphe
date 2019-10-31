@@ -283,15 +283,17 @@
 
       <p class="webentity-link" flex layout="row">
         <a
-                href="{{WEHomepage}}"
-                target="_blank"
-                ng-click="$event.stopPropagation();"
-                style="margin-right:2px"
+            ng-show="WEHomepage"
+            href="{{WEHomepage}}"
+            target="_blank"
+            ng-click="$event.stopPropagation();"
+            style="margin-right: 2px"
         >
           <md-tooltip md-direction="left">{{WEHomepage}}</md-tooltip>
           <md-icon>link</md-icon>
           <span md-truncate flex>{{selectedItem}}</span>
         </a>
+        <span style="height: 25px" ng-show="!WEHomepage" md-truncate flex>{{selectedItem}}</span>
       </p>
 
       <div layout="row" >
@@ -306,20 +308,20 @@
         </md-button>
       </div>
 
-      <p layout="column" style="margin-top: 0px">
-      <div>
-        <md-icon style="transform: rotate(-30deg); color: #0053c2; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-        &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINKS
-
-      </div>
-      <div>
-        <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-        &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINKS
-      </div>
-      <div>
-        <md-icon style="transform: rotate(-30deg); color: #6e246c
+      <div layout="column" style="margin: 8px">
+        <div>
+          <md-icon style="transform: rotate(-30deg); color: #0053c2; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+          &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINKS
+        </div>
+        <div>
+          <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+          &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINKS
+        </div>
+        <div>
+          <md-icon style="transform: rotate(-30deg); color: #6e246c
 ; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-        &nbsp; &nbsp; <span>{{bothDegree}}</span> SYMMETRIC LINKS
+          &nbsp; &nbsp; <span>{{bothDegree}}</span> SYMMETRIC LINKS
+        </div>
       </div>
 
     </div>

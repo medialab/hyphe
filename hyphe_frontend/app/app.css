@@ -208,7 +208,7 @@ dl.highlight {
   margin-top: 0px;
 }
 
-.network-sidebar .webentity-link a:visited {
+.network-sidebar .webentity-link a, .network-sidebar .webentity-link a:visited {
   color: black;
 }
 
