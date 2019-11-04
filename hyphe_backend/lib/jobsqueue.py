@@ -134,7 +134,8 @@ class JobsQueue(object):
         ordered = sorted(self.queue.items(), key=lambda x: \
           float("%s.%s" % (status.get(x[1]["corpus"], 0), x[1]["timestamp"])))
         job_id, job = ordered[0]
-        res = yield self.send_scrapy_query('schedule', job["crawl_arguments"])
+        args = job["crawl_arguments"]
+        res = yield self.send_scrapy_query('schedule', {"project": args["project"], "spider": args["spider"], "setting": args["setting"], "job_id": job_id})
         ts = now_ts()
         if is_error(res):
             logger.msg("WARNING: error sending job %s to ScrapyD: %s" % (job, res))

@@ -4,6 +4,7 @@ import os, time, signal, re
 import json
 import logging
 
+from pymongo import MongoClient
 try:
     from pymongo.binary import Binary
 except:
@@ -24,8 +25,7 @@ from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML
-from hcicrawler.samples import DEFAULT_INPUT
+from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -37,9 +37,10 @@ class PagesCrawler(Spider):
     link_extractor = RegexpLinkExtractor(canonicalize=False, deny_extensions=[])
     ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
-    def __init__(self, **kw):
-        args = DEFAULT_INPUT.copy()
-        args.update(kw)
+    def __init__(self, **kwargs):
+        mongo = MongoClient(MONGO_HOST, MONGO_PORT)[MONGO_DB][MONGO_JOBS_COL]
+        job = mongo.find_one({"_id": kwargs["job_id"]})
+        args = job["crawl_arguments"]
         self.args = args
         self.start_urls = to_list(args['start_urls'])
         self.maxdepth = int(args['max_depth'])
@@ -50,7 +51,7 @@ class PagesCrawler(Spider):
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         self.cookies = None
-        if 'cookies' in args:
+        if 'cookies' in args and args["cookies"]:
             self.cookies = dict(cookie.split('=', 1) for cookie in re.split(r'\s*;\s*', args['cookies']) if '=' in cookie)
         if self.phantom:
             self.ph_timeout = int(args.get('phantom_timeout', PHANTOM['TIMEOUT']))

@@ -36,6 +36,7 @@ DUPEFILTER_CLASS = 'hcicrawler.middlewares.CustomDupeFilter'
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}
 MONGO_DB = '{{db_name}}_{{project}}'
+MONGO_JOBS_COL = 'jobs'
 MONGO_QUEUE_COL = 'queue'
 MONGO_PAGESTORE_COL = 'pages'
 
