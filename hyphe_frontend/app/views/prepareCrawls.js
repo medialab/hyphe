@@ -356,7 +356,9 @@ angular.module('hyphe.preparecrawlsController', [])
         result.diagnostic = {}
 
       } else {
-        result.stage = 'loaded'
+        if (startpages.length) {
+          result.stage = 'loaded'
+        }
         result.percent = 100
 
         // Diagnostic
