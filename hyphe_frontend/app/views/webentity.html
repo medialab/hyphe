@@ -27,7 +27,7 @@
               <md-tabs md-border-bottom flex md-selected="selectedTab">
             
                 <!-- Tab: Identity -->
-                <md-tab label="Identity">
+                <md-tab label="Identity" ng-click="seePages = true">
                   <div layout-fill md-colors="{'background': 'default-background-200'}" style="overflow-y: auto">
                     <div layout="column">
 
@@ -118,7 +118,7 @@
                 </md-tab>
 
                 <!-- Tab: Prefixes -->
-                <md-tab label="Prefixes">
+                <md-tab label="Prefixes" ng-click="seePages = true">
                   <md-virtual-repeat-container layout-fill>
                     <md-list>
                       <md-list-item
@@ -138,7 +138,7 @@
                 </md-tab>
 
                 <!-- Tab: Start pages -->
-                <md-tab label="Start pages">
+                <md-tab label="Start pages" ng-click="seePages = true">
                   
                     <md-list>
                       <div
@@ -192,7 +192,7 @@
                 </md-tab>
 
                 <!-- Tab: Ego Network -->
-                <md-tab>
+                <md-tab ng-click="seePages = false">
                   <md-tab-label>
                     <md-tooltip md-direction="up">The network of links between the web entities that are linked with this one</md-tooltip>
                     <md-icon>bubble_chart</md-icon>Ego network</md-tab-label>
@@ -206,13 +206,16 @@
                           network="ego.network "
                           download-network="downloadNetwork"
                           on-node-click="networkNodeClick"
+                          start-layout-on-load="true"
+                          start-layout-on-show="true"
+                          suspend-layout="seePages === true"
                       ></sigma-network>
                     </div>
                   </md-tab-body>
                 </md-tab>
 
                 <!-- Tab: Crawls -->
-                <md-tab label="Crawls">
+                <md-tab label="Crawls" ng-click="seePages = true">
                   <!-- <div
                     style="padding: 8px"
                     md-colors="{'background': 'default-background-200'}"
@@ -373,7 +376,7 @@
                 </md-tab>
 
                 <!-- Tab: Tags -->
-                <md-tab>
+                <md-tab ng-click="seePages = true">
                   <md-tab-label><md-icon>local_offer</md-icon> Tags</md-tab-label>
                   <md-tab-body>
                     <div layout-fill layout="column">
