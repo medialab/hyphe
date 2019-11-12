@@ -114,6 +114,8 @@ Or run the containers as a background daemon (for instance for production on a s
 docker-compose up -d
 ```
 
+Once the logs say "All tests passed. Ready!", you can access your Hyphe install at http://localhost:80/ (or http://localhost:<PUBLIC_PORT>/ if you changed the port value in the `.env` configuration file).
+
 
 #### 6. Stop and monitor Hyphe
 
