@@ -1,0 +1,47 @@
+<!-- Horizontal Cite version -->
+<div class="statuses-box" layout="row" >
+    <md-button
+        class="btn-citing"
+        ng-class="{'md-raised':!types.citing}"
+        ng-model="types.citing"
+        ng-disabled="disabled"
+        ng-click="types.citing = !types.citing"
+        md-colors="{'background': (types.citing) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
+        btn-checkbox
+    >
+        <md-icon ng-if="!types.citing" style="opacity: 0.5">check_box_outline_blank</md-icon>
+        <md-icon ng-if="types.citing" class="status-colored">check_box</md-icon>
+        <span class="label-status">CITING</span>
+        <span class="label-count">{{counts.citing|number}}</span>
+    </md-button>
+
+    <md-button
+        class="btn-cited"
+        ng-class="{'md-raised':!types.cited}"
+        ng-model="types.cited"
+        ng-disabled="disabled"
+        ng-click="types.cited = !types.cited"
+        md-colors="{'background': (types.cited) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
+        btn-checkbox
+    >
+        <md-icon ng-if="!types.cited" style="opacity: 0.5">check_box_outline_blank</md-icon>
+        <md-icon ng-if="types.cited" class="status-colored">check_box</md-icon>
+        <span class="label-status">CITED</span>
+        <span class="label-count">{{counts.cited|number}}</span>
+    </md-button>
+
+    <md-button
+        class="btn-symmetric"
+        ng-class="{'md-raised':!types.symmetric}"
+        ng-model="types.symmetric"
+        ng-disabled="disabled"
+        ng-click="types.symmetric = !types.symmetric"
+        md-colors="{'background': (types.symmetric) ? ('default-background-100-0.5') : ('default-background-50-0.8')}"
+        btn-checkbox
+    >
+        <md-icon ng-if="!types.symmetric" style="opacity: 0.5">check_box_outline_blank</md-icon>
+        <md-icon ng-if="types.symmetric" class="status-colored">check_box</md-icon>
+        <span class="label-status">SYMMETRIC</span>
+        <span class="label-count">{{counts.symmetric|number}}</span>
+    </md-button>
+</div>
