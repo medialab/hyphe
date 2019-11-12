@@ -393,6 +393,18 @@ md-list.md-dense md-list-item .md-list-item-inner .md-avatar {
 }
 
 
+.mini-status-selector .btn-citing {
+  border-bottom: 4px solid #0053c2;
+}
+
+.mini-status-selector .btn-cited {
+  border-bottom: 4px solid #f3419c;
+}
+.mini-status-selector .btn-citing {
+  border-bottom: 4px solid #6e246c;
+}
+
+
 
 /* ==========================================================================
    Big Bullet Numbers
@@ -1312,10 +1324,35 @@ textarea.over-error {
   color: #93BDE0;
 }
 
+.statuses-box .btn-citing {
+  border-bottom: 4px solid #0053c2;
+}
+
+.statuses-box .btn-citing .status-colored {
+  color: #0053c2;
+}
+
+.statuses-box .btn-cited {
+  border-bottom: 4px solid #f3419c;
+}
+
+
+.statuses-box .btn-cited .status-colored {
+  color: #f3419c;
+}
+
+
+.statuses-box .btn-symmetric {
+  border-bottom: 4px solid #6e246c;
+}
+
+.statuses-box .btn-symmetric .status-colored {
+  color: #6e246c;
+}
+
 .hide-out.md-checked .md-icon {
   color: #ADA299;
 }
-
 
 /* ==========================================================================
    Sigma related stuff
