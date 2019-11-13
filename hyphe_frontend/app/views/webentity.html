@@ -555,20 +555,18 @@
                 </md-virtual-repeat-container>
               </div>
             </div>
-            <div ng-show="selectedTab === 3" layout-fill layout="column" style="padding: 8px" md-colors="{'background':'default-background-100'}">
-              <div class="page-header">
-                <h1>
-                  WEB ENTITIES OF THE EGO NETWORK
-                  <span
-                          md-colors="{'color':'default-primary'}"
-                          style="font-size: 0.8em"
-                  >
-                  ({{ego.webentities.length|number}})
-                </span>
-                </h1>
+            <div ng-show="selectedTab === 3" layout="column" flex="50" md-colors="{'background':'default-background-100'}">
+              <div
+                layout="row"
+                style="height: 48px;"
+              >
+                <h3 style="padding: 8px; margin: 0px">
+                  {{ego.webentities.length|number}} Web Entities linked
+                </h3>
               </div>
 
-              <div style="margin: 8px">Color by:
+              <div style="margin: 16px">
+                Color by:
                 <md-input-container>
                   <md-select ng-model="colorBy">
                     <md-option ng-repeat="type in typesOfColor" ng-value="type" >
@@ -576,22 +574,22 @@
                     </md-option>
                   </md-select>
                 </md-input-container>
+
+                <p class="md-title">Filtering</p>
+                By Status:
+                <hyphe-status-box
+                        statuses="statuses"
+                        counts="counts"
+                        disabled="false"
+                ></hyphe-status-box>
+  
+                By Citation Type :
+                <cite-box
+                        types="types"
+                        counts="counts"
+                        disabled="false"
+                ></cite-box>
               </div>
-
-              <p class="md-title">Filtering</p>
-              By Status:
-              <hyphe-status-box
-                      statuses="statuses"
-                      counts="counts"
-                      disabled="false"
-              ></hyphe-status-box>
-
-              By Citation Type :
-              <cite-box
-                      types="types"
-                      counts="counts"
-                      disabled="false"
-              ></cite-box>
 
             </div>
           </div>
