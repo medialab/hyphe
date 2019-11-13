@@ -40,7 +40,6 @@ angular.module('hyphe.webentityController', [])
     $scope.pagesOnlyCrawled = false
 
     //about ego Network...
-    $scope.seePages = true
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
     $scope.types = {citing:true, cited:true, symmetric:true}
     $scope.typeCite = true

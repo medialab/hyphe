@@ -27,7 +27,7 @@
               <md-tabs md-border-bottom flex md-selected="selectedTab">
             
                 <!-- Tab: Identity -->
-                <md-tab label="Identity" ng-click="seePages = true">
+                <md-tab label="Identity">
                   <div layout-fill md-colors="{'background': 'default-background-200'}" style="overflow-y: auto">
                     <div layout="column">
 
@@ -118,7 +118,7 @@
                 </md-tab>
 
                 <!-- Tab: Prefixes -->
-                <md-tab label="Prefixes" ng-click="seePages = true">
+                <md-tab label="Prefixes">
                   <md-virtual-repeat-container layout-fill>
                     <md-list>
                       <md-list-item
@@ -138,7 +138,7 @@
                 </md-tab>
 
                 <!-- Tab: Start pages -->
-                <md-tab label="Start pages" ng-click="seePages = true">
+                <md-tab label="Start pages">
                   
                     <md-list>
                       <div
@@ -192,7 +192,7 @@
                 </md-tab>
 
                 <!-- Tab: Ego Network -->
-                <md-tab ng-click="seePages = false">
+                <md-tab>
                   <md-tab-label>
                     <md-tooltip md-direction="up">The network of links between the web entities that are linked with this one</md-tooltip>
                     <md-icon>bubble_chart</md-icon>Ego network</md-tab-label>
@@ -208,14 +208,14 @@
                           on-node-click="networkNodeClick"
                           start-layout-on-load="true"
                           start-layout-on-show="true"
-                          suspend-layout="seePages === true"
+                          suspend-layout="selectedTab !== 3"
                       ></sigma-network>
                     </div>
                   </md-tab-body>
                 </md-tab>
 
                 <!-- Tab: Crawls -->
-                <md-tab label="Crawls" ng-click="seePages = true">
+                <md-tab label="Crawls">
                   <!-- <div
                     style="padding: 8px"
                     md-colors="{'background': 'default-background-200'}"
@@ -376,7 +376,7 @@
                 </md-tab>
 
                 <!-- Tab: Tags -->
-                <md-tab ng-click="seePages = true">
+                <md-tab>
                   <md-tab-label><md-icon>local_offer</md-icon> Tags</md-tab-label>
                   <md-tab-body>
                     <div layout-fill layout="column">
@@ -451,7 +451,8 @@
 
               </md-tabs>
             </div>
-            <div ng-show = "seePages" layout="column" flex="50" md-colors="{'background':'default-background-100'}">
+            <!-- the right zone displays the list of pages in all cases except when on the EgoNetwork tab, which is index number 3 starting from 0 -->
+            <div ng-show="selectedTab !== 3" layout="column" flex="50" md-colors="{'background':'default-background-100'}">
               <div
                 layout="row"
                 style="height: 48px;"
@@ -554,7 +555,7 @@
                 </md-virtual-repeat-container>
               </div>
             </div>
-            <div layout-fill layout="column" style="padding: 8px" ng-show="!seePages"  md-colors="{'background':'default-background-100'}">
+            <div ng-show="selectedTab === 3" layout-fill layout="column" style="padding: 8px" md-colors="{'background':'default-background-100'}">
               <div class="page-header">
                 <h1>
                   WEB ENTITIES OF THE EGO NETWORK
