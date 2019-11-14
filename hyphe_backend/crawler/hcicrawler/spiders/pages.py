@@ -21,6 +21,8 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
+from ural.lru import NormalizedLRUTrie
+
 from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
@@ -46,6 +48,11 @@ class PagesCrawler(Spider):
         self.maxdepth = int(args['max_depth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
+        self.prefixes_trie = NormalizedLRUTrie()
+        for p in self.follow_prefixes:
+            self.prefixes_trie.setLRU(p, True)
+        for p in self.nofollow_prefixes:
+            self.prefixes_trie.setLRU(p, False)
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
         self.resolved_links = {}
         self.user_agent = args['user_agent']
@@ -225,7 +232,7 @@ class PagesCrawler(Spider):
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
             lrulinks.append((url, lrulink))
-            if self._should_follow(response.meta['depth'], lru, lrulink) and \
+            if self._should_follow(response.meta['depth'], lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
         response.meta['depth'] = realdepth
@@ -261,11 +268,10 @@ class PagesCrawler(Spider):
         p['timestamp'] = int(time.time()*1000)
         return p
 
-    def _should_follow(self, depth, fromlru, tolru):
+    def _should_follow(self, depth, tolru):
         c1 = depth < self.maxdepth
-        c2 = has_prefix(tolru, self.follow_prefixes)
-        c3 = not(has_prefix(tolru, self.nofollow_prefixes))
-        return c1 and c2 and c3
+        c2 = self.prefixes_trie.matchLRU(tolru)
+        return c1 and c2
 
     def _request(self, url, noproxy=False, **kw):
         kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy}
