@@ -165,7 +165,11 @@ class Core(customJSONRPC):
     def init_creationrules(self, corpus=DEFAULT_CORPUS):
         yield self.db.set_default_WECR(corpus, getWECR(self.corpora[corpus]["options"]["defaultCreationRule"]))
         for prf, regexp in config.get("creationRules", {}).items():
-            for prefix in ["http://%s" % prf, "https://%s" % prf]:
+            prf = re.sub(r"^(https?://|www\.)+", "", prf).rstrip("/")
+            variations = ["http://%s" % prf, "https://%s" % prf]
+            if "/" in prf:
+                variations += ["http://www.%s" % prf, "https://www.%s" % prf]
+            for prefix in variations:
                 lru = urllru.url_to_lru_clean(prefix, self.corpora[corpus]["tlds"])
                 wecr = getWECR(regexp, lru)
                 yield self.db.add_WECR(corpus, lru, wecr)
