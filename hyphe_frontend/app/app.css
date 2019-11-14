@@ -1342,11 +1342,11 @@ textarea.over-error {
 }
 
 
-.statuses-box .btn-symmetric {
+.statuses-box .btn-mutual {
   border-bottom: 4px solid #6e246c;
 }
 
-.statuses-box .btn-symmetric .status-colored {
+.statuses-box .btn-mutual .status-colored {
   color: #6e246c;
 }
 

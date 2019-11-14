@@ -41,7 +41,7 @@ angular.module('hyphe.webentityController', [])
 
     //about ego Network...
     $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
-    $scope.types = {citing:true, cited:true, symmetric:true}
+    $scope.types = {citing:true, cited:true, mutual:true}
     $scope.typesOfColor = ['status', 'citation type']
     $scope.colorBy = 'status'
 
@@ -596,7 +596,7 @@ angular.module('hyphe.webentityController', [])
         }
       }
 
-      //building the three sets of citing, cited and symmetric webentities
+      //building the three sets of citing, cited and mutual webentities
       var citingWE = []
       var citedWE = []
 
@@ -634,9 +634,9 @@ angular.module('hyphe.webentityController', [])
       $scope.citedSet = new Set(citedWE);
       $scope.citingSet = new Set(citingWE);
 
-      $scope.symmetricSet = $scope.citedSet.intersection($scope.citingSet);
-      $scope.citedSet = $scope.citedSet.difference($scope.symmetricSet);
-      $scope.citingSet = $scope.citingSet.difference($scope.symmetricSet);
+      $scope.mutualSet = $scope.citedSet.intersection($scope.citingSet);
+      $scope.citedSet = $scope.citedSet.difference($scope.mutualSet);
+      $scope.citingSet = $scope.citingSet.difference($scope.mutualSet);
 
 
       var weIndex = {}
@@ -648,7 +648,7 @@ angular.module('hyphe.webentityController', [])
           else if($scope.citingSet.has(we.id) && $scope.types.citing){
             weIndex[we.id] = we
           }
-          else if($scope.symmetricSet.has(we.id) && $scope.types.symmetric){
+          else if($scope.mutualSet.has(we.id) && $scope.types.mutual){
             weIndex[we.id] = we
           }
         }
@@ -659,7 +659,7 @@ angular.module('hyphe.webentityController', [])
       for (var k in weIndex)
         g.addNode(k, Object.assign({}, weIndex[k]))
 
-      //Computing of citing/cited/symmetric
+      //Computing of citing/cited/mutual
       $scope.ego.links.forEach(function(l) {
         if (!weIndex[l[0]] || !weIndex[l[1]])
           return;
@@ -698,7 +698,7 @@ angular.module('hyphe.webentityController', [])
           else if($scope.citingSet.has(n.id)){
             n.color = '#0053c2'
           }
-          else if($scope.symmetricSet.has(n.id)){
+          else if($scope.mutualSet.has(n.id)){
             n.color = '#6e246c'
           }
         }
@@ -737,7 +737,7 @@ angular.module('hyphe.webentityController', [])
         , discovered: 0
         , citing: $scope.citingSet.size
         , cited: $scope.citedSet.size
-        , symmetric: $scope.symmetricSet.size
+        , mutual: $scope.mutualSet.size
       }
       for (var i=0; i<$scope.ego.webentities.length; i++){
         if ($scope.ego.webentities[i].status === "UNDECIDED"){
