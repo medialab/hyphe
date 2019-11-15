@@ -257,7 +257,8 @@
                 <div style="height: 60px; text-align: center;">
                   {{existingList.length}} web entit{{existingList.length | y_ies}}
                   <br/>
-                  already existed
+                  which already existed<br/>
+                  {{existingList.length | were_was}} completed with startpages
                 </div>
                 <div style="height: 60px" layout="column" layout-align="center center">
                   <md-checkbox class="md-primary" ng-model="$parent.$parent.crawlExisting" ng-if="createdList.length > 0">
