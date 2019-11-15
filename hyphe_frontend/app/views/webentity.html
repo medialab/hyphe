@@ -436,8 +436,8 @@
                   network
                 </md-button>
               </div>
-              <!--
-              <div style="height: 64px; padding: 0px 8px" layout="column" ng-if="webentity.pages_total>=5">
+ 
+              <div style="height: 64px; padding: 0px 8px" layout="column" ng-show="webentity.pages_total>=10">
                 <md-input-container style="margin-bottom: 0;">
                   <label>NOT a full text search</label>
                   <md-icon>search</md-icon>
@@ -446,7 +446,7 @@
                   >
                 </md-input-container>
               </div>
-              -->
+
               
               <div flex ng-if="pagesLoading && !pagesToken" layout="column" layout-align="center center">
                 <spinner></spinner>

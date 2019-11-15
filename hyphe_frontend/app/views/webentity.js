@@ -51,6 +51,14 @@ angular.module('hyphe.webentityController', [])
 
     $scope.$watch('tagCategories', synchronizeTags, true)
 
+    $scope.$watch('urlSearchQuery', function(newVal){
+      if (!newVal) return;
+      if ($scope.pagesToken && !$scope.pagesLoading && !$scope.loadAllPages) {
+        $scope.loadAllPages = true
+        $scope.loadPages();
+      }
+    }, true)
+
     $scope.$on('$destroy', function(){
       $scope.loadAllPages = false
     })
@@ -180,12 +188,12 @@ angular.module('hyphe.webentityController', [])
           });
           $scope.pages = $scope.pages.concat(pagesBatch)
           $scope.pagesToken = result.token
-          $scope.pagesLoading = false
           if ($scope.loadAllPages && $scope.pagesToken) {
             var percent = 99.5 * $scope.pages.length / $scope.webentity.pages_total
             $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
             $timeout($scope.loadPages, 0)
           } else {
+            $scope.pagesLoading = false
             $scope.status = {}
           }
         }
