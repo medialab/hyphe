@@ -165,10 +165,20 @@ angular.module('hyphe.webentityController', [])
           ,token: $scope.pagesToken
         }
         ,function(result){
+          var pagesBatch = []
           result.pages.forEach(function(page){
-              page.isStartPage = $scope.webentity.startpages.includes(page.url)
+            if (!$scope.webentity.startpages.includes(page.url)) {
+              pagesBatch.push(page)
+            } else {
+              for (var p in $scope.pages) {
+                if ($scope.pages[p].url === page.url) {
+                  $scope.pages[p].crawled = page.crawled
+                  break
+                }
+              }
+            }
           });
-          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.pages = $scope.pages.concat(pagesBatch)
           $scope.pagesToken = result.token
           $scope.pagesLoading = false
           if ($scope.loadAllPages && $scope.pagesToken) {
@@ -358,9 +368,18 @@ angular.module('hyphe.webentityController', [])
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
           }
 
+          $scope.pages = $scope.webentity.startpages.sort(function(a, b){
+            return a.localeCompare(b)
+          }).map(function(p){
+            return {
+              url: p,
+              lru: utils.URL_to_LRU(p),
+              isStartPage: true,
+              crawled: false
+            }
+          })
           $scope.loadPages()
-
-          }
+        }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
