@@ -31,7 +31,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
 
         $scope.$watch('network', function(){
           $scope.loaded = false
-          if ( $scope.network === undefined ) return
+          if ( !$scope.network ) return
           $timeout(function(){
             $scope.loaded = true
             $scope.nodesCount = $scope.network.order
