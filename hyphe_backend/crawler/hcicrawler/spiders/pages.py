@@ -21,7 +21,7 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
-from ural.lru import NormalizedLRUTrie
+from ural.lru import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
@@ -48,11 +48,11 @@ class PagesCrawler(Spider):
         self.maxdepth = int(args['max_depth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
-        self.prefixes_trie = NormalizedLRUTrie()
+        self.prefixes_trie = LRUTrie()
         for p in self.follow_prefixes:
-            self.prefixes_trie.setLRU(p, True)
+            self.prefixes_trie.set_lru(p, True)
         for p in self.nofollow_prefixes:
-            self.prefixes_trie.setLRU(p, False)
+            self.prefixes_trie.set_lru(p, False)
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
         self.resolved_links = {}
         self.user_agent = args['user_agent']
@@ -270,7 +270,7 @@ class PagesCrawler(Spider):
 
     def _should_follow(self, depth, tolru):
         c1 = depth < self.maxdepth
-        c2 = self.prefixes_trie.matchLRU(tolru)
+        c2 = self.prefixes_trie.match_lru(tolru)
         return c1 and c2
 
     def _request(self, url, noproxy=False, **kw):
