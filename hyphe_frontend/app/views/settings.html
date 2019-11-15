@@ -291,7 +291,7 @@
           <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
             <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
               <h3 style="margin:0px">REDIRECTION DOMAINS</h3>
-              <dl class="key-value-pairs" ng-if="options.follow_redirects.length>0">
+              <dl class="key-value-pairs" ng-if="options.follow_redirects.length>0" style="max-height: 200px; overflow-y: auto; margin: 5px;">
                 <dd ng-repeat="domain in options.follow_redirects" >{{domain}}</dd>
               </dl>
 
