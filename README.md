@@ -62,6 +62,7 @@ The `.env` file lets you configure:
 + `TAG`: the reference Docker image you want to work with among
   + `prod`: for the latest stable release
   + `preprod`: for intermediate unstable developments
+  + A specific version, for instance `1.3.0`. You will find the list on [Hyphe's Docker Hub page](https://hub.docker.com/r/scpomedialab/hyphe_backend/tags)
 + `PUBLIC_PORT`: the web port on which Hyphe will be served (usually 80 for a single service server, or for a shared host any other port you like which will need to be redirected)
 + `DATA_PATH`: using Hyphe can quickly consume several gigabytes of hard drive. By default, volumes will be stored within Docker's default directories but you can define your own path here.
 
