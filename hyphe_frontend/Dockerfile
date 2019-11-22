@@ -7,7 +7,7 @@ ADD . /hyphe-frontend/
 RUN apk --update add git \
     && npm ci --production false 
 
-FROM nginx:1.17-alpine
+FROM nginx:alpine
 
 ENV BACKEND_PORT=6978
 ENV BACKEND_HOST=backend
