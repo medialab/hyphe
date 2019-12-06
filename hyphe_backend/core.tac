@@ -1781,7 +1781,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
-        """Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`."""
+        """Adds for a `corpus` a startpage_url to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
         try:
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
         except ValueError as e:
@@ -1798,7 +1798,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
-        """Removes for a `corpus` a `startpage_url` from the list of startpages of a WebEntity defined by `webentity_id."""
+        """Removes for a `corpus` a `startpage_url` from the list of startpages to use when crawling the WebEntity defined by `webentity_id."""
         try:
             startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
         except ValueError as e:
