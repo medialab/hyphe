@@ -514,7 +514,7 @@ The API will always answer as such:
   + _`startpage_url`_ (mandatory)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`.
+ Adds for a `corpus` a startpage_url to the list of startpages to use when crawling the WebEntity defined by `webentity_id`.
 
 
 - __`rm_webentity_startpage`:__
@@ -522,7 +522,7 @@ The API will always answer as such:
   + _`startpage_url`_ (mandatory)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Removes for a `corpus` a `startpage_url` from the list of startpages of a WebEntity defined by `webentity_id.
+ Removes for a `corpus` a `startpage_url` from the list of startpages to use when crawling the WebEntity defined by `webentity_id.
 
 
 - __`merge_webentity_into_another`:__
