@@ -1542,7 +1542,7 @@ class Memory_Structure(customJSONRPC):
                     for v in values:
                         arr.remove(v)
                 elif array_behavior == "update":
-                    arr = value
+                    arr = values
                 if array_key:
                     if not arr and array_key in tmparr:
                         del(tmparr[array_key])
