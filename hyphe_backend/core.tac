@@ -825,8 +825,7 @@ class Core(customJSONRPC):
         startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories)
         if save_startpages:
             sp_todo = list(set(s for st in startpages.values() for s in st)) if categories else startpages
-            for sp in sp_todo:
-                yield self.store.jsonrpc_add_webentity_startpage(webentity_id, sp, corpus=corpus)
+            yield self.store.jsonrpc_add_webentity_startpages(webentity_id, sp_todo, corpus=corpus)
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
@@ -1780,21 +1779,38 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
+    def jsonrpc_add_webentity_startpages(self, webentity_id, startpages_urls, corpus=DEFAULT_CORPUS, _automatic=False):
+        """Adds for a `corpus` a list of `startpages_urls` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        errors = []
+        source = "auto" if _automatic else "user"
+        WE = webentity_id
+        if not isinstance(startpages_urls, list):
+            startpages_urls = [startpages_urls]
+        for startpage_url in startpages_urls:
+            try:
+                startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
+            except ValueError as e:
+                errors.append('ERROR %s: %s' % (type(e), e))
+                continue
+            checkWE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
+            if is_error(checkWE) or checkWE["result"]["_id"] != webentity_id:
+                errors.append('ERROR: %s does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity.' % startpage_url)
+                continue
+            WE = yield self.add_backend_tags(WE, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+            if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
+        if errors:
+            if len(errors) == 1:
+                errors = errors[0]
+            returnD(format_error(errors))
+        res = yield self.update_webentity(WE, "startpages", startpages_urls, "push", update_timestamp=(not _automatic), corpus=corpus)
+        returnD(res)
+
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
         """Adds for a `corpus` a startpage_url to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
-        try:
-            startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
-        except ValueError as e:
-            returnD(format_error(e))
-        WE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
-        if is_error(WE) or WE["result"]["_id"] != webentity_id:
-            returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
-        source = "auto" if _automatic else "user"
-        WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
-        if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
-        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", update_timestamp=(not _automatic), corpus=corpus)
-        returnD(res)
+        return self.jsonrpc_add_webentity_startpages(webentity_id, startpage_url, corpus=corpus, _automatic=False)
 
     @inlineCallbacks
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
@@ -1934,8 +1950,7 @@ class Memory_Structure(customJSONRPC):
                 elif 300 <= p["status"] < 400 and links:
                     goodautostarts.add(urllru.lru_to_url(links[0]))
         if job['webentity_id']:
-            for auto in goodautostarts:
-                yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
+            yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], goodautostarts, corpus=corpus, _automatic=True)
         logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
 
