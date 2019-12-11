@@ -8,7 +8,7 @@ Hyphe aims at providing a tool to build web corpus by crawling data from the web
 
 You can try a limited version of Hyphe at the following url: [http://hyphe.medialab.sciences-po.fr/demo/](http://hyphe.medialab.sciences-po.fr/demo/)
 
-You can find extensive tutorials on [Hyphe's Wiki](https://github.com/medialab/hyphe/wiki).
+You can find extensive tutorials on [Hyphe's Wiki](https://github.com/medialab/hyphe/wiki). See also these videos on [how to grow a Hyphe corpus](https://www.youtube.com/watch?v=giVd3ms2vSg) and [what is a web entity](https://www.youtube.com/watch?v=J_FA4zPsn2U).
 
 ## How to install?
 
@@ -190,6 +190,12 @@ See our [roadmap](doc/roadmap.md)!
 ## Papers & references
 
 ### Tutorials / examples
+
+* [These videos](https://www.youtube.com/channel/UCa630YAfmxMbdra20BIW0xA) also present different aspects:
+  * [What is the purpose of Hyphe?](https://www.youtube.com/watch?v=ZKc0fJ9gdlQ) (22 min)
+  * [The process of growing a web corpus](https://www.youtube.com/watch?v=giVd3ms2vSg) (13 min)
+  * [What is a web entity?](https://www.youtube.com/watch?v=J_FA4zPsn2U) (10 min)
+  * [The web as layers,](https://www.youtube.com/watch?v=0k1_dK3WMio) or how to get oriented during exploration. (10 min)
 
 * Explanatory video (french) [Explorer les internets avec Hyphe](https://metsem.hypotheses.org/111) (September 2017). Mathieu Jacomy presents Hyphe at Sciences Po CEVIPOF during METSEM, a seminar on digital methods in social sciences.
 
