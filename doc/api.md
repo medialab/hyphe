@@ -82,6 +82,7 @@ The API will always answer as such:
     * __`rm_webentity_lruprefix`__
     * __`add_webentity_startpages`__
     * __`add_webentity_startpage`__
+    * __`rm_webentity_startpages`__
     * __`rm_webentity_startpage`__
     * __`merge_webentity_into_another`__
     * __`merge_webentities_into_another`__
@@ -523,7 +524,15 @@ The API will always answer as such:
   + _`startpage_url`_ (mandatory)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Adds for a `corpus` a startpage_url to the list of startpages to use when crawling the WebEntity defined by `webentity_id`.
+ Adds for a `corpus` a `startpage_url` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`.
+
+
+- __`rm_webentity_startpages`:__
+  + _`webentity_id`_ (mandatory)
+  + _`startpages_urls`_ (mandatory)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Removes for a `corpus` a list of `startpages_urls` from the list of startpages to use when crawling the WebEntity defined by `webentity_id.
 
 
 - __`rm_webentity_startpage`:__

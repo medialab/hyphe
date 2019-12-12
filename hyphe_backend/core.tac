@@ -1573,7 +1573,7 @@ class Memory_Structure(customJSONRPC):
             else:
                 returnD(WE)
         except Exception as x:
-            returnD(format_error("ERROR while updating WebEntity : %s" % x))
+            returnD(format_error("ERROR while updating field %s (%s %s) of WebEntity %s (%s: %s)" % (field_name, array_behavior, value, webentity_id, type(x), (x))))
 
     @inlineCallbacks
     def batch_webentities_edit(self, command, webentity_ids, corpus, *args, **kwargs):
@@ -1809,23 +1809,39 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
-        """Adds for a `corpus` a startpage_url to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
+        """Adds for a `corpus` a `startpage_url` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
         return self.jsonrpc_add_webentity_startpages(webentity_id, startpage_url, corpus=corpus, _automatic=False)
 
     @inlineCallbacks
+    def jsonrpc_rm_webentity_startpages(self, webentity_id, startpages_urls, corpus=DEFAULT_CORPUS):
+        """Removes for a `corpus` a list of `startpages_urls` from the list of startpages to use when crawling the WebEntity defined by `webentity_id."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        errors = []
+        WE = webentity_id
+        if not isinstance(startpages_urls, list):
+            startpages_urls = [startpages_urls]
+        for startpage_url in startpages_urls:
+            try:
+                startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
+            except ValueError as e:
+                errors.append('ERROR %s: %s' % (type(e), e))
+                continue
+            WE = yield self.add_backend_tags(WE, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+            if "user" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["user"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
+            if "auto" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["auto"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
+        if errors:
+            if len(errors) == 1:
+                errors = errors[0]
+            returnD(format_error(errors))
+        res = yield self.update_webentity(WE, "startpages", startpages_urls, "pop", corpus=corpus)
+        returnD(res)
+
     def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
         """Removes for a `corpus` a `startpage_url` from the list of startpages to use when crawling the WebEntity defined by `webentity_id."""
-        try:
-            startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
-        except ValueError as e:
-            returnD(format_error(e))
-        WE = yield self.add_backend_tags(webentity_id, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
-        if "user" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["user"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
-        if "auto" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["auto"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
-        res = yield self.update_webentity(WE, "startpages", startpage_url, "pop", corpus=corpus)
-        returnD(res)
+        return self.jsonrpc_rm_webentity_startpages(webentity_id, startpage_url, corpus=corpus)
 
     @inlineCallbacks
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, include_name_and_status=False, corpus=DEFAULT_CORPUS):
