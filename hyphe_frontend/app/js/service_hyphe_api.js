@@ -24,7 +24,9 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_GET_STATISTICS               = 'store.get_webentities_ranking_stats'
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
+    API.WEBENTITY_STARTPAGES_ADD                     = 'store.add_webentity_startpages'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
+    API.WEBENTITY_STARTPAGES_REMOVE                  = 'store.rm_webentity_startpages'
     API.WEBENTITY_STARTPAGE_LIST_PROPOSE            = 'propose_webentity_startpages'
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
@@ -238,12 +240,32 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.addStartPages = buildApiCall(
+        API.WEBENTITY_STARTPAGES_ADD
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.urls
+              ,corpus.getId()
+            ]}
+      )
+
     ns.removeStartPage = buildApiCall(
         API.WEBENTITY_STARTPAGE_REMOVE
         ,function(settings){
           return [
               settings.webentityId
               ,settings.url
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.removeStartPages = buildApiCall(
+        API.WEBENTITY_STARTPAGES_REMOVE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.urls
               ,corpus.getId()
             ]}
       )

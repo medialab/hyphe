@@ -144,11 +144,10 @@
                       <div
                         ng-repeat="startpagetype in [
                           {id: 'user', name: 'Manual'},
-                          {id: 'auto', name: 'Automatic'},
-                          {id: 'removed', name: 'Temporary removed'}
+                          {id: 'auto', name: 'Automatic'}
                         ]"
                       >
-                        <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
+                        <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id].length">
                           {{startpagetype.name}} start page{{webentity.tags['CORE-STARTPAGES'][startpagetype.id].length | plural}}
                         </md-subheader>
                         <md-list-item
@@ -164,6 +163,28 @@
                         </md-list-item>
                       </div>
                     </md-list>
+                  
+                    <div ng-show="webentity.startpages.length > 0" layout="column" layout-align="center">
+                      <md-button
+                        class="md-raised"
+                        ng-disabled="editingStartpages"
+                        ng-click="removeAllStartPages()"
+                      >
+                        <md-icon>clear</md-icon>
+                        REMOVE ALL STARTPAGES
+                      </md-button>
+                    </div>
+
+                    <div ng-show="webentity.pages_total - webentity.startpages.length > 0" layout="column" layout-align="center">
+                      <md-button
+                        class="md-raised"
+                        ng-disabled="editingStartpages || webentity.pages_total - webentity.startpages.length > 250"
+                        ng-click="addAllStartPages()"
+                      >
+                        <md-icon>add_circle_outline</md-icon>
+                        {{ webentity.pages_total - webentity.startpages.length > 250 ? "TOO MANY PAGES TO SET THEM ALL AS STARTPAGES" : "SET ALL KNOWN PAGES AS STARTPAGES" }}
+                      </md-button>
+                    </div>
                   
                 </md-tab>
 
@@ -467,7 +488,7 @@
                       </div>
                       <div md-truncate flex >&nbsp;{{page.url}}</div>
                       <div class="md-primary">
-                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)"></md-switch>
+                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)" ng-disabled="editingStartpages"></md-switch>
                         <md-tooltip md-direction="left">Set as StartPage</md-tooltip>
                       </div>
                       <div class="md-secondary" ng-if="page.crawled">

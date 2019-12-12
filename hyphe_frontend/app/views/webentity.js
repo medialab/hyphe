@@ -204,7 +204,7 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    $scope.toggleStartPages=function(page){
+    $scope.toggleStartPages = function(page){
       var remove, msg1, msg2, func;
       if (page.isStartPage){
         remove = false
@@ -217,39 +217,100 @@ angular.module('hyphe.webentityController', [])
         msg2 = "remov"
         func = "removeStartPage"
       }
-      UpdateStartPagesForPage(page, remove)
       $scope.status = {message: msg1+'ing startpage'}
+      $scope.editingStartpages = true
       api[func]({
            webentityId: $scope.webentity.id
           ,url: page.url
         }
         ,function () {
           $scope.status = {}
+          UpdateStartPagesForPage(page.url, remove)
+          $scope.editingStartpages = false
         }
         ,function (data, status, headers, config) {
           // API call fail
           $scope.status = {message: 'Error '+msg2+'ing startpage', background: 'danger'}
           console.error('Startpage could not be '+msg2+'ed', data, status, headers, config)
-          UpdateStartPagesForPage(page, !remove)
           page.isStartPage = !page.isStartPage
+          $scope.editingStartpages = false
         }
       )
     }
 
-    function UpdateStartPagesForPage(page, remove){
+    function UpdateStartPagesForPage(url, remove){
       if (remove) {
+        var pos = $scope.webentity.startpages.indexOf(url);
+        $scope.webentity.startpages.splice(pos, 1);
         Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
-          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
-            var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
+          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(url)){
+            pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(url);
             $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
           }
         })
       } else {
+        $scope.webentity.startpages.push(url);
         if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
-          $scope.webentity.tags['CORE-STARTPAGES'].user = []
+          $scope.webentity.tags['CORE-STARTPAGES'].user = [];
         }
-        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(url);
       }
+    }
+
+    $scope.addAllStartPages = function(){
+      $scope.status = {message: "Adding all known pages as startpages"}
+      $scope.editingStartpages = true
+      var pagesToAdd = $scope.pages.filter(function(p){
+          return !p.isStartPage 
+        }).map(function(p){
+          return p.url
+        });
+      api.addStartPages({
+           webentityId: $scope.webentity.id
+          ,urls: pagesToAdd
+        }
+        ,function(){
+          $scope.status = {}
+          $scope.pages.forEach(function(page){
+            if (!page.isStartPage) {
+              page.isStartPage = true
+              UpdateStartPagesForPage(page.url)
+            }
+          })
+          $scope.editingStartpages = false
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message: 'Error adding all pages as startpages', background: 'danger'}
+          console.error('Could not add all pages as startpages', data, status, headers, config)
+          $scope.editingStartpages = false
+        }
+      )
+    }
+
+    $scope.removeAllStartPages = function(){
+      $scope.status = {message: "Removing all startpages"}
+      $scope.editingStartpages = true
+      api.removeStartPages({
+           webentityId: $scope.webentity.id
+          ,urls: $scope.webentity.startpages
+        }
+        ,function(){
+          $scope.status = {}
+          $scope.pages.forEach(function(page){
+            if ($scope.webentity.startpages.includes(page.url))
+              page.isStartPage = false
+          })
+          $scope.webentity.startpages.slice(0).forEach(function(url){
+            UpdateStartPagesForPage(url, true)
+          })
+          $scope.editingStartpages = false
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message: 'Error removing all startpages', background: 'danger'}
+          console.error('Could not remove all startpages', data, status, headers, config)
+          $scope.editingStartpages = false
+        }
+      )
     }
 
     // Init
