@@ -138,6 +138,15 @@ class Core(customJSONRPC):
             wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
             res = self.traphs.start_corpus(corpus, keepalive=self.corpora[corpus]['options']['keepalive'], default_WECR=getWECR(options["defaultCreationRule"]), WECRs=wecrs)
 
+        if "follow_redirects" in options and options["follow_redirects"] != self.corpora[corpus]['options']['follow_redirects']:
+            follow_redirects = []
+            for d in options["follow_redirects"]:
+                d = clean_host(d)
+                if not is_url(d, tld_aware=True, require_protocol=False):
+                    returnD(format_error('Redirection domain %s is not a valid hostname.' % d))
+                follow_redirects.append(d)
+            options["follow_redirects"] = follow_redirects
+
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
