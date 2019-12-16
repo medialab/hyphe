@@ -52,7 +52,7 @@
                           <dt>Home page</dt>
                           <dd>
                             <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
-                              <md-tooltip md-direction="left">Open home page in a new tab</md-tooltip>
+                              <md-tooltip md-direction="left">Open homepage in a new tab</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
                             {{webentity.homepage}}
@@ -158,7 +158,10 @@
                               <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
-                            {{url}}
+                            <span>
+                              <md-tooltip md-direction="bottom">{{url}}</md-tooltip>
+                              {{url}}
+                            </span>
                           </span>
                         </md-list-item>
                       </div>
@@ -480,13 +483,19 @@
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
                       <a href="{{page.url}}" target="_blank">
-                          <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
-                          <md-icon>link</md-icon>
+                        <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                        <md-icon>link</md-icon>
                       </a>
                       <div ng-if="page.url===webentity.homepage">
+                        <md-tooltip md-direction="left">Homepage</md-tooltip>
                         &nbsp;<md-icon>home</md-icon>
                       </div>
-                      <div md-truncate flex >&nbsp;{{page.url}}</div>
+                      <div md-truncate flex>
+                        <span>
+                          <md-tooltip md-direction="bottom">{{page.url}}</md-tooltip>
+                          &nbsp;{{page.url}}
+                        </span>
+                      </div>
                       <div class="md-primary">
                         <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)" ng-disabled="editingStartpages"></md-switch>
                         <md-tooltip md-direction="left">Set as StartPage</md-tooltip>
