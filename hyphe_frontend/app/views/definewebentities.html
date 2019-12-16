@@ -64,7 +64,7 @@
                 class="define-entity-repeated-item"
                 flex
                 layout="row"
-                ng-class="{active: $parent.$parent.activeRow == $index && obj.status=='loaded', 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
+                ng-class="{active: $parent.$parent.activeRow == $index && obj.status=='loaded', 'odd': $index % 2, 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
                 ng-click="$parent.$parent.activeRow = $index"
                 ng-mouseover="$parent.$parent.activeRow = $index"
               >

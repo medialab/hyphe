@@ -609,6 +609,9 @@ textarea.over-error {
   width: 36px;
 }
 
+.define-entity-repeated-item.odd {
+  background-color: rgb(239, 235, 232, 0.75);
+}
 
 
 /* ==========================================================================
