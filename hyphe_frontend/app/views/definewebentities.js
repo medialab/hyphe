@@ -237,11 +237,13 @@ angular.module('hyphe.definewebentitiesController', [])
         })
 
       for (var i=0; i<$scope.list.length; i++) {
-        if ($scope.list[i].status == 'ignore') continue;
+        if ($scope.list[i].status == 'merging') continue;
         $scope.list[i].extraUrls = [];
         ($scope.list[i].conflicts || []).forEach(function(conflictIndex){
+          if (!$scope.list[conflictIndex]) return;
           $scope.list[i].extraUrls.push($scope.list[conflictIndex].url);
-          $scope.list[conflictIndex].status = 'ignore';
+          $scope.list[conflictIndex].status = 'merging';
+          $scope.list[conflictIndex].webentity = $scope.list[i].webentity;
         })
       }
 
@@ -345,7 +347,7 @@ angular.module('hyphe.definewebentitiesController', [])
               return true
             }
             // Groupes
-            if(obj.status == 'ignore'){
+            if(obj.status == 'merging'){
               return false
             }
 

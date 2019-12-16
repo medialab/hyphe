@@ -114,6 +114,15 @@
                     as {{obj.webentity.name}}
                   </div>
 
+                  <div
+                    ng-if="obj.status == 'merging'"
+                    style="padding:8px"
+                    md-colors="{color:'default-primary-500'}"
+                  >
+                    <strong>{{obj.status|titlecase}}</strong>
+                    with {{obj.webentity.name}}
+                  </div>
+
                   <!-- Conflicted -->
                   <div
                     ng-if="obj.status == 'conflict'"
