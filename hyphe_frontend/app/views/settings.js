@@ -113,10 +113,10 @@ angular.module('hyphe.settingsController', [])
           $scope.status = {};
           $scope.saving = false;
           console.log("Settings successfully updated");
-        }, function () {
-          $scope.status = {message: 'Could not save new settings.', background: 'danger'}
+        },function(data, status, headers, config){
+          $scope.status = {message: 'Could not save new settings: '+data[0]['message'], background: 'danger'}
           $scope.saving = false;
-          console.error("Settings could not be updated");
+          console.error("Settings could not be updated", data, status, headers, config);
         });
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
