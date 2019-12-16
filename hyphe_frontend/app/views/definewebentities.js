@@ -236,6 +236,15 @@ angular.module('hyphe.definewebentitiesController', [])
           }
         })
 
+      for (var i=0; i<$scope.list.length; i++) {
+        if ($scope.list[i].status == 'ignore') continue;
+        $scope.list[i].extraUrls = [];
+        ($scope.list[i].conflicts || []).forEach(function(conflictIndex){
+          $scope.list[i].extraUrls.push($scope.list[conflictIndex].url);
+          $scope.list[conflictIndex].status = 'ignore';
+        })
+      }
+
       // Query the rest
       $scope.list
         .filter(function(obj){
@@ -277,7 +286,7 @@ angular.module('hyphe.definewebentitiesController', [])
                   return {
                     prefixes: obj.prefixes
                     ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
-                    ,startPages: [obj.url]
+                    ,startPages: [obj.url].concat(obj.extraUrls)
                   }
                 }
               ,function(we){                        // Success callback
@@ -334,6 +343,10 @@ angular.module('hyphe.definewebentitiesController', [])
             if(obj.status == 'conflict'){
               $scope.conflictedList.push(obj)
               return true
+            }
+            // Groupes
+            if(obj.status == 'ignore'){
+              return false
             }
 
             // The rest: errors
@@ -394,7 +407,7 @@ angular.module('hyphe.definewebentitiesController', [])
 
       if(crawlExisting){
         $scope.existingList.forEach(function(obj){
-          if(obj.webentity.id !== undefined){
+          if(obj.webentity && obj.webentity.id !== undefined){
             list.push(cleanObj(obj))
           }
         })
