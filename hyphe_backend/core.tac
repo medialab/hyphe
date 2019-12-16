@@ -6,6 +6,7 @@ import subprocess
 import base64
 import msgpack
 from copy import deepcopy
+from ural import is_url
 from bson.binary import Binary
 from json import dump as jsondump
 from random import randint
@@ -144,7 +145,18 @@ class Core(customJSONRPC):
             if self.corpora[corpus]['crawls_running']:
                 returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
         if 'proxy' in options and options['proxy'] != self.corpora[corpus]['options']['proxy']:
-            # TODO Test new Proxy
+            # Test proxy values & connectivity
+            if options['proxy']['host']:
+                try:
+                    options['proxy']['port'] = int(options['proxy'].get('port', 0))
+                except (ValueError, TypeError):
+                    returnD(self.format_error("Proxy port must be an integer"))
+                options['proxy']['host'] = clean_host(options['proxy']['host'])
+                if '/' in options['proxy']['host'] or not is_url(options['proxy']['host'], tld_aware=True, require_protocol=False):
+                    returnD(format_error("Proxy host is not a valid hostname"))
+                test_proxy = yield self.lookup_httpstatus('https://www.wikipedia.org', corpus=corpus, _alternate_proxy=options['proxy'])
+                if test_proxy['result'] == -2:
+                    returnD(format_error("Proxy %s:%s does not seem like responding" % (options['proxy']['host'], options['proxy']['port'])))
             redeploy = True
             self.corpora[corpus]['options']['proxy'].update(options.pop("proxy"))
         if 'phantom' in options and options['phantom'] != self.corpora[corpus]['options']['phantom']:
@@ -944,16 +956,19 @@ class Core(customJSONRPC):
         return self.lookup_httpstatus(url, deadline=time.time()+timeout, corpus=corpus)
 
     @inlineCallbacks
-    def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS):
+    def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS, _alternate_proxy=None):
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         res = format_result(0)
         timeout = int(timeout)
-        use_proxy = self.corpora[corpus]["options"]['proxy']['host'] and not noproxy
+        use_proxy = (_alternate_proxy or self.corpora[corpus]["options"]['proxy']['host']) and not noproxy
+        if use_proxy:
+            proxy_host = _alternate_proxy["host"] if _alternate_proxy else self.corpora[corpus]["options"]['proxy']['host']
+            proxy_port = _alternate_proxy["port"] if _alternate_proxy else self.corpora[corpus]["options"]['proxy']['port']
         try:
             url = urllru.url_clean(str(url))
             if use_proxy:
-                agent = ProxyAgent(TCP4ClientEndpoint(reactor, self.corpora[corpus]["options"]['proxy']['host'], self.corpora[corpus]["options"]['proxy']['port'], timeout=timeout))
+                agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxy_host, proxy_port, timeout=timeout))
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
             method = "HEAD"
@@ -963,16 +978,19 @@ class Core(customJSONRPC):
                       'User-Agent': [get_random_user_agent()]}
             response = yield agent.request(method, url, Headers(headers), None)
         except DNSLookupError as e:
-            if use_proxy and self.corpora[corpus]["options"]['proxy']['host'] in str(e):
+            if use_proxy and proxy_host in str(e):
                 res['result'] = -2
                 res['message'] = "Proxy not responding"
-                if tryout == 3 and use_proxy:
-                    noproxy = True
-                    tryout = 1
+                if tryout == 3:
+                    if _alternate_proxy:
+                        returnD(res)
+                    else:
+                        noproxy = True
+                        tryout = 1
                 if tryout < 3:
                     if config['DEBUG'] == 2:
                         logger.msg("Retry lookup after proxy error %s %s %s" % (method, url, tryout), system="DEBUG - %s" % corpus)
-                    res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                    res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus, _alternate_proxy=_alternate_proxy)
                     returnD(res)
             else:
                 res['message'] = "DNS not found for url %s : %s" % (url, e)
@@ -995,7 +1013,7 @@ class Core(customJSONRPC):
             if tryout < 3:
                 if config['DEBUG'] == 2:
                     logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
-                res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus, _alternate_proxy=_alternate_proxy)
                 returnD(res)
         result = format_result(response.code)
         if 300 <= response.code < 400 and response.headers._rawHeaders['location']:
