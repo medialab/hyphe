@@ -20,7 +20,7 @@ from twisted.application.internet import TCPServer
 from twisted.application.service import Application
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
-from twisted.internet.error import DNSLookupError
+from twisted.internet.error import DNSLookupError, ConnectionRefusedError
 from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
 HTTPClientFactory.noisy = False
@@ -164,7 +164,7 @@ class Core(customJSONRPC):
                 if '/' in options['proxy']['host'] or not is_url(options['proxy']['host'], tld_aware=True, require_protocol=False):
                     returnD(format_error("Proxy host is not a valid hostname"))
                 test_proxy = yield self.lookup_httpstatus('https://www.wikipedia.org', corpus=corpus, _alternate_proxy=options['proxy'])
-                if test_proxy['result'] == -2:
+                if test_proxy['result'] < 0:
                     returnD(format_error("Proxy %s:%s does not seem like responding" % (options['proxy']['host'], options['proxy']['port'])))
             redeploy = True
             self.corpora[corpus]['options']['proxy'].update(options.pop("proxy"))
@@ -986,8 +986,8 @@ class Core(customJSONRPC):
             headers = {'Accept': ['*/*'],
                       'User-Agent': [get_random_user_agent()]}
             response = yield agent.request(method, url, Headers(headers), None)
-        except DNSLookupError as e:
-            if use_proxy and proxy_host in str(e):
+        except (DNSLookupError, ConnectionRefusedError) as e:
+            if use_proxy and (proxy_host in str(e) or type(e) == ConnectionRefusedError):
                 res['result'] = -2
                 res['message'] = "Proxy not responding"
                 if tryout == 3:
@@ -998,14 +998,17 @@ class Core(customJSONRPC):
                         tryout = 1
                 if tryout < 3:
                     if config['DEBUG'] == 2:
-                        logger.msg("Retry lookup after proxy error %s %s %s" % (method, url, tryout), system="DEBUG - %s" % corpus)
+                        logger.msg("Retry lookup after proxy error %s %s %s (via %s:%s)" % (method, url, tryout, proxy_host, proxy_port), system="DEBUG - %s" % corpus)
                     res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus, _alternate_proxy=_alternate_proxy)
                     returnD(res)
-            else:
+            elif type(e) == DNSLookupError:
                 res['message'] = "DNS not found for url %s : %s" % (url, e)
+            else:
+                res['result'] = -1
+                res['message'] = "Cannot process url %s : %s %s." % (url, type(e), e)
         except Exception as e:
             res['result'] = -1
-            res['message'] = "Cannot process url %s : %s." % (url, e)
+            res['message'] = "Cannot process url %s : %s %s." % (url, type(e), e)
         if 'message' in res:
             returnD(res)
         if response.code == 200 or url in " ".join(response.headers._rawHeaders.get('location', "")):
