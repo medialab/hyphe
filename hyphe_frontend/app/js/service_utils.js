@@ -447,8 +447,8 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.sort_JSON_LRUs = function(LRUa, LRUb){
-      var hosta = LRUa.host.shift()
-        , hostb = LRUb.host.shift()
+      var hosta = LRUa.host.shift() || ""
+        , hostb = LRUb.host.shift() || ""
       if (hosta !== hostb)
         return hosta.localeCompare(hostb)
       if (LRUa.tld !== LRUb.tld)
