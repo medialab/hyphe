@@ -1792,6 +1792,8 @@ class Memory_Structure(customJSONRPC):
                 WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-PREFIXES", "removed", lru_prefix, _commit=False, corpus=corpus)
         if not clean_lrus:
             returnD(format_success("No need to add these prefixes to this webentity"))
+        if self.corpora[corpus]['options']['indexTextContent']:
+            yield self.report_webentity_change_for_text_indexation(webentity_id, clean_lrus, corpus=corpus)
         res = yield self.update_webentity(WE, "prefixes", clean_lrus, "push", corpus=corpus)
         returnD(res)
 
@@ -1811,6 +1813,10 @@ class Memory_Structure(customJSONRPC):
         res = yield self.traphs.call(corpus, "remove_prefix_from_webentity", lru_prefix, webentity_id)
         if is_error(res):
             returnD(res)
+        if self.corpora[corpus]['options']['indexTextContent']:
+            parent = yield self.traphs.call(corpus, "retrieve_webentity", lru_prefix)
+            if not is_error(parent):
+                yield self.db.add_update(corpus, webentity_id, parent["result"], lru_prefix)
         res = yield self.update_webentity(WE, "prefixes", lru_prefix, "pop", corpus=corpus)
         returnD(res)
 

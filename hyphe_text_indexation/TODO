@@ -1,11 +1,11 @@
 - [X] populate WEupdates when merging entities
-- [ ] populate WEupdates when splitting entities
+- [X] populate WEupdates when splitting entities
   + [X] populate WEupdates when creating a new entity which has a parent (declare_page, declare_we_by_...
   + [X] populate WEupdates when applying a new WECR
   + [X] populate WEupdates when deleting a WE
-  + [ ] handle cases of prefix add ?
-  + [ ] handle cases of prefix removal ?
-- [ ] check whether cases of new WE from indexation can have an impact ?
+  + [X] handle cases of prefix add ?
+  + [X] handle cases of prefix removal ?
+- [X] check whether cases of new WE from indexation can have an impact ?
 - [ ] update doc on conf corpus for indexTextContent
 - [ ] add option in front settings
 - [ ] use global config in indexation script
