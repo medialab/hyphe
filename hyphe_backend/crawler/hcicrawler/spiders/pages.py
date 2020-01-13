@@ -52,8 +52,8 @@ class PagesCrawler(Spider):
 
     def __init__(self, **kwargs):
         mongo = MongoClient(MONGO_HOST, MONGO_PORT)[MONGO_DB][MONGO_JOBS_COL]
-        job = mongo.find_one({"_id": kwargs["job_id"]})
-        args = job["crawl_arguments"]
+        self.job = mongo.find_one({"_id": kwargs["job_id"]})
+        args = self.job["crawl_arguments"]
         self.args = args
 
         self.start_urls = to_list(args['start_urls'])
@@ -168,6 +168,8 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
+        self.log("HEADERS for "+response.url+" "+str(response.headers))
+
         if self.phantom:
             self.phantom.get(response.url)
 
@@ -375,6 +377,8 @@ class PagesCrawler(Spider):
         return p
 
     def _should_follow(self, depth, tolru):
+        if tolru.startswith("s:http|h:fr|h:bnf|h:archivesinternet|"):
+            return True
         c1 = depth < self.maxdepth
         c2 = self.prefixes_trie.match_lru(tolru)
         return c1 and c2
@@ -388,6 +392,11 @@ class PagesCrawler(Spider):
         if self.phantom:
             kw['method'] = 'HEAD'
         if ARCHIVES["ENABLED"]:
+            if ARCHIVES["URL_PREFIX"].contains("archivesinternet.bnf.fr"):
+                kw['headers'] = {
+                    "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.job)
+                }
+                return Request("%s/%s/%s" % (ARCHIVES["URL_PREFIX"], self.archivedate, url), **kw)
             if url.startswith(ARCHIVES["URL_PREFIX"]):
                 kw["meta"]["archive_timestamp"] = self.archiveregexp.search(url).group(1)
                 return Request(url, **kw)
