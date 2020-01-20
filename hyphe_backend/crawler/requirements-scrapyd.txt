@@ -7,4 +7,5 @@ scrapyd-client==1.2.0a1
 selenium==2.42.1
 pymongo==3.8
 txmongo>=18,<=19
-ural==0.15.0
+ural==0.19.0
+tld==0.9.7
