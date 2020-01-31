@@ -1,13 +1,14 @@
-FROM python:2.7-alpine
+FROM python:2.7-slim
 
 COPY requirements-scrapyd.txt /requirements-scrapyd.txt
 
-RUN apk --update add gcc musl-dev libffi-dev openssl-dev libxml2-dev libxslt-dev \
-        && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
-        && pip install --cache-dir=/tmp/pipcache --requirement requirements-scrapyd.txt \
-        && rm -r /tmp/pipcache \
-        && apk del gcc musl-dev \
-        && rm /var/cache/apk/*
+RUN buildDeps='gcc libffi-dev libxml2-dev libxslt-dev' \
+    && apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
+    && pip install --cache-dir=/tmp/pipcache --requirement requirements-scrapyd.txt \
+    && rm -r /tmp/pipcache \
+    && apt-get purge -y --auto-remove $buildDeps \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY scrapyd.config /etc/scrapyd/scrapyd.conf
 

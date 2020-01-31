@@ -1,4 +1,4 @@
-FROM python:2.7-alpine
+FROM python:2.7-slim
 
 WORKDIR /app
 
@@ -6,12 +6,14 @@ ENV PYTHONPATH $PYTHONPATH:/app
 
 COPY requirements.txt /app/requirements.txt
 
-RUN apk --update add gcc git musl-dev libxml2-dev libxslt-dev libffi-dev openssl-dev \
-        && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
-        && pip install --cache-dir=/tmp/pipcache --requirement /app/requirements.txt \
-        && rm -r /tmp/pipcache \
-        && apk del gcc git musl-dev \
-        && rm /var/cache/apk/*
+RUN buildDeps='gcc libffi-dev libxml2-dev libxslt-dev' \
+	&& apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
+    && pip install --cache-dir=/tmp/pipcache --requirement /app/requirements.txt \
+    && rm -r /tmp/pipcache \
+    && apt-get purge -y --auto-remove $buildDeps \
+    && rm -rf /var/lib/apt/lists/* 
+
 
 COPY ./bin /app/bin
 
