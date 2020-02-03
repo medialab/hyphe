@@ -3,7 +3,7 @@ FROM python:2.7-slim
 COPY requirements-scrapyd.txt /requirements-scrapyd.txt
 
 RUN buildDeps='gcc libffi-dev libxml2-dev libxslt-dev' \
-    && apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
+    && apt-get update && apt-get install -y $buildDeps --no-install-recommends \
     && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
     && pip install --cache-dir=/tmp/pipcache --requirement requirements-scrapyd.txt \
     && rm -r /tmp/pipcache \
