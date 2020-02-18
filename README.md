@@ -229,6 +229,8 @@ See our [roadmap](doc/roadmap.md)!
 
 * WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://www.sciencedirect.com/science/article/pii/S0277953618306282). Social Science & Medicine. 220. 10.1016/j.socscimed.2018.10.032. 2018. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
 
+* COUSIN Grégoire & PONTRANDOLFO Stefania (2018), [Sull’uso politico dei rom in campagna elettorale. Una ricerca sul web](http://www.dsu.univr.it/?ent=pubbdip&id=977168&lang=nb). In Pontrandolfo, S. (ed.), Politiche locali per Rom e Sinti in Italia. Roma, CISU, pp. 243-265.
+
 * OJALA, Mace "[Mining with Hyphe](https://ethos.itu.dk/2017/01/05/mining-with-hyphe-reflections-on-publicethos-13/)", 2018 (a blog post on Ethos Lab's blog)
 
 * FROIO, Caterina, "[Race, Religion, or Culture? Framing Islam between Racism and Neo-Racism in the Online Network of the French Far Right](https://www.cambridge.org/core/journals/perspectives-on-politics/article/race-religion-or-culture-framing-islam-between-racism-and-neoracism-in-the-online-network-of-the-french-far-right/FE258FCC20A9AAFFF2390E942426D491)", in Perspectives on Politics, 16(3) (n° 202-203), p. 696-709, 2018. DOI: 10.1017/S1537592718001573.
@@ -254,11 +256,13 @@ Paul Ricoeur’s Legacy](https://hal.archives-ouvertes.fr/hal-01294443/document)
 
 * ARZHEIMER, Kai, "[The AfD’s Facebook Wall: A new Hub for Right-Wing Mobilisation in Germany?](http://www.kai-arzheimer.com/my-apsa-2015-paper-the-afds-facebook-wall-as-a-hub-for-right-wing-mobilisation-in-germany/)", in [American Political Science Association Conference, 2015](https://convention2.allacademic.com/one/apsa/apsa15/index.php?cmd=Online+Program+View+Paper&selected_paper_id=997634&PHPSESSID=vnpdminlo8d0kvs0u7aprbk8e0).
 
-* SCHNEIDER, Élisabeth, SERRES, Alexandre, et STALDER, Angèle. [L’EMI en partage: essai de cartographie des acteurs](https://archivesic.ccsd.cnrs.fr/sic_01217549/document). In: 10e Congrès des Enseignants Documentalistes de l'Education Nationale" Enseigner-apprendre l'information-documentation". 2015.
+* SCHNEIDER, Élisabeth, SERRES, Alexandre & STALDER, Angèle. [L’EMI en partage: essai de cartographie des acteurs](https://archivesic.ccsd.cnrs.fr/sic_01217549/document). In: 10e Congrès des Enseignants Documentalistes de l'Education Nationale" Enseigner-apprendre l'information-documentation". 2015.
 
 * KERGOSIEN, Eric, JACQUEMIN, Bernard, SEVERO, Marta, et al. [Vers l'interopérabilité des données hétérogènes liées au patrimoine industriel textile](https://hal.univ-lille3.fr/hal-01281716v2/document). In: CiDE. 18. 18e Colloque international sur le Document Électronique. Europia, 2015. p. 145-158.
 
 * MUNK, Anders Kristian. [Mapping Wind Energy Controversies Online: Introduction to Methods and Datasets](http://www.academia.edu/11976139/Mapping_Wind_Energy_Controversies_Online_Introduction_to_Methods_and_Datasets). 2014.
+
+* COUSIN, Grégoire & PONTRANDOLFO, Stefania (2014). [Emergence and Diffusion of «Roma issues» in the political web arena](http://profs.formazione.univr.it/creaa/files/2014/05/2-Working-paper-Attitudes-Survey-MigRom_Cousin_Pontrandolfo.pdf). At the Conference "Construyendo puentes entre acción política e investigación social. Logros, desafíos y perspectivas en las políticas acerca de la población gitana en el Estado español. Un encuentro entre investigadores, responsables políticos y tercer sector", Barcelona, 16-17 October 2014
 
 
 ## Credits & License
