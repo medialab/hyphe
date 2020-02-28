@@ -1457,7 +1457,7 @@ class Memory_Structure(customJSONRPC):
                     WEs[-1]["homepage"] = WE["homepage"]
         returnD(format_result(WEs))
 
-    def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+    def jsonrpc_declare_webentity_by_lruprefix_as_url(self, url, name=None, status=None, startpages=[], lruVariations=True, tags={}, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             return self.parent.corpus_error(corpus)
@@ -1465,13 +1465,13 @@ class Memory_Structure(customJSONRPC):
             url, lru_prefix = urllru.url_clean_and_convert(url, self.corpora[corpus]["tlds"], False)
         except ValueError as e:
             return format_error(e)
-        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startpages, lruVariations, corpus=corpus)
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startpages, lruVariations, tags=tags, corpus=corpus)
 
-    def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+    def jsonrpc_declare_webentity_by_lru(self, lru_prefix, name=None, status=None, startpages=[], lruVariations=True, tags={}, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for a `lru_prefix` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
-        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startpages, lruVariations, corpus=corpus)
+        return self.jsonrpc_declare_webentity_by_lrus([lru_prefix], name, status, startpages, lruVariations, tags=tags, corpus=corpus)
 
-    def jsonrpc_declare_webentity_by_lrus_as_urls(self, list_urls, name=None, status=None, startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+    def jsonrpc_declare_webentity_by_lrus_as_urls(self, list_urls, name=None, status=None, startpages=[], lruVariations=True, tags={}, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -1484,10 +1484,10 @@ class Memory_Structure(customJSONRPC):
                  list_lrus.append(lru)
             except ValueError as e:
                 return format_error(e)
-        return self.jsonrpc_declare_webentity_by_lrus(list_lrus, name, status, startpages, lruVariations, corpus)
+        return self.jsonrpc_declare_webentity_by_lrus(list_lrus, name, status, startpages, lruVariations, tags=tags, corpus=corpus)
 
     @inlineCallbacks
-    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status="", startpages=[], lruVariations=True, corpus=DEFAULT_CORPUS):
+    def jsonrpc_declare_webentity_by_lrus(self, list_lrus, name=None, status="", startpages=[], lruVariations=True, tags={}, corpus=DEFAULT_CORPUS):
         """Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -1507,11 +1507,19 @@ class Memory_Structure(customJSONRPC):
         if is_error(weid):
             returnD(weid)
         weid = weid["result"]["created_webentities"].keys()[0]
-        tags = {}
+        if tags:
+            for ns in tags:
+                for cat in tags[ns]:
+                    yield self.add_tags_to_dictionary(ns, cat, tags[ns][cat], corpus=corpus)
         if startpages:
             if not isinstance(startpages, list):
                 startpages = [startpages]
-            tags["CORE-STARTPAGES"] = {"user": startpages}
+            if "CORE-STARTPAGES" not in tags:
+                tags["CORE-STARTPAGES"] = {"user": startpages}
+            elif "user" not in tags["CORE-STARTPAGES"]:
+                tags["CORE-STARTPAGES"]["user"] = startpages
+            else:
+                tags["CORE-STARTPAGES"]["user"] = list(set(tags["CORE-STARTPAGES"]["user"] + startpages))
             yield self.add_tags_to_dictionary("CORE-STARTPAGES", "user", startpages, corpus=corpus)
         WEstatus = "DISCOVERED"
         if status:

@@ -216,6 +216,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.startPages || []    // Start pages
     // Automatically include LRU variations (http/https www/nowww)
               ,settings.lruVariations || false
+              ,settings.tags || {}
               ,corpus.getId()
             ]}
       )
