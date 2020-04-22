@@ -24,13 +24,18 @@ def ensure_index_on_pages(mongo_pages_coll):
         ("content_type", pymongo.ASCENDING), ("status", pymongo.ASCENDING)])
     print("index done")
 
-def process_all(hyphe_core, mongo_pages_coll, corpus, status_to_extract=["IN"]):
+def process_all(hyphe_core, mongo_pages_coll, corpus, status_to_extract=["IN"],
+        content_types=["text/plain", "text/html"],
+        extractors=["Article", "ArticleSentences", "Default", "Canola"],
+        write_as_csv=False):
+
     total_pages = 0
     total_wes = 0
     for status in status_to_extract:
-        wes = get_status_webentities(hyphe, status, corpus)
+        wes = get_status_webentities(hyphe_core, status, corpus)
         total_wes += len(wes)
-        total_pages += process_webentities(hyphe, dbpages, wes, corpus)
+        total_pages += process_webentities(hyphe_core, mongo_pages_coll, wes, corpus, content_types=content_types, extractors=extractors, write_as_csv=write_as_csv)
+
     print("collected a total of %s pages for %s webentities" % \
         (total_pages, total_wes))
 
@@ -101,36 +106,47 @@ def format_for_csv(v):
 def get_status_webentities(hyphe_core, status, corpus):
     print("Retrieving %s web entities" % status)
     res = hyphe_core.store.get_webentities_by_status(status, None, \
-        1000, 0, corpus)["result"]
+        1000, 0, False, True, corpus)["result"]
     wes = res["webentities"]
     while res["next_page"]:
         res = hyphe_core.store.get_webentities_page(res["token"], \
-            res["next_page"], corpus)["result"]
+            res["next_page"], False, corpus)["result"]
         wes += res["webentities"]
     print("Got %s webentities" % len(wes))
     return wes
 
-def process_webentities(hyphe_core, mongo_pages_coll, wes, corpus):
+def process_webentities(hyphe_core, mongo_pages_coll, wes, corpus,
+        content_types=["text/plain", "text/html"],
+        extractors=["Article", "ArticleSentences", "Default", "Canola"],
+        write_as_csv=False):
+
+    mkdir(corpus)
     wes_done_path = os.path.join("outputs", corpus, "done.txt")
     try:
         with open(wes_done_path) as f:
             wes_done = f.read().split("\n")
     except:
         wes_done = []
+        if write_as_csv:
+            headers = ["url", "webentity_id", "webentity_name"]
+            for typ in ["html", "text"] + extractors:
+                with open(os.path.join("outputs", corpus, "%s.csv" % typ), "w") as f:
+                    print >> f, ",".join([k.encode("utf-8") for k in headers + [typ]])
 
     n_pages = 0
     for we in wes:
         n_pages += process_we(hyphe_core, mongo_pages_coll, we, corpus, \
-            wes_done=wes_done)
+            wes_done=wes_done, content_types=content_types, extractors=extractors, write_as_csv=write_as_csv)
         with open(wes_done_path, "a") as f:
             f.write("%s\n" % we["id"])
     return n_pages
 
 def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
         wes_done=[], content_types=["text/plain", "text/html"], \
-        extractors=["Article", "ArticleSentences", "Default", "Canola"]):
+        extractors=["Article", "ArticleSentences", "Default", "Canola"],
+        write_as_csv=False):
 
-    pages_done_path = os.path.join("outputs", corpus, we["id"], "done.txt")
+    pages_done_path = os.path.join("outputs", corpus, "pages_done-%s.txt" % we["id"])
     try:
         with open(pages_done_path) as f:
             done = f.read().split("\n")
@@ -141,15 +157,22 @@ def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
     if we["id"] in wes_done:
         return n_pages
 
-    mkdir(os.path.join(corpus, we["id"], "html"))
-    mkdir(os.path.join(corpus, we["id"], "text"))
-    for method in extractors:
-        mkdir(os.path.join(corpus, we["id"], "text%s" % method))
+    if write_as_csv:
+        headers = ["url", "webentity_id", "webentity_name"]
+        csvfiles = {}
+        for typ in ["html", "text"] + extractors:
+            csvfiles[typ] = open(os.path.join("outputs", corpus, "%s.csv" % typ), "a")
+    else:
+        mkdir(os.path.join(corpus, we["id"], "html"))
+        mkdir(os.path.join(corpus, we["id"], "text"))
+        for method in extractors:
+            mkdir(os.path.join(corpus, we["id"], "text%s" % method))
 
     pages = hyphe_core.store.get_webentity_pages(we["id"], True, corpus)
     if (pages['code'] == 'fail'):
         print("ERROR with pages for WE %s: %s" % (we["id"], pages['message']))
         return n_pages
+
     urls = [page["url"] for page in pages["result"] if page["url"] not in done]
     nb_urls = len(urls)
     i = 0
@@ -162,19 +185,28 @@ def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
             "body" : {"$exists": True}
           }, projection=["_id", "encoding", "url", "body"]))
         for page in pages_slice:
-            process_page(page, we["id"], corpus, extractors)
+            result = process_page(page, we, corpus, extractors, write_as_csv=write_as_csv)
+            if write_as_csv:
+                for typ in csvfiles:
+                    print >> csvfiles[typ], ",".join([format_for_csv(result.get(k, "")) for k in headers + [typ]])
             with open(pages_done_path, "a") as f:
                 f.write("%s\n" % page["url"])
             n_done += 1
         i += len_slice
+
     print("retrieved %s pages out of %s for webentity %s" % \
         (n_done, nb_urls, we["id"]))
+
+    if write_as_csv:
+        for typ in csvfiles:
+            csvfiles[typ].close()
+
     return n_pages + n_done
 
-def process_page(page, wename, corpus, \
-        extractors=["Article", "ArticleSentences", "Default", "Canola"]):
+def process_page(page, we, corpus,
+        extractors=["Article", "ArticleSentences", "Default", "Canola"],
+        write_as_csv=False):
 
-    urlmd5 = md5(page["url"]).hexdigest()
     body = page["body"].decode('zip')
     encoding = page.get("encoding", "")
 
@@ -184,20 +216,33 @@ def process_page(page, wename, corpus, \
         body = body.decode("UTF8", "replace")
         encoding = "UTF8-replace"
 
-    html = os.path.join("outputs", corpus, wename, "html", urlmd5)
-    with open(html, "w") as f:
-        f.write(body.encode("utf-8"))
-
-    text = os.path.join("outputs", corpus, wename, "text", urlmd5)
-    with open(text, "w") as f:
-        f.write(textify(body, encoding=encoding).encode("utf-8"))
-
+    result = {
+        "url": page["url"],
+        "webentity_id": we["id"],
+        "webentity_name": we["name"],
+        "html": body,
+        "text": textify(body, encoding=encoding)
+    }
     for method in extractors:
-        cleantext = os.path.join("outputs", corpus, wename, \
-            "text%s" % method, urlmd5)
-        with open(cleantext, "w") as f:
-            f.write(textify(body, extractor="%sExtractor" % method, \
-                encoding=encoding).encode("utf-8"))
+        result[method] = textify(body, extractor="%sExtractor" % method, encoding=encoding)
+
+    if not write_as_csv:
+        urlmd5 = md5(page["url"]).hexdigest()
+        html = os.path.join("outputs", corpus, we["id"], "html", urlmd5)
+        with open(html, "w") as f:
+            f.write(result["html"].encode("utf-8"))
+
+        text = os.path.join("outputs", corpus, we["id"], "text", urlmd5)
+        with open(text, "w") as f:
+            f.write(result["text"].encode("utf-8"))
+
+        for method in extractors:
+            cleantext = os.path.join("outputs", corpus, we["id"], \
+                "text%s" % method, urlmd5)
+            with open(cleantext, "w") as f:
+                f.write(result[method].encode("utf-8"))
+
+    return result
 
 
 if __name__ == '__main__':
@@ -222,7 +267,10 @@ if __name__ == '__main__':
     mongodb = ""
     corpus = ""
     password = ""
+    page_content types = ["text/plain", "text/html"]
+    boilerpipe_extractors = ["Canola"]
     keyword = ""
+    write_as_csv = True
 
     # Initiate Hyphe API connection and ensure corpus started
     try:
@@ -236,11 +284,11 @@ if __name__ == '__main__':
     # Initiate MongoDB connection and build index on pages
     try:
         db = pymongo.MongoClient(mongohost, mongoport)
-        dbpages = db[mongodb]["%s.pages" % corpus]
+        dbpages = db["%s_%s" % (mongodb, corpus)]["pages"]
     except Exception as e:
         exit('Could not initiate connection to MongoDB')
     ensure_index_on_pages(dbpages)
 
     # Run!
-    #process_all(hyphe, dbpages, corpus)
-    process_pages_matching_keyword(hyphe, dbpages, corpus, keyword)
+    process_all(hyphe, dbpages, corpus, content_types=page_content_types, extractors=boilerpipe_extractors, write_as_csv=write_as_csv)
+    #process_pages_matching_keyword(hyphe, dbpages, corpus, keyword)
