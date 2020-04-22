@@ -130,7 +130,7 @@ def process_webentities(hyphe_core, mongo_pages_coll, wes, corpus,
         if write_as_csv:
             headers = ["url", "webentity_id", "webentity_name"]
             for typ in ["html", "text"] + extractors:
-                with open(os.path.join("outputs", corpus, "%s.csv" % typ), "w") as f:
+                with open(os.path.join("outputs", "%s-%s.csv" % (corpus, typ)), "w") as f:
                     print >> f, ",".join([k.encode("utf-8") for k in headers + [typ]])
 
     n_pages = 0
@@ -161,7 +161,7 @@ def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
         headers = ["url", "webentity_id", "webentity_name"]
         csvfiles = {}
         for typ in ["html", "text"] + extractors:
-            csvfiles[typ] = open(os.path.join("outputs", corpus, "%s.csv" % typ), "a")
+            csvfiles[typ] = open(os.path.join("outputs", "%s-%s.csv" % (corpus, typ)), "a")
     else:
         mkdir(os.path.join(corpus, we["id"], "html"))
         mkdir(os.path.join(corpus, we["id"], "text"))
