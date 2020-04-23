@@ -154,7 +154,8 @@ def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
         done = []
     n_pages = len(done)
 
-    if we["id"] in wes_done:
+    if str(we["id"]) in wes_done:
+        print("WE %s already done, skipping" % we["id"])
         return n_pages
 
     if write_as_csv:
