@@ -184,12 +184,15 @@ def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
             "status": 200,
             "content_type": {"$in": content_types},
             "body" : {"$exists": True}
-          }, projection=["_id", "encoding", "url", "body"]))
+          }, projection=["_id", "encoding", "url", "body"], sort=[("timestamp", -1)]))
         for page in pages_slice:
+            if page["url"] in done:
+                continue
             result = process_page(page, we, corpus, extractors, write_as_csv=write_as_csv)
             if write_as_csv:
                 for typ in csvfiles:
                     print >> csvfiles[typ], ",".join([format_for_csv(result.get(k, "")) for k in headers + [typ]])
+            done.append(page["url"])
             with open(pages_done_path, "a") as f:
                 f.write("%s\n" % page["url"])
             n_done += 1
