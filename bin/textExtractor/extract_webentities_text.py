@@ -135,10 +135,12 @@ def process_webentities(hyphe_core, mongo_pages_coll, wes, corpus,
 
     n_pages = 0
     for we in wes:
-        n_pages += process_we(hyphe_core, mongo_pages_coll, we, corpus, \
+        we_pages = process_we(hyphe_core, mongo_pages_coll, we, corpus, \
             wes_done=wes_done, content_types=content_types, extractors=extractors, write_as_csv=write_as_csv)
-        with open(wes_done_path, "a") as f:
-            f.write("%s\n" % we["id"])
+        if we_pages:
+            with open(wes_done_path, "a") as f:
+                f.write("%s\n" % we["id"])
+            n_pages += we_pages
     return n_pages
 
 def process_we(hyphe_core, mongo_pages_coll, we, corpus, len_slice=500, \
