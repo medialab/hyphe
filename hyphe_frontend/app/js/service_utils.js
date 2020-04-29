@@ -447,8 +447,8 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.sort_JSON_LRUs = function(LRUa, LRUb){
-      var hosta = LRUa.host.shift()
-        , hostb = LRUb.host.shift()
+      var hosta = LRUa.host.shift() || ""
+        , hostb = LRUb.host.shift() || ""
       if (hosta !== hostb)
         return hosta.localeCompare(hostb)
       if (LRUa.tld !== LRUb.tld)
@@ -780,5 +780,19 @@ angular.module('hyphe.service_utils', [])
           else
               return result.reverse()
       };
+
+    //Function to create random coordinates to each nodes when creating a network so that it is displayed properly
+      ns.generateRandomCoordinates = function(area){
+          var d = Infinity
+          var r = Math.sqrt(area / Math.PI || 1)
+          var x, y
+          while (d>r) {
+              x = (0.5 - Math.random()) * 2 * r
+              y = (0.5 - Math.random()) * 2 * r
+              d = Math.sqrt(x*x + y*y)
+          }
+          return {x:x, y:y}
+      }
+
     return ns
   }])

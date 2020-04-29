@@ -356,7 +356,9 @@ angular.module('hyphe.preparecrawlsController', [])
         result.diagnostic = {}
 
       } else {
-        result.stage = 'loaded'
+        if (startpages.length) {
+          result.stage = 'loaded'
+        }
         result.percent = 100
 
         // Diagnostic
@@ -552,10 +554,12 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.list.some(function(obj){
         if (obj.webentity.id === id) {
           obj.summary.stage = 'loading'
-          obj.webentity.startpages = obj.webentity.startpages.filter(function(u){
-            return u != url;
-          })
-          return true
+          var index = obj.webentity.startpages.indexOf(url);
+          if (index > -1) {
+            obj.webentity.startpages.splice(index, 1)
+            return true
+          }
+          return false
         }
       })
 
@@ -688,7 +692,7 @@ angular.module('hyphe.preparecrawlsController', [])
         $scope.newStartPagesStack = $scope.urlsToAdd.map(function(url){
           return {url:url, status:'pending', webentity: webentity, minPrefix:undefined}
         })
-
+        $scope.newStartPagesURLs = ''
         checkNextStartpageBelonging(webentity)
       }
 
@@ -714,14 +718,15 @@ angular.module('hyphe.preparecrawlsController', [])
       // Functions
       function removeStartPageAndUpdate(webentity, url){
         $scope.removed[url] = true
-        _removeStartPage(webentity, url, function () {
+        var index = $scope.startpages.indexOf(url);
+        if (index > -1) {
+          _removeStartPage(webentity, url, function () {
           // Remove the start page from lists of start pages
-          $scope.startpages = $scope.startpages.filter(function(u){
-            return u != url;
+            $scope.startpages.splice(index, 1);
+            $scope.startpagesSummary = updateStartpagesSummary($scope.startpages)
+            updaters.webentityRemoveStartPage(webentity.id, url)
           })
-          $scope.startpagesSummary = updateStartpagesSummary($scope.startpages)
-          updaters.webentityRemoveStartPage(webentity.id, url)
-        })
+        }
       }
 
       // This function only performs the API call

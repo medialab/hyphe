@@ -64,7 +64,7 @@
                 class="define-entity-repeated-item"
                 flex
                 layout="row"
-                ng-class="{active: $parent.$parent.activeRow == $index && obj.status=='loaded', 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
+                ng-class="{active: $parent.$parent.activeRow == $index && obj.status=='loaded', 'odd': $index % 2, 'bg-danger':obj.status=='error', 'bg-warning':obj.status=='conflict', selectable:obj.status=='error'}"
                 ng-click="$parent.$parent.activeRow = $index"
                 ng-mouseover="$parent.$parent.activeRow = $index"
               >
@@ -112,6 +112,15 @@
                   >
                     <strong>{{obj.status|titlecase}}</strong>
                     as {{obj.webentity.name}}
+                  </div>
+
+                  <div
+                    ng-if="obj.status == 'merging'"
+                    style="padding:8px"
+                    md-colors="{color:'default-primary-500'}"
+                  >
+                    <strong>{{obj.status|titlecase}}</strong>
+                    with {{obj.webentity.name}}
                   </div>
 
                   <!-- Conflicted -->
@@ -257,7 +266,8 @@
                 <div style="height: 60px; text-align: center;">
                   {{existingList.length}} web entit{{existingList.length | y_ies}}
                   <br/>
-                  already existed
+                  which already existed<br/>
+                  {{existingList.length | were_was}} completed with startpages
                 </div>
                 <div style="height: 60px" layout="column" layout-align="center center">
                   <md-checkbox class="md-primary" ng-model="$parent.$parent.crawlExisting" ng-if="createdList.length > 0">

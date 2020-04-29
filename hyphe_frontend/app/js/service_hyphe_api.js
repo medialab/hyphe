@@ -24,7 +24,9 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_GET_STATISTICS               = 'store.get_webentities_ranking_stats'
 
     API.WEBENTITY_STARTPAGE_ADD                     = 'store.add_webentity_startpage'
+    API.WEBENTITY_STARTPAGES_ADD                     = 'store.add_webentity_startpages'
     API.WEBENTITY_STARTPAGE_REMOVE                  = 'store.rm_webentity_startpage'
+    API.WEBENTITY_STARTPAGES_REMOVE                  = 'store.rm_webentity_startpages'
     API.WEBENTITY_STARTPAGE_LIST_PROPOSE            = 'propose_webentity_startpages'
 
     API.WEBENTITY_PREFIX_ADD                        = 'store.add_webentity_lruprefixes'
@@ -62,6 +64,8 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WE_CREATION_RULE_REMOVE                     = 'store.delete_webentity_creationrule'
     API.WE_CREATION_RULE_LIST_GET                   = 'store.get_webentity_creationrules'
     API.SIMULATE_WE_CREATION_RULES                  = 'store.simulate_creationrules_for_urls'
+
+    API.WE_EGO_NETWORK_GET                          = 'store.get_webentity_ego_network';
 
     API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET      = 'store.get_lru_definedprefixes'
 
@@ -184,6 +188,15 @@ angular.module('hyphe.service_hyphe_api', [])
           ]}
       )
 
+      ns.getWebentityEgoNetwork = buildApiCall(
+          API.WE_EGO_NETWORK_GET
+          , function(settings){
+              return [
+                  settings.webentityId
+                  ,corpus.getId()
+              ]}
+      )
+
     ns.getLruParentWebentities = buildApiCall(
         API.POTENTIAL_WEBENTITY_CONTAINER_LIST_GET
         ,function(settings){
@@ -227,12 +240,32 @@ angular.module('hyphe.service_hyphe_api', [])
             ]}
       )
 
+    ns.addStartPages = buildApiCall(
+        API.WEBENTITY_STARTPAGES_ADD
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.urls
+              ,corpus.getId()
+            ]}
+      )
+
     ns.removeStartPage = buildApiCall(
         API.WEBENTITY_STARTPAGE_REMOVE
         ,function(settings){
           return [
               settings.webentityId
               ,settings.url
+              ,corpus.getId()
+            ]}
+      )
+
+    ns.removeStartPages = buildApiCall(
+        API.WEBENTITY_STARTPAGES_REMOVE
+        ,function(settings){
+          return [
+              settings.webentityId
+              ,settings.urls
               ,corpus.getId()
             ]}
       )

@@ -52,7 +52,7 @@
                           <dt>Home page</dt>
                           <dd>
                             <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
-                              <md-tooltip md-direction="left">Open home page in a new tab</md-tooltip>
+                              <md-tooltip md-direction="left">Open homepage in a new tab</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
                             {{webentity.homepage}}
@@ -144,11 +144,10 @@
                       <div
                         ng-repeat="startpagetype in [
                           {id: 'user', name: 'Manual'},
-                          {id: 'auto', name: 'Automatic'},
-                          {id: 'removed', name: 'Temporary removed'}
+                          {id: 'auto', name: 'Automatic'}
                         ]"
                       >
-                        <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id]">
+                        <md-subheader class="md-primary" ng-show="webentity.tags['CORE-STARTPAGES'][startpagetype.id].length">
                           {{startpagetype.name}} start page{{webentity.tags['CORE-STARTPAGES'][startpagetype.id].length | plural}}
                         </md-subheader>
                         <md-list-item
@@ -159,12 +158,57 @@
                               <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
-                            {{url}}
+                            <span>
+                              <md-tooltip md-direction="bottom">{{url}}</md-tooltip>
+                              {{url}}
+                            </span>
                           </span>
                         </md-list-item>
                       </div>
                     </md-list>
                   
+                    <div ng-show="webentity.startpages.length > 0" layout="column" layout-align="center">
+                      <md-button
+                        class="md-raised"
+                        ng-disabled="editingStartpages"
+                        ng-click="removeAllStartPages()"
+                      >
+                        <md-icon>clear</md-icon>
+                        REMOVE ALL STARTPAGES
+                      </md-button>
+                    </div>
+
+                    <div ng-show="webentity.pages_total - webentity.startpages.length > 0" layout="column" layout-align="center">
+                      <md-button
+                        class="md-raised"
+                        ng-disabled="editingStartpages || webentity.pages_total - webentity.startpages.length > 250"
+                        ng-click="addAllStartPages()"
+                      >
+                        <md-icon>add_circle_outline</md-icon>
+                        {{ webentity.pages_total - webentity.startpages.length > 250 ? "TOO MANY PAGES TO SET THEM ALL AS STARTPAGES" : "SET ALL KNOWN PAGES AS STARTPAGES" }}
+                      </md-button>
+                    </div>
+                  
+                </md-tab>
+
+                <!-- Tab: Ego Network -->
+                <md-tab>
+                  <md-tab-label>
+                    <md-tooltip md-direction="up">The network of links between the web entities that are linked with this one</md-tooltip>
+                    <md-icon>bubble_chart</md-icon>Ego network</md-tab-label>
+                  <md-tab-body>
+                    <div layout-fill layout="column" layout-align="center center" ng-if="!ego.loaded">
+                      <spinner text="'LOADING LINKS'"></spinner>
+                    </div>
+                    <div layout-fill layout="column" ng-if="ego.loaded" style="position: relative">
+                      <sigma-network
+                          layout-fill
+                          network="ego.network "
+                          download-network="downloadNetwork"
+                          on-node-click="networkNodeClick"
+                      ></sigma-network>
+                    </div>
+                  </md-tab-body>
                 </md-tab>
 
                 <!-- Tab: Crawls -->
@@ -416,8 +460,8 @@
                   network
                 </md-button>
               </div>
-              <!--
-              <div style="height: 64px; padding: 0px 8px" layout="column" ng-if="webentity.pages_total>=5">
+ 
+              <div style="height: 64px; padding: 0px 8px" layout="column" ng-show="webentity.pages_total>=10">
                 <md-input-container style="margin-bottom: 0;">
                   <label>NOT a full text search</label>
                   <md-icon>search</md-icon>
@@ -426,7 +470,7 @@
                   >
                 </md-input-container>
               </div>
-              -->
+
               
               <div flex ng-if="pagesLoading && !pagesToken" layout="column" layout-align="center center">
                 <spinner></spinner>
@@ -439,15 +483,21 @@
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
                       <a href="{{page.url}}" target="_blank">
-                          <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
-                          <md-icon>link</md-icon>
+                        <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                        <md-icon>link</md-icon>
                       </a>
                       <div ng-if="page.url===webentity.homepage">
+                        <md-tooltip md-direction="left">Homepage</md-tooltip>
                         &nbsp;<md-icon>home</md-icon>
                       </div>
-                      <div md-truncate flex >&nbsp;{{page.url}}</div>
+                      <div md-truncate flex>
+                        <span>
+                          <md-tooltip md-direction="bottom">{{page.url}}</md-tooltip>
+                          &nbsp;{{page.url}}
+                        </span>
+                      </div>
                       <div class="md-primary">
-                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)"></md-switch>
+                        <md-switch ng-if="true" md-no-ink="" aria-label="Set as StartPage" ng-model="page.isStartPage" ng-change="toggleStartPages(page)" ng-disabled="editingStartpages"></md-switch>
                         <md-tooltip md-direction="left">Set as StartPage</md-tooltip>
                       </div>
                       <div class="md-secondary" ng-if="page.crawled">

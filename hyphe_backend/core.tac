@@ -6,6 +6,7 @@ import subprocess
 import base64
 import msgpack
 from copy import deepcopy
+from ural import is_url
 from bson.binary import Binary
 from json import dump as jsondump
 from random import randint
@@ -19,7 +20,7 @@ from twisted.application.internet import TCPServer
 from twisted.application.service import Application
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
-from twisted.internet.error import DNSLookupError
+from twisted.internet.error import DNSLookupError, ConnectionRefusedError
 from twisted.web.http_headers import Headers
 from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
 HTTPClientFactory.noisy = False
@@ -124,8 +125,8 @@ class Core(customJSONRPC):
             check_conf_sanity(options, CORPUS_CONF_SCHEMA, name="%s options" % corpus, soft=True, globalconf=config)
         except Exception as e:
             returnD(format_error(e))
-        if "max_depth" in options and options["max_depth"] > config["max_depth"]:
-            returnD(format_error("This Hyphe instance does not allow max_depth do be higher than %s" % config["max_depth"]))
+        if "max_depth" in options and options["max_depth"] > config["mongo-scrapy"]["max_depth"]:
+            returnD(format_error("This Hyphe instance does not allow max_depth do be higher than %s" % config["mongo-scrapy"]["max_depth"]))
         redeploy = False
         if ("defaultCreationRule" in options or "defautStartpagesMode" in options or "indexTextContent" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
@@ -142,15 +143,37 @@ class Core(customJSONRPC):
             wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
             res = self.traphs.start_corpus(corpus, keepalive=self.corpora[corpus]['options']['keepalive'], default_WECR=getWECR(options["defaultCreationRule"]), WECRs=wecrs)
 
+        if "follow_redirects" in options and options["follow_redirects"] != self.corpora[corpus]['options']['follow_redirects']:
+            follow_redirects = []
+            for d in options["follow_redirects"]:
+                d = clean_host(d)
+                if not is_url(d, tld_aware=True, require_protocol=False):
+                    returnD(format_error('Redirection domain %s is not a valid hostname.' % d))
+                follow_redirects.append(d)
+            options["follow_redirects"] = follow_redirects
+
         if "proxy" in options or ("phantom" in options and (\
           "timeout" in options["phantom"] or \
           "ajax_timeout" in options["phantom"] or \
           "idle_timeout" in options["phantom"])):
             if self.corpora[corpus]['crawls_running']:
                 returnD(format_error("Please stop currently running crawls before modifiying the crawler's settings"))
-        if 'proxy' in options and options['proxy'] == self.corpora[corpus]['options']['proxy']:
+        if 'proxy' in options and options['proxy'] != self.corpora[corpus]['options']['proxy']:
+            # Test proxy values & connectivity
+            if options['proxy']['host']:
+                try:
+                    options['proxy']['port'] = int(options['proxy'].get('port', 0))
+                except (ValueError, TypeError):
+                    returnD(self.format_error("Proxy port must be an integer"))
+                options['proxy']['host'] = clean_host(options['proxy']['host'])
+                if '/' in options['proxy']['host'] or not is_url(options['proxy']['host'], tld_aware=True, require_protocol=False):
+                    returnD(format_error("Proxy host is not a valid hostname"))
+                test_proxy = yield self.lookup_httpstatus('https://www.wikipedia.org', corpus=corpus, _alternate_proxy=options['proxy'])
+                if test_proxy['result'] < 0:
+                    returnD(format_error("Proxy %s:%s does not seem like responding" % (options['proxy']['host'], options['proxy']['port'])))
             redeploy = True
-        if 'phantom' in options and options['phantom'] == self.corpora[corpus]['options']['phantom']:
+            self.corpora[corpus]['options']['proxy'].update(options.pop("proxy"))
+        if 'phantom' in options and options['phantom'] != self.corpora[corpus]['options']['phantom']:
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
@@ -168,7 +191,11 @@ class Core(customJSONRPC):
     def init_creationrules(self, corpus=DEFAULT_CORPUS):
         yield self.db.set_default_WECR(corpus, getWECR(self.corpora[corpus]["options"]["defaultCreationRule"]))
         for prf, regexp in config.get("creationRules", {}).items():
-            for prefix in ["http://%s" % prf, "https://%s" % prf]:
+            prf = re.sub(r"^(https?://|www\.)+", "", prf).rstrip("/")
+            variations = ["http://%s" % prf, "https://%s" % prf]
+            if "/" in prf:
+                variations += ["http://www.%s" % prf, "https://www.%s" % prf]
+            for prefix in variations:
                 lru = urllru.url_to_lru_clean(prefix, self.corpora[corpus]["tlds"])
                 wecr = getWECR(regexp, lru)
                 yield self.db.add_WECR(corpus, lru, wecr)
@@ -824,8 +851,7 @@ class Core(customJSONRPC):
         startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories)
         if save_startpages:
             sp_todo = list(set(s for st in startpages.values() for s in st)) if categories else startpages
-            for sp in sp_todo:
-                yield self.store.jsonrpc_add_webentity_startpage(webentity_id, sp, corpus=corpus)
+            yield self.store.jsonrpc_add_webentity_startpages(webentity_id, sp_todo, corpus=corpus)
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
@@ -944,16 +970,19 @@ class Core(customJSONRPC):
         return self.lookup_httpstatus(url, deadline=time.time()+timeout, corpus=corpus)
 
     @inlineCallbacks
-    def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS):
+    def lookup_httpstatus(self, url, timeout=5, deadline=0, tryout=0, noproxy=False, corpus=DEFAULT_CORPUS, _alternate_proxy=None):
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         res = format_result(0)
         timeout = int(timeout)
-        use_proxy = self.corpora[corpus]["options"]['proxy']['host'] and not noproxy
+        use_proxy = (_alternate_proxy or self.corpora[corpus]["options"]['proxy']['host']) and not noproxy
+        if use_proxy:
+            proxy_host = _alternate_proxy["host"] if _alternate_proxy else self.corpora[corpus]["options"]['proxy']['host']
+            proxy_port = _alternate_proxy["port"] if _alternate_proxy else self.corpora[corpus]["options"]['proxy']['port']
         try:
             url = urllru.url_clean(str(url))
             if use_proxy:
-                agent = ProxyAgent(TCP4ClientEndpoint(reactor, self.corpora[corpus]["options"]['proxy']['host'], self.corpora[corpus]["options"]['proxy']['port'], timeout=timeout))
+                agent = ProxyAgent(TCP4ClientEndpoint(reactor, proxy_host, proxy_port, timeout=timeout))
             else:
                 agent = Agent(reactor, connectTimeout=timeout)
             method = "HEAD"
@@ -962,23 +991,29 @@ class Core(customJSONRPC):
             headers = {'Accept': ['*/*'],
                       'User-Agent': [get_random_user_agent()]}
             response = yield agent.request(method, url, Headers(headers), None)
-        except DNSLookupError as e:
-            if use_proxy and self.corpora[corpus]["options"]['proxy']['host'] in str(e):
+        except (DNSLookupError, ConnectionRefusedError) as e:
+            if use_proxy and (proxy_host in str(e) or type(e) == ConnectionRefusedError):
                 res['result'] = -2
                 res['message'] = "Proxy not responding"
-                if tryout == 3 and use_proxy:
-                    noproxy = True
-                    tryout = 1
+                if tryout == 3:
+                    if _alternate_proxy:
+                        returnD(res)
+                    else:
+                        noproxy = True
+                        tryout = 1
                 if tryout < 3:
                     if config['DEBUG'] == 2:
-                        logger.msg("Retry lookup after proxy error %s %s %s" % (method, url, tryout), system="DEBUG - %s" % corpus)
-                    res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                        logger.msg("Retry lookup after proxy error %s %s %s (via %s:%s)" % (method, url, tryout, proxy_host, proxy_port), system="DEBUG - %s" % corpus)
+                    res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus, _alternate_proxy=_alternate_proxy)
                     returnD(res)
-            else:
+            elif type(e) == DNSLookupError:
                 res['message'] = "DNS not found for url %s : %s" % (url, e)
+            else:
+                res['result'] = -1
+                res['message'] = "Cannot process url %s : %s %s." % (url, type(e), e)
         except Exception as e:
             res['result'] = -1
-            res['message'] = "Cannot process url %s : %s." % (url, e)
+            res['message'] = "Cannot process url %s : %s %s." % (url, type(e), e)
         if 'message' in res:
             returnD(res)
         if response.code == 200 or url in " ".join(response.headers._rawHeaders.get('location', "")):
@@ -995,7 +1030,7 @@ class Core(customJSONRPC):
             if tryout < 3:
                 if config['DEBUG'] == 2:
                     logger.msg("Retry lookup %s %s %s %s" % (method, url, tryout, response.__dict__), system="DEBUG - %s" % corpus)
-                res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus)
+                res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus, _alternate_proxy=_alternate_proxy)
                 returnD(res)
         result = format_result(response.code)
         if 300 <= response.code < 400 and response.headers._rawHeaders['location']:
@@ -1577,7 +1612,7 @@ class Memory_Structure(customJSONRPC):
                     for v in values:
                         arr.remove(v)
                 elif array_behavior == "update":
-                    arr = value
+                    arr = values
                 if array_key:
                     if not arr and array_key in tmparr:
                         del(tmparr[array_key])
@@ -1609,7 +1644,7 @@ class Memory_Structure(customJSONRPC):
             else:
                 returnD(WE)
         except Exception as x:
-            returnD(format_error("ERROR while updating WebEntity : %s" % x))
+            returnD(format_error("ERROR while updating field %s (%s %s) of WebEntity %s (%s: %s)" % (field_name, array_behavior, value, webentity_id, type(x), (x))))
 
     @inlineCallbacks
     def batch_webentities_edit(self, command, webentity_ids, corpus, *args, **kwargs):
@@ -1821,36 +1856,69 @@ class Memory_Structure(customJSONRPC):
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
-        """Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`."""
-        try:
-            startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
-        except ValueError as e:
-            returnD(format_error(e))
-        WE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
-        if is_error(WE) or WE["result"]["_id"] != webentity_id:
-            returnD(format_error("WARNING: this page does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity."))
+    def jsonrpc_add_webentity_startpages(self, webentity_id, startpages_urls, corpus=DEFAULT_CORPUS, _automatic=False):
+        """Adds for a `corpus` a list of `startpages_urls` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        errors = []
         source = "auto" if _automatic else "user"
-        WE = yield self.add_backend_tags(webentity_id, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
-        if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
-        res = yield self.update_webentity(WE, "startpages", startpage_url, "push", update_timestamp=(not _automatic), corpus=corpus)
+        WE = webentity_id
+        if not isinstance(startpages_urls, list):
+            startpages_urls = [startpages_urls]
+        for startpage_url in startpages_urls:
+            try:
+                startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
+            except ValueError as e:
+                errors.append('ERROR %s: %s' % (type(e), e))
+                continue
+            checkWE = yield self.jsonrpc_get_webentity_for_url(startpage_url, corpus)
+            if is_error(checkWE) or checkWE["result"]["_id"] != webentity_id:
+                errors.append('ERROR: %s does not belong to this WebEntity, you should either add the corresponding prefix or merge the other WebEntity.' % startpage_url)
+                continue
+            WE = yield self.add_backend_tags(WE, source, startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+            if "removed" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["removed"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "removed", startpage_url, _commit=False, corpus=corpus)
+        if errors:
+            if len(errors) == 1:
+                errors = errors[0]
+            returnD(format_error(errors))
+        res = yield self.update_webentity(WE, "startpages", startpages_urls, "push", update_timestamp=(not _automatic), corpus=corpus)
         returnD(res)
 
+    def jsonrpc_add_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS, _automatic=False):
+        """Adds for a `corpus` a `startpage_url` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`."""
+        return self.jsonrpc_add_webentity_startpages(webentity_id, startpage_url, corpus=corpus, _automatic=False)
+
     @inlineCallbacks
-    def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
-        """Removes for a `corpus` a `startpage_url` from the list of startpages of a WebEntity defined by `webentity_id."""
-        try:
-            startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
-        except ValueError as e:
-            returnD(format_error(e))
-        WE = yield self.add_backend_tags(webentity_id, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
-        if "user" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["user"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
-        if "auto" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["auto"]:
-            WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
-        res = yield self.update_webentity(WE, "startpages", startpage_url, "pop", corpus=corpus)
+    def jsonrpc_rm_webentity_startpages(self, webentity_id, startpages_urls, corpus=DEFAULT_CORPUS):
+        """Removes for a `corpus` a list of `startpages_urls` from the list of startpages to use when crawling the WebEntity defined by `webentity_id."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        errors = []
+        WE = webentity_id
+        if not isinstance(startpages_urls, list):
+            startpages_urls = [startpages_urls]
+        for startpage_url in startpages_urls:
+            try:
+                startpage_url, _ = urllru.url_clean_and_convert(startpage_url, self.corpora[corpus]["tlds"])
+            except ValueError as e:
+                errors.append('ERROR %s: %s' % (type(e), e))
+                continue
+            WE = yield self.add_backend_tags(WE, "removed", startpage_url, namespace="STARTPAGES", _commit=False, corpus=corpus)
+            if "user" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["user"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "user", startpage_url, _commit=False, corpus=corpus)
+            if "auto" in WE["tags"]["CORE-STARTPAGES"] and startpage_url in WE["tags"]["CORE-STARTPAGES"]["auto"]:
+                WE = yield self.jsonrpc_rm_webentity_tag_value(WE, "CORE-STARTPAGES", "auto", startpage_url, _commit=False, corpus=corpus)
+        if errors:
+            if len(errors) == 1:
+                errors = errors[0]
+            returnD(format_error(errors))
+        res = yield self.update_webentity(WE, "startpages", startpages_urls, "pop", corpus=corpus)
         returnD(res)
+
+    def jsonrpc_rm_webentity_startpage(self, webentity_id, startpage_url, corpus=DEFAULT_CORPUS):
+        """Removes for a `corpus` a `startpage_url` from the list of startpages to use when crawling the WebEntity defined by `webentity_id."""
+        return self.jsonrpc_rm_webentity_startpages(webentity_id, startpage_url, corpus=corpus)
 
     @inlineCallbacks
     def jsonrpc_merge_webentity_into_another(self, old_webentity_id, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, include_name_and_status=False, corpus=DEFAULT_CORPUS):
@@ -1984,8 +2052,7 @@ class Memory_Structure(customJSONRPC):
                 elif 300 <= p["status"] < 400 and links:
                     goodautostarts.add(urllru.lru_to_url(links[0]))
         if job['webentity_id']:
-            for auto in goodautostarts:
-                yield self.jsonrpc_add_webentity_startpage(job['webentity_id'], auto, corpus=corpus, _automatic=True)
+            yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], goodautostarts, corpus=corpus, _automatic=True)
         logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
 
@@ -2733,11 +2800,10 @@ class Memory_Structure(customJSONRPC):
             res['status'] = data['status']
             res['crawl_timestamp'] = unicode(data['timestamp'])
             res['depth'] = data['depth']
-            res['content_type'] = data['content_type'],
-            res['size'] = data['size'],
-            res['encoding'] = data['encoding']
-            if data['error']:
-                res['error'] = data['error']
+            res['content_type'] = data.get('content_type')
+            res['size'] = data['size']
+            res['encoding'] = data.get('encoding')
+            res['error'] = data.get('error')
 
         if include_body and 'body' in data:
             res['body'] = unicode(base64.b64encode(data['body']))

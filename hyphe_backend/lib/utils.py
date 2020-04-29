@@ -48,6 +48,11 @@ def urls_match_domainlist(urls, domlist):
                 return True
     return False
 
+re_clean_host = re.compile(r'^[a-z]+://', re.I)
+def clean_host(host):
+    host = re_clean_host.sub('', host)
+    return host.rstrip('/')
+
 def deferredSleep(sleep=5):
     return deferLater(reactor, sleep, lambda : None)
 

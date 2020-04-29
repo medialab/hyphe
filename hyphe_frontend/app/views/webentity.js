@@ -10,7 +10,9 @@ angular.module('hyphe.webentityController', [])
     corpus,
     store,
     $location,
+    $window,
     $timeout,
+    $mdColors,
     autocompletion
   ){
     $scope.currentPage = 'webentity'
@@ -34,7 +36,28 @@ angular.module('hyphe.webentityController', [])
     $scope.pagesToken = null
     $scope.loadAllPages = false
 
+    $scope.ego = {
+      loading: false,
+      loaded: false,
+      webentities: [],
+      links: [],
+      network: null
+    }
+
+    $scope.$on("$destroy", function(){
+      $scope.ego = {}
+    })
+
+
     $scope.$watch('tagCategories', synchronizeTags, true)
+
+    $scope.$watch('urlSearchQuery', function(newVal){
+      if (!newVal) return;
+      if ($scope.pagesToken && !$scope.pagesLoading && !$scope.loadAllPages) {
+        $scope.loadAllPages = true
+        $scope.loadPages();
+      }
+    }, true)
 
     $scope.$on('$destroy', function(){
       $scope.loadAllPages = false
@@ -150,17 +173,27 @@ angular.module('hyphe.webentityController', [])
           ,token: $scope.pagesToken
         }
         ,function(result){
+          var pagesBatch = []
           result.pages.forEach(function(page){
-              page.isStartPage = $scope.webentity.startpages.includes(page.url)
+            if (!$scope.webentity.startpages.includes(page.url)) {
+              pagesBatch.push(page)
+            } else {
+              for (var p in $scope.pages) {
+                if ($scope.pages[p].url === page.url) {
+                  $scope.pages[p].crawled = page.crawled
+                  break
+                }
+              }
+            }
           });
-          $scope.pages = $scope.pages.concat(result.pages)
+          $scope.pages = $scope.pages.concat(pagesBatch)
           $scope.pagesToken = result.token
-          $scope.pagesLoading = false
           if ($scope.loadAllPages && $scope.pagesToken) {
             var percent = 99.5 * $scope.pages.length / $scope.webentity.pages_total
             $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
             $timeout($scope.loadPages, 0)
           } else {
+            $scope.pagesLoading = false
             $scope.status = {}
           }
         }
@@ -171,7 +204,7 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
-    $scope.toggleStartPages=function(page){
+    $scope.toggleStartPages = function(page){
       var remove, msg1, msg2, func;
       if (page.isStartPage){
         remove = false
@@ -184,39 +217,100 @@ angular.module('hyphe.webentityController', [])
         msg2 = "remov"
         func = "removeStartPage"
       }
-      UpdateStartPagesForPage(page, remove)
       $scope.status = {message: msg1+'ing startpage'}
+      $scope.editingStartpages = true
       api[func]({
            webentityId: $scope.webentity.id
           ,url: page.url
         }
         ,function () {
           $scope.status = {}
+          UpdateStartPagesForPage(page.url, remove)
+          $scope.editingStartpages = false
         }
         ,function (data, status, headers, config) {
           // API call fail
           $scope.status = {message: 'Error '+msg2+'ing startpage', background: 'danger'}
           console.error('Startpage could not be '+msg2+'ed', data, status, headers, config)
-          UpdateStartPagesForPage(page, !remove)
           page.isStartPage = !page.isStartPage
+          $scope.editingStartpages = false
         }
       )
     }
 
-    function UpdateStartPagesForPage(page, remove){
+    function UpdateStartPagesForPage(url, remove){
       if (remove) {
+        var pos = $scope.webentity.startpages.indexOf(url);
+        $scope.webentity.startpages.splice(pos, 1);
         Object.keys($scope.webentity.tags['CORE-STARTPAGES']).forEach(function(type){
-          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(page.url)){
-            var pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(page.url)
+          if($scope.webentity.tags['CORE-STARTPAGES'][type].includes(url)){
+            pos = $scope.webentity.tags['CORE-STARTPAGES'][type].indexOf(url);
             $scope.webentity.tags['CORE-STARTPAGES'][type].splice(pos, 1);
           }
         })
       } else {
+        $scope.webentity.startpages.push(url);
         if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
-          $scope.webentity.tags['CORE-STARTPAGES'].user = []
+          $scope.webentity.tags['CORE-STARTPAGES'].user = [];
         }
-        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(page.url);
+        $scope.webentity.tags['CORE-STARTPAGES']['user'].push(url);
       }
+    }
+
+    $scope.addAllStartPages = function(){
+      $scope.status = {message: "Adding all known pages as startpages"}
+      $scope.editingStartpages = true
+      var pagesToAdd = $scope.pages.filter(function(p){
+          return !p.isStartPage 
+        }).map(function(p){
+          return p.url
+        });
+      api.addStartPages({
+           webentityId: $scope.webentity.id
+          ,urls: pagesToAdd
+        }
+        ,function(){
+          $scope.status = {}
+          $scope.pages.forEach(function(page){
+            if (!page.isStartPage) {
+              page.isStartPage = true
+              UpdateStartPagesForPage(page.url)
+            }
+          })
+          $scope.editingStartpages = false
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message: 'Error adding all pages as startpages', background: 'danger'}
+          console.error('Could not add all pages as startpages', data, status, headers, config)
+          $scope.editingStartpages = false
+        }
+      )
+    }
+
+    $scope.removeAllStartPages = function(){
+      $scope.status = {message: "Removing all startpages"}
+      $scope.editingStartpages = true
+      api.removeStartPages({
+           webentityId: $scope.webentity.id
+          ,urls: $scope.webentity.startpages
+        }
+        ,function(){
+          $scope.status = {}
+          $scope.pages.forEach(function(page){
+            if ($scope.webentity.startpages.includes(page.url))
+              page.isStartPage = false
+          })
+          $scope.webentity.startpages.slice(0).forEach(function(url){
+            UpdateStartPagesForPage(url, true)
+          })
+          $scope.editingStartpages = false
+        }
+        ,function(data, status, headers, config){
+          $scope.status = {message: 'Error removing all startpages', background: 'danger'}
+          console.error('Could not remove all startpages', data, status, headers, config)
+          $scope.editingStartpages = false
+        }
+      )
     }
 
     // Init
@@ -343,9 +437,18 @@ angular.module('hyphe.webentityController', [])
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
           }
 
+          $scope.pages = $scope.webentity.startpages.sort(function(a, b){
+            return a.localeCompare(b)
+          }).map(function(p){
+            return {
+              url: p,
+              lru: utils.URL_to_LRU(p),
+              isStartPage: true,
+              crawled: false
+            }
+          })
           $scope.loadPages()
-
-          }
+        }
         ,function(){
           $scope.status = {message: 'Error loading web entity', background: 'danger'}
         }
@@ -393,4 +496,139 @@ angular.module('hyphe.webentityController', [])
       )
     }
 
+    // Ego Network Section
+    loadLinks()
+
+
+    $scope.downloadNetwork = function() {
+      if ($scope.ego.network) {
+        var blob = new Blob([gexf.write($scope.ego.network)], {'type': 'text/gexf+xml;charset=utf-8'});
+        saveAs(blob, $scope.corpusId+"_"+$scope.webentity.name+"_egoNetwork.gexf", true);
+      }
+    }
+
+    $scope.networkNodeClick = function(node) {
+      var url = "#/project/"+$scope.corpusId+"/webentity/"+$scope.ego.network.getNodeAttribute(node, 'id')
+      $window.open(url, '_blank');
+    }
+
+    function loadLinks() {
+      if (!$scope.ego.loaded) {
+        $scope.loading = true
+        $scope.status = {message: 'Loading ego network links'}
+        $scope.ego.loading = true
+        $scope.ego.loaded = false
+        api.getWebentityEgoNetwork(
+            {webentityId: $scope.webentity.id}
+            ,function(links){
+              $scope.ego.links = links
+              $scope.ego.loading = false
+              $scope.ego.loaded = true
+              loadEgoWebentities()
+            }
+            ,function(egonetwork, status, headers, config){
+              $scope.ego.loading = false
+              $scope.ego.loaded = false
+              $scope.status = {message: 'Error loading links for Ego network', background:'danger'}
+            }
+        )}
+    }
+
+
+    function loadEgoWebentities() {
+      $scope.status = {message: 'Loading ego network web entities'}
+      var egoWebentities = new Set([]);
+      for (var c = 0; c < $scope.ego.links.length; c++) {
+        egoWebentities.add($scope.ego.links[c][0]);
+        egoWebentities.add($scope.ego.links[c][1]);
+      }
+      egoWebentities = Array.from(egoWebentities)
+      api.getWebentities({
+            id_list: egoWebentities,
+            count: -1,
+            light: true
+          }
+          , function (result) {
+            $scope.status = {}
+            $scope.ego.webentities = result
+            buildEgoNetwork()
+          }
+          , function () {
+            $scope.status = {message: 'Error loading Web Entities for Ego network', background: 'danger'}
+          }
+      )
+    }
+
+    function buildEgoNetwork() {
+      //delete the current webentity from the ego webentities to get a proper egoNetwork
+      for (var c = 0; c < $scope.ego.webentities.length; c++){
+        if ($scope.ego.webentities[c].id === $scope.webentity.id){
+          $scope.ego.webentities.splice(c,1)
+          break;
+        }
+      }
+      var weIndex = {}
+      $scope.ego.webentities.forEach(function(we){
+         weIndex[we.id] = we
+      })
+
+      var g = new Graph({type: 'directed', allowSelfLoops: false})
+
+      for (var k in weIndex)
+        g.addNode(k, Object.assign({}, weIndex[k]))
+
+      $scope.ego.links.forEach(function(l) {
+        if (l[0] === $scope.webentity.id || l[1] === $scope.webentity.id)
+          return;
+        g.importEdge({
+          key: l[0] + '>' + l[1],
+          source: l[0],
+          target: l[1],
+          attributes: {count: l[2]}
+        })
+      })
+
+      var averageNonNormalizedArea = g.size / g.order // because node area = indegree
+      var minSize = 4
+      var totalArea = 0
+      var nodesArea = totalArea
+      g.nodes().forEach(function(nid){
+        var n = g.getNodeAttributes(nid)
+        if(n.status === "DISCOVERED"){
+          n.color = '#93BDE0'
+        }
+        else if(n.status === "IN"){
+          n.color = '#333'
+        }
+        else if(n.status === "UNDECIDED"){
+          n.color = '#ADA299'
+        }
+        else if(n.status === "OUT"){
+          n.color = '#FAA'
+        }
+
+        // Size nodes by indegree
+        // TODO: size by other means
+        n.initialsize = minSize + Math.sqrt(g.inDegree(nid) / averageNonNormalizedArea)
+        n.size = n.initialsize
+        totalArea += Math.PI * n.size * n.size
+
+        // Init Label and coordinates
+        var xy = utils.generateRandomCoordinates(nodesArea)
+        n.x = xy.x
+        n.y = xy.y
+
+        n.label = n.name
+      })
+
+      // Default color for edges
+      g.edges().forEach(function(eid){
+        var e = g.getEdgeAttributes(eid)
+        e.color = $mdColors.getThemeColor('default-background-100')
+      })
+
+      // Make the graph global for console tinkering
+      window.g = g
+      $scope.ego.network = g
+    }
   })

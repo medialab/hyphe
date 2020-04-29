@@ -4,6 +4,7 @@ import os, time, signal, re
 import json
 import logging
 
+from pymongo import MongoClient
 try:
     from pymongo.binary import Binary
 except:
@@ -20,12 +21,13 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
+from ural.lru import LRUTrie
+
 from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML
-from hcicrawler.samples import DEFAULT_INPUT
+from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -37,20 +39,26 @@ class PagesCrawler(Spider):
     link_extractor = RegexpLinkExtractor(canonicalize=False, deny_extensions=[])
     ignored_exts = set(['.' + e for e in IGNORED_EXTENSIONS])
 
-    def __init__(self, **kw):
-        args = DEFAULT_INPUT.copy()
-        args.update(kw)
+    def __init__(self, **kwargs):
+        mongo = MongoClient(MONGO_HOST, MONGO_PORT)[MONGO_DB][MONGO_JOBS_COL]
+        job = mongo.find_one({"_id": kwargs["job_id"]})
+        args = job["crawl_arguments"]
         self.args = args
         self.start_urls = to_list(args['start_urls'])
         self.maxdepth = int(args['max_depth'])
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
+        self.prefixes_trie = LRUTrie()
+        for p in self.follow_prefixes:
+            self.prefixes_trie.set_lru(p, True)
+        for p in self.nofollow_prefixes:
+            self.prefixes_trie.set_lru(p, False)
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
         self.resolved_links = {}
         self.user_agent = args['user_agent']
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
         self.cookies = None
-        if 'cookies' in args:
+        if 'cookies' in args and args["cookies"]:
             self.cookies = dict(cookie.split('=', 1) for cookie in re.split(r'\s*;\s*', args['cookies']) if '=' in cookie)
         if self.phantom:
             self.ph_timeout = int(args.get('phantom_timeout', PHANTOM['TIMEOUT']))
@@ -224,7 +232,7 @@ class PagesCrawler(Spider):
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
             lrulinks.append((url, lrulink))
-            if self._should_follow(response.meta['depth'], lru, lrulink) and \
+            if self._should_follow(response.meta['depth'], lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
         response.meta['depth'] = realdepth
@@ -264,11 +272,10 @@ class PagesCrawler(Spider):
         p['webentity_when_crawled'] = self.args['webentity_id']
         return p
 
-    def _should_follow(self, depth, fromlru, tolru):
+    def _should_follow(self, depth, tolru):
         c1 = depth < self.maxdepth
-        c2 = has_prefix(tolru, self.follow_prefixes)
-        c3 = not(has_prefix(tolru, self.nofollow_prefixes))
-        return c1 and c2 and c3
+        c2 = self.prefixes_trie.match_lru(tolru)
+        return c1 and c2
 
     def _request(self, url, noproxy=False, **kw):
         kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy}

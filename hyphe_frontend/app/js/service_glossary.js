@@ -26,6 +26,9 @@ angular.module('hyphe.service_glossary', [])
         title: 'Boundaries of a Web Entity'
         ,definition: 'Defines if a web entity is a whole domain, a subdomain, a page or a combination of those'
         ,entries: ['boundaries', 'boundaries of a web entity', 'boundaries of web entities']
+      },{title: 'Ego Network'
+        ,definition: 'The network of links between the web entities that are linked with this one'
+        ,entries: ['ego network, Ego Network, ego networks']
       },{
         title: 'Hyperlink'
         ,definition: 'A reference to a web page that the reader can directly follow by clicking. Hyphe uses hyperlink to generate a network.'

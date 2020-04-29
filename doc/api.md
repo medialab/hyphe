@@ -80,7 +80,9 @@ The API will always answer as such:
     * __`set_webentity_homepage`__
     * __`add_webentity_lruprefixes`__
     * __`rm_webentity_lruprefix`__
+    * __`add_webentity_startpages`__
     * __`add_webentity_startpage`__
+    * __`rm_webentity_startpages`__
     * __`rm_webentity_startpage`__
     * __`merge_webentity_into_another`__
     * __`merge_webentities_into_another`__
@@ -509,12 +511,28 @@ The API will always answer as such:
  Removes for a `corpus` a `lru_prefix` from the list of prefixes of a WebEntity defined by `webentity_id. Will delete the WebEntity if it ends up with no LRU prefix left.
 
 
+- __`add_webentity_startpages`:__
+  + _`webentity_id`_ (mandatory)
+  + _`startpages_urls`_ (mandatory)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Adds for a `corpus` a list of `startpages_urls` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`.
+
+
 - __`add_webentity_startpage`:__
   + _`webentity_id`_ (mandatory)
   + _`startpage_url`_ (mandatory)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Adds for a `corpus` a list of `lru_prefixes` to a WebEntity defined by `webentity_id`.
+ Adds for a `corpus` a `startpage_url` to the list of startpages to use when crawling the WebEntity defined by `webentity_id`.
+
+
+- __`rm_webentity_startpages`:__
+  + _`webentity_id`_ (mandatory)
+  + _`startpages_urls`_ (mandatory)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Removes for a `corpus` a list of `startpages_urls` from the list of startpages to use when crawling the WebEntity defined by `webentity_id.
 
 
 - __`rm_webentity_startpage`:__
@@ -522,7 +540,7 @@ The API will always answer as such:
   + _`startpage_url`_ (mandatory)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Removes for a `corpus` a `startpage_url` from the list of startpages of a WebEntity defined by `webentity_id.
+ Removes for a `corpus` a `startpage_url` from the list of startpages to use when crawling the WebEntity defined by `webentity_id.
 
 
 - __`merge_webentity_into_another`:__

@@ -196,6 +196,22 @@ dl.highlight {
   animation-timing-function: ease-in;
 }
 
+.network-search {
+  width: 100%;
+}
+
+.network-search md-input-container {
+  margin-bottom: 5px;
+}
+
+.network-sidebar .md-title, .network-sidebar .webentity-link {
+  margin-top: 0px;
+}
+
+.network-sidebar .webentity-link a, .network-sidebar .webentity-link a:visited {
+  color: black;
+}
+
 .network-key-text {
   font-size: 0.9em;
 }
@@ -593,6 +609,9 @@ textarea.over-error {
   width: 36px;
 }
 
+.define-entity-repeated-item.odd {
+  background-color: rgb(239, 235, 232, 0.75);
+}
 
 
 /* ==========================================================================

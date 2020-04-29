@@ -386,7 +386,6 @@ angular.module('hyphe.manageTagsController', [])
           ,function(result){
             // Stop if this function was called in the meanwhile
             if ($scope.data.in.token != thisToken) { return }
-            console.log(result)
             $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
             if ($scope.data.in.webentities.length >= $scope.data.in.total) {
               $scope.data.in.loading = false
@@ -530,7 +529,7 @@ angular.module('hyphe.manageTagsController', [])
       var nodesArea = totalArea
       g.nodes().forEach(function(nid){
         var n = g.getNodeAttributes(nid)
-        var xy = generateRandomCoordinates(nodesArea)
+        var xy = utils.generateRandomCoordinates(nodesArea)
         n.x = xy.x
         n.y = xy.y
         n.label = n.name
@@ -585,15 +584,4 @@ angular.module('hyphe.manageTagsController', [])
       })
     }
 
-    function generateRandomCoordinates(area) {
-      var d = Infinity
-      var r = Math.sqrt(area / Math.PI || 1)
-      var x, y
-      while (d>r) {
-        x = (0.5 - Math.random()) * 2 * r
-        y = (0.5 - Math.random()) * 2 * r
-        d = Math.sqrt(x*x + y*y)
-      }
-      return {x:x, y:y}
-    }
   })

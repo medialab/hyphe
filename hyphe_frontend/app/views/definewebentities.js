@@ -196,8 +196,9 @@ angular.module('hyphe.definewebentitiesController', [])
 
       // Keep track of created web entity prefixes
       var createdPrefixes = {}
+      var queriesBatcher = new QueriesBatcher()
 
-      // Mark all "existing"
+      // Mark all "existing" and add new startpages to them
       $scope.list.forEach(function(obj){
           var webentityFound
           (obj.parentWebEntities || []).forEach(function(we){
@@ -206,13 +207,47 @@ angular.module('hyphe.definewebentitiesController', [])
             }
           })
           if(webentityFound){
-            obj.status = 'existing'
             obj.webentity = webentityFound
+            // Add the url to the existing WebEntity's startpages
+            queriesBatcher.addQuery(
+               api.addStartPage
+              , {
+                 webentityId: webentityFound.id
+                ,url: obj.url
+              }
+              , function() { // Success
+                console.log('STARTPAGE ADDED')
+                obj.status = 'existing'
+              }
+              ,function (data, status, headers, config) { // Error
+                obj.status = 'error'
+                console.log('[row '+(obj.id+1)+'] Error while adding startpage '+obj.url+' to webentity', webentityFound, data, 'status', status, 'headers', headers, config)
+                if(data && data[0] && data[0].code == 'fail'){
+                  obj.infoMessage = data[0].message
+                }
+              }
+              ,{
+                label: obj.lru
+                ,before: function(){
+                  obj.status = 'pending'
+                }
+              }
+            )
           }
         })
 
+      for (var i=0; i<$scope.list.length; i++) {
+        if ($scope.list[i].status == 'merging') continue;
+        $scope.list[i].extraUrls = [];
+        ($scope.list[i].conflicts || []).forEach(function(conflictIndex){
+          if (!$scope.list[conflictIndex]) return;
+          $scope.list[i].extraUrls.push($scope.list[conflictIndex].url);
+          $scope.list[conflictIndex].status = 'merging';
+          $scope.list[conflictIndex].webentity = $scope.list[i].webentity;
+        })
+      }
+
       // Query the rest
-      var queriesBatcher = new QueriesBatcher()
       $scope.list
         .filter(function(obj){
             var webentityFound
@@ -253,7 +288,7 @@ angular.module('hyphe.definewebentitiesController', [])
                   return {
                     prefixes: obj.prefixes
                     ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
-                    ,startPages: [obj.url]
+                    ,startPages: [obj.url].concat(obj.extraUrls)
                   }
                 }
               ,function(we){                        // Success callback
@@ -310,6 +345,10 @@ angular.module('hyphe.definewebentitiesController', [])
             if(obj.status == 'conflict'){
               $scope.conflictedList.push(obj)
               return true
+            }
+            // Groupes
+            if(obj.status == 'merging'){
+              return false
             }
 
             // The rest: errors
@@ -370,7 +409,7 @@ angular.module('hyphe.definewebentitiesController', [])
 
       if(crawlExisting){
         $scope.existingList.forEach(function(obj){
-          if(obj.webentity.id !== undefined){
+          if(obj.webentity && obj.webentity.id !== undefined){
             list.push(cleanObj(obj))
           }
         })
