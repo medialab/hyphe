@@ -15,6 +15,8 @@ from elasticsearch import Elasticsearch, helpers
 from html2text import textify
 # load config variables
 from config import *
+import datetime
+import traceback
 
 def ensure_index_on_pages(mongo_pages_coll):
     print("building mongo index")
@@ -59,25 +61,33 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
 
             page["html"] = body
             page_to_index["textify"] = textify(body, encoding=encoding)
-            try:
-                page_to_index["dragnet"] = extract_content(body, encoding=encoding)
-            except Exception as e:
-                print("DRAGNET ERROR:", str(e))
-                page_to_index["dragnet"] = None
+            # try:
+            #     page_to_index["dragnet"] = extract_content(body, encoding=encoding)
+            # except Exception as e:
+                # print("DRAGNET ERROR")
+            page_to_index["dragnet"] = None
+            page_to_index["indexDate"] = datetime.datetime.now()
             pages.append(page_to_index)
         # index batch to ES
-        index_result, _ = helpers.bulk(es, [{
-            "_op_type": "update",
-            "doc_as_upsert": True,
-            "_id": md5(p['url'].encode('UTF8')).hexdigest(),
-            'doc':p}
-                for p in pages],
-            index='hyphe.%s.txt' % CORPUS)
+        try:
+            index_result, _ = helpers.bulk(es, [{
+                "_op_type": "update",
+                "doc_as_upsert": True,
+                "_id": md5(p['url'].encode('UTF8')).hexdigest(),
+                'doc':p}
+                    for p in pages],
+                index='hyphe_%s' % CORPUS)
+        except Exception as e:
+            print("error in index bulk")
+            traceback.print_stack()
+            exit(1)
         if index_result > 0:
             print("%s pages inserted"%(index_result))
         # update status in mongo
         mongo_update = mongo_pages_coll.update({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'to_index': False}}, multi=True, upsert=False)
         print(mongo_update)
+
+        # tag jobs when completed
         not_completed_jobs_pipeline = [
             {
             "$match": {
@@ -88,6 +98,7 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
                 "_id": "$_job"
             }}
         ]
+        # counting completed jobs
         not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
         print(not_completed_jobs)
         completed_jobs = jobs - not_completed_jobs
@@ -95,6 +106,8 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
             r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}, 'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']}}, {'$set': {'text_indexed': True}})
             if r.matched_count > 0:
                 print("%s of %s were fully indexed"%(r.matched_count, completed_jobs))
+       
+       
         # update web entity - page structure
         mongo_webupdates_coll =  mongo["hyphe_%s" % CORPUS]["WEupdates"]
         weupdates = mongo_webupdates_coll.find({"index_status": "PENDING"}).sort('timestamp')
@@ -149,7 +162,7 @@ def index_text_page(mongo, es, CORPUS, content_types=["text/plain", "text/html"]
                         }
                     }
                 print(updateQuery)
-                index_result = es.update_by_query(index='hyphe.%s.txt' % CORPUS, body = updateQuery, conflicts="proceed")
+                index_result = es.update_by_query(index='hyphe_%s' % CORPUS, body = updateQuery, conflicts="proceed")
                 print(index_result)
                 weupdates = mongo_webupdates_coll.update({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
 
@@ -209,10 +222,11 @@ if __name__ == '__main__':
     else:
         raise EnvironmentError("Elasticsearch failed to start.")
     print('Elasticsearch started!')
-    if es.indices.exists(index='hyphe.%s.txt' % CORPUS) and DELETE_INDEX:
+    if es.indices.exists(index='hyphe_%s' % CORPUS) and DELETE_INDEX:
         print('index deleted')
-        es.indices.delete(index='hyphe.%s.txt' % CORPUS)
-    if not es.indices.exists(index='hyphe.%s.txt' % CORPUS):
+        es.indices.delete(index='hyphe_%s' % CORPUS)
+
+    if not es.indices.exists(index='hyphe_%s' % CORPUS):
         if RESET_MONGO:
             dbpages.update({}, {'$set': {'to_index': True}}, multi=True, upsert=False)
             print('mongo index created')
@@ -226,7 +240,7 @@ if __name__ == '__main__':
             db["hyphe_%s" % CORPUS]["jobs"].update_many({},{'$unset':{'text_indexed':True}})
             
             print('set non-content page to not to_index')
-        es.indices.create(index='hyphe.%s.txt' % CORPUS, body = {
+        es.indices.create(index='hyphe_%s' % CORPUS, body = {
             "mappings": {
                 "properties": {
                     "lru": {
@@ -249,6 +263,12 @@ if __name__ == '__main__':
                     },
                     "html": {
                         "type": "text"
+                    },
+                    "indexDate": {
+                        "type": "date"
+                    },
+                    "WEUpdateDate": {
+                        "type": "date"
                     }
                 }
             }
