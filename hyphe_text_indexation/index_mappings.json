@@ -1,0 +1,33 @@
+{
+    "mappings": {
+        "properties": {
+            "lru": {
+                "type": "keyword"
+            },
+            "url": {
+                "type": "keyword"
+            },
+            "prefixes": {
+                "type": "keyword"
+            },
+            "webentity_id": {
+                "type": "keyword"
+            },
+            "textify": {
+                "type": "text"
+            },
+            "dragnet": {
+                "type": "text"
+            },
+            "html": {
+                "type": "text"
+            },
+            "indexDate": {
+                "type": "date"
+            },
+            "WEUpdateDate": {
+                "type": "date"
+            }
+        }
+    }
+}
