@@ -8,7 +8,7 @@ MONGO_HOST = os.environ.get("MONGO_HOST","localhost")
 MONGO_PORT = int(os.environ.get("MONGO_PORT", 27017))
 NB_INDEXATION_WORKERS = int(os.environ.get("NB_INDEXATION_WORKERS", 2))
 BATCH_SIZE = int(os.environ.get("BATCH_SIZE", 10))
-CORPUS = os.environ.get("CORPUS", "wikipedia")
+UPDATE_WE_FREQ = int(os.environ.get("UPDATE_WE_FREQ", 5))
 DELETE_INDEX = os.environ.get("DELETE_INDEX", 'true') == 'true'
 RESET_MONGO = os.environ.get("RESET_MONGO", 'true') == 'true'
 

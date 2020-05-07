@@ -6,6 +6,7 @@ import zlib
 import signal
 import traceback
 # utils
+from collections import Counter
 import datetime
 from hashlib import md5
 # elasticsearch deps
@@ -102,12 +103,11 @@ def indexation_task(corpus, es, mongo):
                 for p in pages],
             index='hyphe_%s' % corpus)
         if index_result > 0:
-            print("%s pages inserted"%(index_result))
+            print("%s: %s pages indexed"%(corpus, index_result))
         # update status in mongo
         mongo_update = mongo_pages_coll.update_many({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'to_index': False}}, upsert=False)
-        print(mongo_update)
     except Exception as e:
-        print("error in index bulk")
+        print("%s: error in index bulk"%corpus)
         raise e
     # tag jobs when completed
     not_completed_jobs_pipeline = [
@@ -127,21 +127,19 @@ def indexation_task(corpus, es, mongo):
         mongo_jobs_coll = mongo["hyphe_%s" % corpus]["jobs"]
         r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}, 'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']}}, {'$set': {'text_indexed': True}})
         if r.matched_count > 0:
-            print("%s of %s were fully indexed"%(r.matched_count, completed_jobs))
+            print("%s: %s of %s jobs were fully indexed"%(corpus, r.matched_count, completed_jobs))
 
 def updateWE_task(corpus, es, mongo):
     # update web entity - page structure
     mongo_webupdates_coll =  mongo["hyphe_%s" % corpus]["WEupdates"]
     mongo_jobs_coll =  mongo["hyphe_%s" % corpus]["jobs"]
     weupdates = list(mongo_webupdates_coll.find({"index_status": "PENDING"}).sort('timestamp'))
-    print("WE updates to process: %s"%len(weupdates))
+    print("%s: %s WE updates waiting"%(corpus, len(weupdates)))
     for weupdate in weupdates:
         nb_unindexed_jobs = mongo_jobs_coll.count_documents({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}, "started_at":{"$lt":weupdate['timestamp']}})
         # don't update WE structure in text index if there is one crawling job
-        print('checking number of unindexed jobs %s'%nb_unindexed_jobs)
         if nb_unindexed_jobs == 0:
-            print('updating index')
-            print(weupdate)
+            print('%s: updating index WE_is %s => %s'%(corpus, weupdate['old_webentity'], weupdate['new_webentity']))
             # two cases , trivial if no prefixes, complexe otherwiase
             if weupdate['prefixes'] and len(weupdate['prefixes']) > 0:
                 updateQuery = {
@@ -184,11 +182,10 @@ def updateWE_task(corpus, es, mongo):
                         }
                     }
                 }
-            print(updateQuery)
             index_result = es.update_by_query(index='hyphe_%s' % corpus, body = updateQuery, conflicts="proceed")
-            print(index_result)
-            weupdates = mongo_webupdates_coll.update({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
-            return 0
+            print("%s: %s pages updates"%(corpus, index_result['updated']))
+            weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
+
 # worker
 def indexation_worker(worker_id, input):
     es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT_SEC)
@@ -208,7 +205,7 @@ def indexation_worker(worker_id, input):
 
 
 # Create queues
-task_queue = Queue(NB_INDEXATION_WORKERS*2)
+task_queue = Queue(NB_INDEXATION_WORKERS)
 
 # start workers
 workers = []
@@ -222,16 +219,22 @@ for i in range(NB_INDEXATION_WORKERS):
 
 # TODO: INTERRUPTION HANDLING
 first_run = True
+UPDATE_WE_FREQ = 5 # unit is the number of indexation batches 
+nb_index_batches_since_last_update = Counter()
+throttle = 0.5
 while True:
     # get and init corpus index
     corpora = []
+    nb_pages_to_index = {}
+    nb_we_updates = {}
     for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection=["_id"]):
         corpus = c["_id"]
+        mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
         if first_run and RESET_MONGO:
-            dbpages = mongo["hyphe_%s" % corpus]["pages"]
-            dbpages.update_many({}, {'$set': {'to_index': True}}, upsert=False)
+            mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
+            mongo_pages_coll.update_many({}, {'$set': {'to_index': True}}, upsert=False)
             print('mongo index created')
-            dbpages.update_many({'$or': [
+            mongo_pages_coll.update_many({'$or': [
                 {'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}},
                 {'body': {'$exists': False}},
                 {'status': {"$ne": 200}},
@@ -240,7 +243,11 @@ while True:
             mongo["hyphe_%s" % corpus]["WEupdates"].update_many({},{'$set':{'index_status': 'PENDING'}})
             mongo["hyphe_%s" % corpus]["jobs"].update_many({},{'$unset':{'text_indexed':True}})
         
-
+        nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
+            "to_index": True,
+            "forgotten": False
+        })
+        nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
         corpora.append(corpus)
         # check index exists in elasticsearch
         index_exists =  es.indices.exists(index=index_name(corpus))
@@ -269,22 +276,30 @@ while True:
     
     # add tasks in queue
     # TODO: check there are pages to index
+   
+   
     for c in corpora:
-        task_queue.put({"type": "indexation", "corpus": c})
-    # TODO: check there are updates to be done
+        if nb_pages_to_index[c] > 0:
+            task_queue.put({"type": "indexation", "corpus": c})
+        nb_index_batches_since_last_update[c]+=1
+    # TODO: SET a different order for updateWE ? 
     for c in corpora:
-        task_queue.put({"type": "updateWE", "corpus": c})
+        if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
+            task_queue.put({"type": "updateWE", "corpus": c})
+            nb_index_batches_since_last_update[c]=0
     first_run = False
-    # update carwl job index status
 
     # loop
     #TODO: throttle if batch empty
-        # if len(pages) == 0:
-        #     time.sleep(throttle)
-        #     if throttle < 5:
-        #         throttle += 0.5
-        # else :
-        #     throttle = 0.5
+    if sum(nb_pages_to_index.values()) == 0 and sum(nb_we_updates.values()) == 0: 
+        # wait for more tasks to be created
+        print('waiting %s'%throttle)
+        time.sleep(throttle)
+        if throttle < 5:
+            throttle += 0.5
+    else:
+        # next throttlet will be 
+        throttle = 0.5
  
     # # Tell child processes to stop
     # for i in range(NB_PROCESS):
