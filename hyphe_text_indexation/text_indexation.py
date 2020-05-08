@@ -54,18 +54,17 @@ hyphe_corpus_coll = mongo["hyphe"]["corpus"]
 
 
 
-def indexation_task(corpus, es, mongo):
+def indexation_task(corpus, batch_uuid, es, mongo):
     logg = logging.getLogger()
     total = 0
     jobs = set()
     pages = []
     mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-    # take XXX pages sorted by timestamp if index = false
+    # get the prepared batch
     query = {
-        "to_index": True,
-        "forgotten": False
+        "to_index": "IN_BATCH_%s"%batch_uuid
     }
-    for page in mongo_pages_coll.find(query).sort('timestamp').limit(BATCH_SIZE):
+    for page in mongo_pages_coll.find(query):
         jobs.add(page['_job'])
         stems = page['lru'].rstrip('|').split('|')
         page_to_index = {
@@ -110,12 +109,13 @@ def indexation_task(corpus, es, mongo):
             index='hyphe_%s' % corpus,
             raise_on_error=False)
         if nb_indexed_docs > 0:
-            logg.info("%s: %s pages indexed"%(corpus, nb_indexed_docs))
+            logg.info("%s: %s pages indexed in batch %s"%(corpus, nb_indexed_docs, batch_uuid))
         # deal with indexing errors
         if len(errors)>0:
             logg.info("%s doc were not indexed in the batch"%len(errors))
             logg.debug(errors)
             not_indexed_doc_ids = set(e["update"]["_id"] for e in errors)
+            #TODO: depending on error we might ignore some page so far we will retry in next batch
         else:
             not_indexed_doc_ids = []
         # removing errornous doc from list 
@@ -128,8 +128,11 @@ def indexation_task(corpus, es, mongo):
                 not_indexed_page_urls.append(p['url'])
 
         # update status in mongo
-        mongo_update = mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'to_index': False}}, upsert=False)
-        # remove page from batch ?
+        mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'to_index': False}}, upsert=False)
+        # remove other pages from batch back to index = true (typically errors page)
+        mongo_pages_coll.update_many({'to_index' : 'IN_BATCH_%s'%batch_uuid}, {'$set': {'to_index': True}}, upsert=False)
+        
+
     except Exception as e:
         # we use raise_on_error=False so we consider an exception to discard the complete batch
         pages = []
@@ -236,7 +239,7 @@ def indexation_worker(input, logging_queue):
     for task in iter(input.get, 'STOP'):
         try:
             if task['type'] == "indexation":
-                indexation_task(task['corpus'] , es, mongo)
+                indexation_task(task['corpus'], task['batch_uuid'], es, mongo)
             if task['type'] == "updateWE":
                 updateWE_task(task['corpus'], es, mongo)
         except Exception:
@@ -345,7 +348,17 @@ try:
         # add tasks in queue
         for c in corpora:
             if nb_pages_to_index[c] > 0:
-                task_queue.put({"type": "indexation", "corpus": c})
+                # create a batch
+                batch_ids = [d['_id'] for d in mongo["hyphe_%s" % c]["pages"].find({
+                    "to_index": True,
+                    "forgotten": False,
+                }, projection=["_id"]).sort('timestamp').limit(BATCH_SIZE)]
+                batch_uuid = md5("|".join(batch_ids).encode('UTF8')).hexdigest()
+                # change index status to "in batch"
+                logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
+                mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'to_index': 'IN_BATCH_%s'%batch_uuid}})
+                # create task with corpus and batch uuid
+                task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid})
             nb_index_batches_since_last_update[c]+=1
         # TODO: SET a different order for updateWE ? 
         for c in corpora:
@@ -364,7 +377,9 @@ try:
         else:
             # next throttlet will be 
             throttle = 0.5
-except KeyboardInterrupt:
+except Exception:
+    logg.exception("in main")
+finally:
     logg.info('waiting for workers to stop')
     # flush pending tasks
     while not task_queue.empty():
@@ -375,6 +390,7 @@ except KeyboardInterrupt:
     # wait for them to finish their current task
     for w in workers:
         w.join(timeout=1000)
+    # TODO : remove in_batch status from page in mongo ?
     task_queue.close()
     logg.info('workers died, killing myself')
     logging_listener.stop()
