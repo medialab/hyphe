@@ -69,6 +69,7 @@ def indexation_task(corpus, es, mongo):
         jobs.add(page['_job'])
         stems = page['lru'].rstrip('|').split('|')
         page_to_index = {
+            '_id': md5(page['url'].encode('UTF8')).hexdigest(),
             'url': page['url'],
             'lru': page['lru'],
             'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))]
@@ -99,19 +100,43 @@ def indexation_task(corpus, es, mongo):
         pages.append(page_to_index)
     # index batch to ES
     try:
-        index_result, _ = helpers.bulk(es, [{
-            "_op_type": "update",
-            "doc_as_upsert": True,
-            "_id": md5(p['url'].encode('UTF8')).hexdigest(),
-            'doc':p}
-                for p in pages],
-            index='hyphe_%s' % corpus)
-        if index_result > 0:
-            logg.info("%s: %s pages indexed"%(corpus, index_result))
+        nb_indexed_docs, errors = helpers.bulk(es, [{
+                "_op_type": "update",
+                "doc_as_upsert": True,
+                "_id": p['_id'],
+                # we don't index _id as a doc field...
+                'doc':{k:v for k,v in p.items() if k !='_id'} 
+            } for p in pages],
+            index='hyphe_%s' % corpus,
+            raise_on_error=False)
+        if nb_indexed_docs > 0:
+            logg.info("%s: %s pages indexed"%(corpus, nb_indexed_docs))
+        # deal with indexing errors
+        if len(errors)>0:
+            logg.info("%s doc were not indexed in the batch"%len(errors))
+            logg.debug(errors)
+            not_indexed_doc_ids = set(e["update"]["_id"] for e in errors)
+        else:
+            not_indexed_doc_ids = []
+        # removing errornous doc from list 
+        indexed_page_urls = []
+        not_indexed_page_urls = []
+        for p in pages:
+            if p["_id"] not in not_indexed_doc_ids:
+                indexed_page_urls.append(p['url'])
+            else:
+                not_indexed_page_urls.append(p['url'])
+
         # update status in mongo
-        mongo_update = mongo_pages_coll.update_many({'url' : {'$in' : [p['url'] for p in pages]}}, {'$set': {'to_index': False}}, upsert=False)
+        mongo_update = mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'to_index': False}}, upsert=False)
+        # remove page from batch ?
     except Exception as e:
+        # we use raise_on_error=False so we consider an exception to discard the complete batch
+        pages = []
         logg.exception("%s: error in index bulk"%corpus)
+        logg.debug(e)
+        return 1
+        
     # tag jobs when completed
     not_completed_jobs_pipeline = [
         {
@@ -190,7 +215,8 @@ def updateWE_task(corpus, es, mongo):
                     }
                 }
             index_result = es.update_by_query(index='hyphe_%s' % corpus, body = updateQuery, conflicts="proceed")
-            logg.info("%s: %s pages updates"%(corpus, index_result['updated']))
+            logg.debug(index_result)
+            logg.info("%s: %s pages updated in %sms"%(corpus, index_result['updated'], index_result['took']))
             weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
 
 # worker
@@ -260,7 +286,6 @@ try:
         p.start()
         workers.append(p)
 
-    # TODO: INTERRUPTION HANDLING
     first_run = True
     UPDATE_WE_FREQ = 5 # unit is the number of indexation batches 
     nb_index_batches_since_last_update = Counter()
