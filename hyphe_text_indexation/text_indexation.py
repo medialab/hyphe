@@ -264,7 +264,7 @@ try:
     for i in range(NB_INDEXATION_WORKERS):
         # create a dedicated connections to db
     
-        p = Process(target=indexation_worker, args=(task_queue, logging_queue), daemon=True, name="worder-%s"%i)
+        p = Process(target=indexation_worker, args=(task_queue, logging_queue), daemon=True, name="worker-%s"%i)
         p.start()
         workers.append(p)
 
@@ -410,7 +410,7 @@ finally:
         task_queue.put('STOP')
     # wait for them to finish their current task
     for w in workers:
-        w.join(timeout=1000)
+        w.join(timeout=3000)
     # TODO : remove in_batch status from page in mongo ?
     task_queue.close()
     logg.info('workers died, killing myself')
