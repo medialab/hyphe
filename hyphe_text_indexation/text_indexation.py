@@ -57,7 +57,7 @@ hyphe_corpus_coll = mongo["hyphe"]["corpus"]
 def indexation_task(corpus, batch_uuid, es, mongo):
     logg = logging.getLogger()
     total = 0
-    jobs = set()
+
     pages = []
     mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
     # get the prepared batch
@@ -65,7 +65,7 @@ def indexation_task(corpus, batch_uuid, es, mongo):
         "to_index": "IN_BATCH_%s"%batch_uuid
     }
     for page in mongo_pages_coll.find(query):
-        jobs.add(page['_job'])
+        
         stems = page['lru'].rstrip('|').split('|')
         page_to_index = {
             '_id': md5(page['url'].encode('UTF8')).hexdigest(),
@@ -139,30 +139,8 @@ def indexation_task(corpus, batch_uuid, es, mongo):
         logg.exception("%s: error in index bulk"%corpus)
         logg.debug(e)
         return 1
-        
-    # tag jobs when completed
-    not_completed_jobs_pipeline = [
-        {
-            "$match": {
-            "_job" : {"$in": list(jobs)},
-            "to_index": True
-            }
-        },
-        {
-            "$group": {
-                "_id": "$_job"
-            }
-        }
-    ]
-    # counting completed jobs
-    not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
-    completed_jobs = jobs - not_completed_jobs
-    if len(completed_jobs) > 0:
-        mongo_jobs_coll = mongo["hyphe_%s" % corpus]["jobs"]
-        r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}, 'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']}}, {'$set': {'text_indexed': True}})
-        if r.matched_count > 0:
-            logg.info("%s: %s of %s jobs were fully indexed"%(corpus, r.matched_count, completed_jobs))
-
+    return 0     
+   
 def updateWE_task(corpus, es, mongo):
     logg = logging.getLogger()
     # update web entity - page structure
@@ -361,6 +339,44 @@ try:
                 # create task with corpus and batch uuid
                 task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid})
             nb_index_batches_since_last_update[c]+=1
+
+        # checking job completion 
+        for c in corpora:
+            mongo_jobs_coll = mongo["hyphe_%s" % c]["jobs"]
+            mongo_pages_coll = mongo["hyphe_%s" % c]["pages"]
+            # look for unindexed but finished jobs
+            pending_jobs_ids = set([j['crawljob_id'] for j in mongo_jobs_coll.find({
+                'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']},
+                'text_indexed': {'$ne': True}
+            }, projection=('_id','crawljob_id'))])
+            
+            # tag jobs when completed
+            not_completed_jobs_pipeline = [
+                {
+                    "$match": {
+                        "_job" : {"$in": list(pending_jobs_ids)},
+                        "to_index": True,
+                        "forgotten": False
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": "$_job"
+                    }
+                }
+            ]
+            # counting completed jobs
+            not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
+            completed_jobs = pending_jobs_ids - not_completed_jobs
+            
+            if len(completed_jobs) > 0:
+                r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}}, {'$set': {'text_indexed': True}})
+                if r.modified_count != len(completed_jobs):
+                    logg.warning('only %s jobs were modified on %s completed ?'%(r.modified_count, len(completed_jobs)))
+                logg.info("%s: %s jobs were fully indexed. %s pending."%(c, len(completed_jobs), len(not_completed_jobs)))
+
+
+
         # TODO: SET a different order for updateWE ? 
         for c in corpora:
             if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
