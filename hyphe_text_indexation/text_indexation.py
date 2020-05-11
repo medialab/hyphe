@@ -112,26 +112,28 @@ def indexation_task(corpus, batch_uuid, es, mongo):
             logg.info("%s: %s pages indexed in batch %s"%(corpus, nb_indexed_docs, batch_uuid))
         # deal with indexing errors
         if len(errors)>0:
-            logg.info("%s doc were not indexed in the batch"%len(errors))
-            logg.debug(errors)
+            logg.warning("%s doc were not indexed in the batch %s"%(len(errors), batch_uuid))
+            logg.error(errors)
             not_indexed_doc_ids = set(e["update"]["_id"] for e in errors)
-            #TODO: depending on error we might ignore some page so far we will retry in next batch
+            error_messages = {e["update"]["_id"]: "%s : %s"%(e["update"]["error"]["type"], e["update"]["error"]["reason"]) for e in errors}
         else:
             not_indexed_doc_ids = []
         # removing errornous doc from list 
         indexed_page_urls = []
-        not_indexed_page_urls = []
+        not_indexed_page = []
         for p in pages:
             if p["_id"] not in not_indexed_doc_ids:
                 indexed_page_urls.append(p['url'])
             else:
-                not_indexed_page_urls.append(p['url'])
+                not_indexed_page.append({'url':p['url'], 'error_message': error_messages[p['_id']]})
 
         # update status in mongo
+        # TODO : add to_index batch in query ?
         mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'to_index': False}}, upsert=False)
-        # remove other pages from batch back to index = true (typically errors page)
-        mongo_pages_coll.update_many({'to_index' : 'IN_BATCH_%s'%batch_uuid}, {'$set': {'to_index': True}}, upsert=False)
-        
+        # not indexed page beacause of errors are discarded 
+        if len(not_indexed_page)>0:
+            for p in not_indexed_page:
+                mongo_pages_coll.update_one({'url' : p['url']}, {'$set': {'to_index': "ERROR_IN_INDEXATION", 'text_indexation_error': p['error_message']}}, upsert=False)        
 
     except Exception as e:
         # we use raise_on_error=False so we consider an exception to discard the complete batch
