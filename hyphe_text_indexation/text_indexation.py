@@ -180,9 +180,10 @@ def updateWE_task(corpus, es, mongo):
                 updateQuery = {
                     "script": {
                     "lang": "painless",
-                    "source": "ctx._source.webentity_id = params.new_webentity_id",
+                    "source": "ctx._source.webentity_id = params.new_webentity_id; ctx._source.WEUpdateDate=params.updateDate",
                     "params": {
-                        "new_webentity_id": weupdate['new_webentity']
+                        "new_webentity_id": weupdate['new_webentity'],
+                        "updateDate": datetime.datetime.now()
                     }
                     },
                     "query": {
@@ -219,7 +220,7 @@ def updateWE_task(corpus, es, mongo):
                 }
             index_result = es.update_by_query(index='hyphe_%s' % corpus, body = updateQuery, conflicts="proceed")
             logg.debug(index_result)
-            logg.info("%s: %s pages updated in %sms"%(corpus, index_result['updated'], index_result['took']))
+            logg.info("%s: %s pages updated in %sms update %s"%(corpus, index_result['updated'], index_result['took'], weupdate['_id']))
             weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
 
 # worker
@@ -377,6 +378,10 @@ try:
         else:
             # next throttlet will be 
             throttle = 0.5
+            
+except KeyboardInterrupt:
+    # do not raise, closing nicely done in finally clause
+    pass
 except Exception:
     logg.exception("in main")
 finally:
