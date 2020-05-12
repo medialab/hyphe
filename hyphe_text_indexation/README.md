@@ -4,12 +4,12 @@
 
 ### use docker for the rest of hyphe
 
-Edit the file `docker-compose-text-indexation.yml` and comment the lines about the `text-indexation` service.
+Edit the file `docker-compose-text_indexation.yml` and comment the lines about the `text_indexation` service.
 Then :
 
 ```bash
 cd hyphe
-docker-compose -f docker-compose.yml -f docker-compose-text-indexation.yml  up
+docker-compose -f docker-compose.yml -f docker-compose-text_indexation.yml  up
 ```
 
 ### prepare deps

@@ -1,6 +1,9 @@
 FROM python:3.5
 
-ADD ./docker-entrypoint.sh /docker-entrypoint.sh
-RUN ["chmod", "+x", "/docker-entrypoint.sh"]
+COPY . /hyphe_text_indexation
+WORKDIR /hyphe_text_indexation
 
-ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh", "$MODE"]
+RUN ["chmod", "+x", "./install_deps.sh"]
+RUN ["./install_deps.sh"]
+
+ENTRYPOINT ["python", "text_indexation.py"]

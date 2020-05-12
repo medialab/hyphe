@@ -12,13 +12,11 @@ services:
     volumes:
       - ${DATA_PATH}elasticsearch-data:/usr/share/elasticsearch/data
 
-  text-indexation:
+  text_indexation:
     build: ./hyphe_text_indexation
     links:
       - "elasticsearch:elasticsearch"
       - "mongo:mongo"
-    volumes:
-      - "./hyphe_text_indexation:/hyphe_text_indexation"
     environment:
       - HYPHE_MONGO_HOST=mongo
       - HYPHE_ELASTICSEARCH_HOST=elasticsearch
