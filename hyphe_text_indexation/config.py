@@ -8,7 +8,7 @@ MONGO_HOST = os.environ.get("HYPHE_MONGO_HOST","localhost")
 MONGO_PORT = int(os.environ.get("HYPHE_MONGO_PORT", 27017))
 NB_INDEXATION_WORKERS = int(os.environ.get("HYPHE_TXT_INDEXATION_NB_INDEXATION_WORKERS", 2))
 BATCH_SIZE = int(os.environ.get("HYPHE_TXT_INDEXATION_BATCH_SIZE", 10))
-UPDATE_WE_FREQ = int(os.environ.get("UHYPHE_TXT_INDEXATION_PDATE_WE_FREQ", 5))
+UPDATE_WE_FREQ = int(os.environ.get("HYPHE_TXT_INDEXATION_UPDATE_WE_FREQ", 5))
 DELETE_INDEX = os.environ.get("HYPHE_TXT_INDEXATION_DELETE_INDEX", 'false') == 'true'
 RESET_MONGO = os.environ.get("HYPHE_TXT_INDEXATION_RESET_MONGO", 'false') == 'true'
 
