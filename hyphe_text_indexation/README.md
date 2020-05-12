@@ -1,13 +1,15 @@
 # Hyphe corpus's web pages text indexation
 
-
 ## develop environment
 
 ### use docker for the rest of hyphe
 
+Edit the file `docker-compose-text-indexation.yml` and comment the lines about the `text-indexation` service.
+Then :
+
 ```bash
 cd hyphe
-docker-compose -f ./docker-compose-text-indexation-dev.yml  up
+docker-compose -f docker-compose.yml -f docker-compose-text-indexation.yml  up
 ```
 
 ### prepare deps
@@ -32,4 +34,4 @@ optional arguments:
   --nb-indexation-workers NB_INDEXATION_WORKERS
   --delete-index
   --reset-mongo
-  ```
+```

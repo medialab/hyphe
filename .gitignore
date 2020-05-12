@@ -5,6 +5,7 @@ config/salt
 .env
 config-backend.env
 config-frontend.env
+config-text_indexation.env
 hyphe-server.lock
 *.pyc
 pip-log.txt
@@ -24,7 +25,7 @@ hyphe_backend/crawler/hcicrawler/tlds_tree.py
 build/
 releases/
 dependencies/
-
+hyphe_text_indexation/hyphe_text_indexation.log
 #
 # Mac files
 #

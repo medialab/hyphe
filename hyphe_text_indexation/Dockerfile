@@ -1,11 +1,6 @@
 FROM python:3.5
 
-COPY . /hyphe_text_indexation
-WORKDIR /hyphe_text_indexation
-RUN sh install_deps.sh
-RUN chmod u+x liveTextIndexation.py
-RUN chmod +x ./wait-for-elasticsearch.sh
+ADD ./docker-entrypoint.sh /docker-entrypoint.sh
+RUN ["chmod", "+x", "/docker-entrypoint.sh"]
 
-
-CMD ["python","/hyphe_text_indexation/liveTextIndexation.py"]
-#CMD ["./wait-for-elasticsearch.sh", "http://elasticsearch:9200", "--", "python", "./liveTextIndexation.py"]
+ENTRYPOINT ["/bin/bash", "/docker-entrypoint.sh", "$MODE"]

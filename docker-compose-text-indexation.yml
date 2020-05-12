@@ -1,54 +1,8 @@
 version: "2"
 volumes:
-    archives:
-    config:
-    traph-data:
-    mongo-data:
-    elasticsearch-data:
-    hyphe_text_indexation:
+  elasticsearch-data:
+  text_indexation:
 services:
-  backend:
-    restart: ${RESTART_POLICY}
-    image: scpomedialab/hyphe_backend:${TAG}
-    build: .
-    links:
-     - "mongo:mongo"
-     - "crawler:crawler"
-    env_file:
-     - config-backend.env
-    environment:
-     - HYPHE_MONGODB_HOST=mongo
-     - HYPHE_CRAWLER_HOST=crawler
-     - HYPHE_TRAPH_DATAPATH=/app/traph-data
-    volumes:
-      - config:/app/config
-      - ${DATA_PATH}archives:/app/archives
-      - ${DATA_PATH}traph-data:/app/traph-data
-  frontend:
-    restart: ${RESTART_POLICY}
-    image: scpomedialab/hyphe_frontend:${TAG}
-    build: ./hyphe_frontend
-    ports:
-      - "${PUBLIC_PORT}:80"
-    links:
-      - "backend:backend"
-    env_file:
-     - config-frontend.env
-  crawler:
-    restart: ${RESTART_POLICY}
-    image: scpomedialab/hyphe_crawler:${TAG}
-    build: ./hyphe_backend/crawler
-    ports:
-      - "6800:6800"
-    links:
-      - "mongo:mongo"
-  mongo:
-    restart: ${RESTART_POLICY}
-    image: mongo:3.0
-    ports:
-      - "27017:27017"
-    volumes:
-      - ${DATA_PATH}mongo-data:/data/db
   elasticsearch:
     image: elasticsearch:7.4.0
     ports:
@@ -57,7 +11,8 @@ services:
       - discovery.type=single-node
     volumes:
       - ${DATA_PATH}elasticsearch-data:/usr/share/elasticsearch/data
-  hyphe-text-indexation:
+
+  text-indexation:
     build: ./hyphe_text_indexation
     links:
       - "elasticsearch:elasticsearch"
@@ -65,7 +20,5 @@ services:
     volumes:
       - "./hyphe_text_indexation:/hyphe_text_indexation"
     environment:
-      - CORPUS=wikipedia
-      - MONGO_HOST=mongo
-      - ELASTICSEARCH_HOST=elasticsearch
-      - BATCH_SIZE=1000
+      - HYPHE_MONGO_HOST=mongo
+      - HYPHE_ELASTICSEARCH_HOST=elasticsearch
