@@ -4,7 +4,8 @@ volumes:
     config:
     traph-data:
     mongo-data:
-    scrapyd-data:
+    scrapyd-logs:
+    scrapyd-eggs:
 services:
   backend:
     restart: ${RESTART_POLICY}
@@ -40,7 +41,8 @@ services:
     links:
       - "mongo:mongo"
     volumes:
-      - ${DATA_PATH}scrapyd-data:/var/lib/scrapyd
+      - ${DATA_PATH}scrapyd-logs:/var/log/scrapyd
+      - ${DATA_PATH}scrapyd-eggs:/var/lib/scrapyd
   mongo:
     restart: ${RESTART_POLICY}
     image: mongo:3.0
