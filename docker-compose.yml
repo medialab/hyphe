@@ -4,6 +4,7 @@ volumes:
     config:
     traph-data:
     mongo-data:
+    scrapyd-data:
 services:
   backend:
     restart: ${RESTART_POLICY}
@@ -38,6 +39,8 @@ services:
     build: ./hyphe_backend/crawler
     links:
       - "mongo:mongo"
+    volumes:
+      - ${DATA_PATH}scrapyd-data:/var/lib/scrapyd
   mongo:
     restart: ${RESTART_POLICY}
     image: mongo:3.0
