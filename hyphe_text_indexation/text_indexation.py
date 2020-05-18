@@ -283,6 +283,9 @@ try:
         corpora = []
         nb_pages_to_index = {}
         nb_we_updates = {}
+        # retrive existing indices in ES
+        existing_es_indices = es.indices.get("hyphe_*")
+        index_to_keep = set()
         for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection=["_id"]):
             corpus = c["_id"]
             mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
@@ -306,7 +309,7 @@ try:
             nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
             corpora.append(corpus)
             # check index exists in elasticsearch
-            index_exists =  es.indices.exists(index=index_name(corpus))
+            index_exists =  index_name(corpus) in existing_es_indices
             if not index_exists or (first_run and index_exists and DELETE_INDEX):
                 if (first_run and  index_exists and DELETE_INDEX):
                     es.indices.delete(index=index_name(corpus))
@@ -314,21 +317,32 @@ try:
                 # create ES index
                 es.indices.create(index=index_name(corpus), body = index_mappings)        
                 logg.info("index %s created"%corpus)
+            index_to_keep.add(index_name(corpus))
+        # checking if some corpus has been deleted
+        index_to_delete = existing_es_indices.keys() - index_to_keep
+        if len(index_to_delete) > 0:
+            # cleaning ES after corpus been deleted in mongo
+            logg.info('deleting %s indices'%index_to_delete)
+            es.indices.delete(index=','.join(index_to_delete))
         # order corpus by last inserts
-        lastIndexDates = {r['key']:r['maxIndexDate']['value'] for r in es.search(body={
-            "size":0,
-            "aggs": {
-                "indices": {
-                "terms": {
-                    "field": "_index"   
-                },
-                "aggs":{
-                    "maxIndexDate": { "max" : { "field" : "indexDate" } }
-                    }
-                }  
-            }
-        })["aggregations"]["indices"]["buckets"]}
-        corpora = sorted(corpora, key=lambda c : lastIndexDates[index_name(c)] if index_name(c) in lastIndexDates else 0)
+        if len(index_to_keep)>0:
+            last_index_dates = {r['key']:r['maxIndexDate']['value'] for r in es.search(body={
+                "size":0,
+                "aggs": {
+                    "indices": {
+                    "terms": {
+                        "field": "_index"   
+                    },
+                    "aggs":{
+                        "maxIndexDate": { "max" : { "field" : "indexDate" } }
+                        }
+                    }  
+                }
+            })["aggregations"]["indices"]["buckets"]}
+        else:
+            last_index_dates = {}
+
+        corpora = sorted(corpora, key=lambda c : last_index_dates[index_name(c)] if index_name(c) in last_index_dates else 0)
         
         # add tasks in queue
         for c in corpora:
