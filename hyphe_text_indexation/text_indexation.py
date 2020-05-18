@@ -43,7 +43,7 @@ def indexation_task(corpus, batch_uuid, es, mongo):
     mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
     # get the prepared batch
     query = {
-        "to_index": "IN_BATCH_%s"%batch_uuid
+        "text_indexation_status": "IN_BATCH_%s"%batch_uuid
     }
     for page in mongo_pages_coll.find(query):
         
@@ -110,11 +110,11 @@ def indexation_task(corpus, batch_uuid, es, mongo):
 
         # update status in mongo
         # TODO : add to_index batch in query ?
-        mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'to_index': False}}, upsert=False)
+        mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
         # not indexed page beacause of errors are discarded 
         if len(not_indexed_page)>0:
             for p in not_indexed_page:
-                mongo_pages_coll.update_one({'url' : p['url']}, {'$set': {'to_index': "ERROR_IN_INDEXATION", 'text_indexation_error': p['error_message']}}, upsert=False)        
+                mongo_pages_coll.update_one({'url' : p['url']}, {'$set': {'text_indexation_status': "ERROR_IN_INDEXATION", 'text_indexation_error': p['error_message']}}, upsert=False)        
 
     except Exception as e:
         # we use raise_on_error=False so we consider an exception to discard the complete batch
@@ -293,18 +293,18 @@ try:
             if first_run and RESET_MONGO:
                 logg.info("resetting mongo")
                 mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-                mongo_pages_coll.update_many({}, {'$set': {'to_index': True}}, upsert=False)
+                mongo_pages_coll.update_many({'text_indexation_status': {'$ne': 'DONT_INDEX'}}, {'$set': {'text_indexation_status': 'TO_INDEX'}}, upsert=False)
                 mongo_pages_coll.update_many({'$or': [
                     {'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}},
                     {'body': {'$exists': False}},
                     {'status': {"$ne": 200}},
                     {'size': 0}]},
-                    {'$set': {'to_index': False}},  upsert=False)
+                    {'$set': {'text_indexation_status': 'DONT_INDEX'}},  upsert=False)
                 mongo["hyphe_%s" % corpus]["WEupdates"].update_many({},{'$set':{'index_status': 'PENDING'}})
                 mongo["hyphe_%s" % corpus]["jobs"].update_many({},{'$unset':{'text_indexed':True}})
             
             nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
-                "to_index": True,
+                "text_indexation_status": "TO_INDEX",
                 "forgotten": False
             })
             nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
@@ -350,13 +350,13 @@ try:
             if nb_pages_to_index[c] > 0:
                 # create a batch
                 batch_ids = [d['_id'] for d in mongo["hyphe_%s" % c]["pages"].find({
-                    "to_index": True,
+                    "text_indexation_status": "TO_INDEX",
                     "forgotten": False,
                 }, projection=["_id"]).sort('timestamp').limit(BATCH_SIZE)]
                 batch_uuid = md5("|".join(batch_ids).encode('UTF8')).hexdigest()
                 # change index status to "in batch"
                 logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
-                mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'to_index': 'IN_BATCH_%s'%batch_uuid}})
+                mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
                 # create task with corpus and batch uuid
                 task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid})
             nb_index_batches_since_last_update[c]+=1
@@ -376,7 +376,7 @@ try:
                 {
                     "$match": {
                         "_job" : {"$in": list(pending_jobs_ids)},
-                        "to_index": True,
+                        "text_indexation_status": "TO_INDEX",
                         "forgotten": False
                     }
                 },
