@@ -4,7 +4,7 @@ volumes:
   text_indexation:
 services:
   elasticsearch:
-    image: elasticsearch:7.4.0
+    image: elasticsearch:7.5.2
     ports:
       - "9200:9200"
     environment:

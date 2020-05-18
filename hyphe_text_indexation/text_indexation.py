@@ -4,14 +4,13 @@ import json
 import time
 import zlib
 import signal
-import traceback
-import signal
+import os
 # utils
 from collections import Counter
 import datetime
 from hashlib import md5
 # elasticsearch deps
-from elasticsearch import Elasticsearch, helpers
+from elasticsearch import helpers
 from elasticsearch_utils import connect_to_es
 # multiprocessing
 from multiprocessing import Process, Queue
@@ -20,36 +19,18 @@ import logging.handlers
 # html to text methods
 from html2text import textify
 # TODO: import only if needed by conf to avoid installing deps ? 
-from dragnet import extract_content, extract_content_and_comments
+from dragnet import extract_content
 
 
 
 
 
 
-# init
-# Initiate MongoDB connection and build index on pages
-try:
-    print("connecting to mongo...")
-    mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
-except Exception as e:
-    print("can't connect to mongo")
-    exit('Could not initiate connection to MongoDB')
 
-
-# initiate elasticsearch connection
-# connect to ES
-# Wait for Elasticsearch to come up.
-es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT_SEC)
-print('Elasticsearch started!')
-
-with open('index_mappings.json', 'r', encoding='utf8') as f:
-    index_mappings = json.load(f)
 
 
 def index_name(c) :
     return "hyphe_%s"%c
-hyphe_corpus_coll = mongo["hyphe"]["corpus"]
 
 
 
@@ -231,13 +212,25 @@ def indexation_worker(input, logging_queue):
     exit
 
 
-# Create queues
-task_queue = Queue(NB_INDEXATION_WORKERS)
+# init
+
+# set logging
+if not os.path.exists('./log'):
+    os.makedirs('./log')
+
 # logging queue
 logging_queue = Queue(-1)  # no limit on size
 
-# set logging
-file_handler = logging.handlers.RotatingFileHandler('hyphe_text_indexation.log', 'a', 5242880, 4)
+# The log output will display the thread which generated
+# the event (the main thread) rather than the internal
+# thread which monitors the internal queue. This is what
+# you want to happen.
+queue_handler = logging.handlers.QueueHandler(logging_queue)
+logg = logging.getLogger()
+logg.setLevel(logging.INFO)
+logging.getLogger(name='elasticsearch').setLevel(logging.WARNING)
+logg.addHandler(queue_handler)
+file_handler = logging.handlers.RotatingFileHandler('./log/hyphe_text_indexation.log', 'a', 5242880, 4)
 console_handler = logging.StreamHandler()
 formatter = logging.Formatter('%(asctime)s %(processName)s %(levelname)s %(message)s')
 file_handler.setFormatter(formatter)
@@ -245,19 +238,29 @@ file_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(formatter)
 console_handler.setLevel(logging.DEBUG)
 logging_listener = logging.handlers.QueueListener(logging_queue, file_handler, console_handler)
+logging_listener.start()
 
 try: 
+    # Initiate MongoDB connection and build index on pages
+    try:
+        print("connecting to mongo...")
+        mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+    except Exception as e:
+        logg.exception("can't connect to mongo")
+        exit('Could not initiate connection to MongoDB')
 
-    logging_listener.start()
-    # The log output will display the thread which generated
-    # the event (the main thread) rather than the internal
-    # thread which monitors the internal queue. This is what
-    # you want to happen.
-    queue_handler = logging.handlers.QueueHandler(logging_queue)
-    logg = logging.getLogger()
-    logg.setLevel(logging.INFO)
-    logging.getLogger(name='elasticsearch').setLevel(logging.WARNING)
-    logg.addHandler(queue_handler)
+
+    # initiate elasticsearch connection
+    # connect to ES
+    # Wait for Elasticsearch to come up.
+    es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT_SEC)
+    print('Elasticsearch started!')
+
+    with open('index_mappings.json', 'r', encoding='utf8') as f:
+        index_mappings = json.load(f)
+    # Create queues
+    task_queue = Queue(NB_INDEXATION_WORKERS)
+    
 
 
     # start workers
@@ -274,6 +277,7 @@ try:
     UPDATE_WE_FREQ = 5 # unit is the number of indexation batches 
     nb_index_batches_since_last_update = Counter()
     throttle = 0.5
+    hyphe_corpus_coll = mongo["hyphe"]["corpus"]
     while True:
         # get and init corpus index
         corpora = []
