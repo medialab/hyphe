@@ -168,9 +168,10 @@ def updateWE_task(corpus, es, mongo):
                 updateQuery = {
                     "script": {
                         "lang": "painless",
-                        "source": "ctx._source.webentity_id = params.new_webentity_id",
+                        "source": "ctx._source.webentity_id = params.new_webentity_id; ctx._source.WEUpdateDate=params.updateDate",
                         "params": {
-                            "new_webentity_id": weupdate['new_webentity']
+                            "new_webentity_id": weupdate['new_webentity'],
+                            "updateDate": datetime.datetime.now()
                         }
                     },
                     "query": {
