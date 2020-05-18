@@ -16,7 +16,7 @@ First, install possible missing required basics using apt/aptitude:
 
 ```bash
 sudo apt-get update
-sudo apt-get install git curl apache2 build-essential gcc musl-dev python2.7-dev python-pip libxml2-dev libxslt1-dev openssl libssl-dev libffi-dev
+sudo apt-get install git curl apache2 build-essential gcc musl-dev python2.7-dev python-pip libxml2-dev libxslt1-dev openssl libssl-dev libffi-dev libbz2-dev
 ```
 
 Or, with yum under CentOS/RedHat like distributions, the packages names can be slightly different and some extra commands might be required:
