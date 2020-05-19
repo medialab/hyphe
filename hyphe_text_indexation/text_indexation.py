@@ -16,10 +16,15 @@ from elasticsearch_utils import connect_to_es, index_name
 from multiprocessing import Process, Queue
 import logging
 import logging.handlers
+
+
 # html to text methods
 from html2text import textify
-# TODO: import only if needed by conf to avoid installing deps ? 
-from dragnet import extract_content
+import dragnet
+import trafilatura
+# for page title extraction
+from lxml.html import fromstring
+        
 
 
 
@@ -27,15 +32,7 @@ from dragnet import extract_content
 
 
 
-
-
-def index_name(c) :
-    return "hyphe_%s"%c
-
-
-
-
-def indexation_task(corpus, batch_uuid, es, mongo):
+def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
     logg = logging.getLogger()
     total = 0
 
@@ -52,30 +49,44 @@ def indexation_task(corpus, batch_uuid, es, mongo):
             '_id': md5(page['url'].encode('UTF8')).hexdigest(),
             'url': page['url'],
             'lru': page['lru'],
-            'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))]
+            'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))],
+            'HTTP_status': page['status'],
+            'crawlDate': datetime.datetime.fromtimestamp(page['timestamp']/1000)
         }
         total += 1
 
-        body = zlib.decompress(page["body"])
+        html = zlib.decompress(page["body"])
 
         encoding = page.get("encoding", "")
         try:
-            body = body.decode(encoding)
+            html = html.decode(encoding)
         except Exception :
-            body = body.decode("UTF8", "replace")
+            html = html.decode("UTF8", "replace")
             encoding = "UTF8-replace"
 
         page_to_index["webentity_id"] = page['webentity_when_crawled']
 
-        page["html"] = body
-        # TODO : use config to know which method.s to use ?
-        page_to_index["textify"] = textify(body, encoding=encoding)
-        try:
-            page_to_index["dragnet"] = extract_content(body, encoding=encoding)
-        except Exception as e:
-            # TODO : add page id or something
-            logg.exception("DRAGNET ERROR")
-            page_to_index["dragnet"] = None
+        page["html"] = html
+        if 'textify' in extraction_methods:
+            page_to_index["textify"] = textify(html, encoding=encoding)
+        if 'dragnet' in extraction_methods:
+            try:
+                page_to_index["dragnet"] = dragnet.extract_content(html, encoding=encoding)
+            except Exception as e:
+                # TODO : add page id or something
+                logg.exception("Dragnet error")
+                page_to_index["dragnet"] = None
+        if 'trafilatura' in extraction_methods:
+            try:
+                page_to_index["trafilatura"] = trafilatura.extract(html)
+            except Exception:
+                logg.exception("Trafilatura error")
+                page_to_index["trafilatura"] = None    
+        # extract title
+        page_tree = fromstring(html)
+        page_to_index['title'] = page_tree.findtext('.//title')
+        
+        
         page_to_index["indexDate"] = datetime.datetime.now()
         pages.append(page_to_index)
     # index batch to ES
@@ -202,7 +213,7 @@ def indexation_worker(input, logging_queue):
     for task in iter(input.get, 'STOP'):
         try:
             if task['type'] == "indexation":
-                indexation_task(task['corpus'], task['batch_uuid'], es, mongo)
+                indexation_task(task['corpus'], task['batch_uuid'], task['extraction_methods'], es, mongo)
             if task['type'] == "updateWE":
                 updateWE_task(task['corpus'], es, mongo)
         except Exception:
@@ -241,7 +252,10 @@ logging_queue = Queue(-1)  # no limit on size
 queue_handler = logging.handlers.QueueHandler(logging_queue)
 logg = logging.getLogger()
 logg.setLevel(logging.INFO)
+# make libraries log less
 logging.getLogger(name='elasticsearch').setLevel(logging.WARNING)
+logging.getLogger(name='readability.readability').propagate = False
+logging.getLogger(name='trafilatura.core').setLevel(logging.WARNING)
 logg.addHandler(queue_handler)
 file_handler = logging.handlers.RotatingFileHandler('./log/hyphe_text_indexation.log', 'a', 5242880, 4)
 console_handler = logging.StreamHandler()
@@ -271,11 +285,12 @@ try:
 
     with open('index_mappings.json', 'r', encoding='utf8') as f:
         index_mappings = json.load(f)
+    
+    
+
     # Create queues
     task_queue = Queue(NB_INDEXATION_WORKERS)
     
-
-
     # start workers
     workers = []
     logg.info("starting %s workers"%NB_INDEXATION_WORKERS)
@@ -291,15 +306,18 @@ try:
     nb_index_batches_since_last_update = Counter()
     throttle = 0.5
     hyphe_corpus_coll = mongo["hyphe"]["corpus"]
+    extraction_methods_by_corpus = {}
     while True:
         # get and init corpus index
         corpora = []
         nb_pages_to_index = {}
         nb_we_updates = {}
         # retrive existing indices in ES
-        existing_es_indices = es.indices.get("hyphe_*")
+        existing_es_indices = es.indices.get(index_name('*'))
         index_to_keep = set()
-        for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection=["_id"]):
+        for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection={
+                "options.text_indexation_extraction_methods":1, 
+                "options.text_indexation_default_method":1}):
             corpus = c["_id"]
             mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
             
@@ -312,10 +330,35 @@ try:
             corpora.append(corpus)
             # check index exists in elasticsearch
             index_exists =  index_name(corpus) in existing_es_indices
-            if not index_exists:
-                # create ES index
-                es.indices.create(index=index_name(corpus), body = index_mappings)        
-                logg.info("index %s created"%corpus)
+
+            if not index_exists or first_run:
+                # check extraction methods and adapt mapping with alias
+                if 'options' in c and 'text_indexation_default_extraction_method' in c['options']:
+                    default_extraction_method = c['options']['text_indexation_default_extraction_method']
+                else:
+                    default_extraction_method = DEFAULT_EXTRACTION_METHOD
+                if 'options' in c and 'text_indexation_extraction_methods' in c['options']:
+                    extraction_methods = c['options']['text_indexation_extraction_methods']
+                else: 
+                    extraction_methods = EXTRACTION_METHODS
+                # adapt mappings with default extraction methods
+                if not default_extraction_method in ['textify', 'dragnet', 'trafilatura']:
+                    logg.warning("unknown DEFAULT_EXTRACTION_METHOD %s"%default_extraction_method)
+                    if len(extraction_methods)>0:
+                        logg.info("using first method instead %s"%extraction_methods[0])
+                        default_extraction_method = extraction_methods[0]
+                else:
+                    if not default_extraction_method in extraction_methods:
+                        logg.warning("Default extraction method %s was not in extraction methods in config. Adding it.")
+                        extraction_methods.append(default_extraction_method)
+                index_mappings["mappings"]["properties"]["text"]["path"] = default_extraction_method
+                extraction_methods_by_corpus[corpus] = extraction_methods
+                if not index_exists:
+                    # create ES index
+                    es.indices.create(index=index_name(corpus), body = index_mappings)
+                    logg.info("index %s created"%corpus)
+                else:
+                    es.indices.put_mapping(index=index_name(corpus), body=index_mappings['mappings'])
             index_to_keep.add(index_name(corpus))
         # checking if some corpus has been deleted
         index_to_delete = existing_es_indices.keys() - index_to_keep
@@ -323,6 +366,8 @@ try:
             # cleaning ES after corpus been deleted in mongo
             logg.info('deleting %s indices'%index_to_delete)
             es.indices.delete(index=','.join(index_to_delete))
+            del extraction_methods_by_corpus[corpus]
+            del nb_index_batches_since_last_update[corpus]
         # order corpus by last inserts
         if len(index_to_keep)>0:
             last_index_dates = {r['key']:r['maxIndexDate']['value'] for r in es.search(body={
@@ -356,7 +401,7 @@ try:
                 logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
                 mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
                 # create task with corpus and batch uuid
-                task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid})
+                task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]})
             nb_index_batches_since_last_update[c]+=1
 
         # checking job completion 

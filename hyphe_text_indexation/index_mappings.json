@@ -19,8 +19,24 @@
             "dragnet": {
                 "type": "text"
             },
+            "trafilatura": {
+                "type": "text"
+            },
+            "text": {
+                "type": "alias",
+                "path": "textify" 
+            },
+            "title": {
+                "type": "text"
+            },
             "html": {
                 "type": "text"
+            },
+            "HTTP_status": {
+                "type": "keyword"
+            },
+            "crawlDate":{
+                "type": "date"
             },
             "indexDate": {
                 "type": "date"
