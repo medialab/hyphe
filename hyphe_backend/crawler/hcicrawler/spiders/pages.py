@@ -242,7 +242,7 @@ class PagesCrawler(Spider):
         p = self._make_raw_page(response, lru)
         if STORE_HTML:
             p['body'] = Binary(response.body.encode('zip'))
-            if p['content_type'] in ["text/plain", "text/html"]:
+            if p['content_type'] in ["text/plain", "text/html"] and p['status'] == 200:
                 p['text_indexation_status'] = "TO_INDEX"
         p['lrulinks'] = lrulinks
         return p
