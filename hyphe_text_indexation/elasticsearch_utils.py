@@ -3,6 +3,9 @@ import time
 import requests
 
 
+def index_name(c) :
+    return "hyphe_%s"%c
+
 def connect_to_es(host, port, timeout):
     # Don't print NewConnectionError's while we're waiting for Elasticsearch
     # to come up.

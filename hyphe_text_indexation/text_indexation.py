@@ -11,7 +11,7 @@ import datetime
 from hashlib import md5
 # elasticsearch deps
 from elasticsearch import helpers
-from elasticsearch_utils import connect_to_es
+from elasticsearch_utils import connect_to_es, index_name
 # multiprocessing
 from multiprocessing import Process, Queue
 import logging
@@ -87,7 +87,7 @@ def indexation_task(corpus, batch_uuid, es, mongo):
                 # we don't index _id as a doc field...
                 'doc':{k:v for k,v in p.items() if k !='_id'} 
             } for p in pages],
-            index='hyphe_%s' % corpus,
+            index=index_name(corpus),
             raise_on_error=False)
         if nb_indexed_docs > 0:
             logg.info("%s: %s pages indexed in batch %s"%(corpus, nb_indexed_docs, batch_uuid))
@@ -180,7 +180,7 @@ def updateWE_task(corpus, es, mongo):
                         }
                     }
                 }
-            index_result = es.update_by_query(index='hyphe_%s' % corpus, body = updateQuery, conflicts="proceed")
+            index_result = es.update_by_query(index=index_name(corpus), body = updateQuery, conflicts="proceed")
             logg.debug(index_result)
             logg.info("%s: %s pages updated in %sms update %s"%(corpus, index_result['updated'], index_result['took'], weupdate['_id']))
             weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
@@ -214,6 +214,18 @@ def indexation_worker(input, logging_queue):
 
 
 # init
+parser = ArgumentParser()
+parser.add_argument('--batch-size', type=int)
+parser.add_argument('--nb-indexation-workers', type=int)
+parser.add_argument('--delete-index', action='store_true')
+parser.add_argument('--reset-mongo', action='store_true')
+args = parser.parse_args()
+# priority to args on config
+if args.batch_size:
+    BATCH_SIZE = args.batch_size
+if args.nb_indexation_workers:
+    NB_INDEXATION_WORKERS = args.nb_indexation_workers
+
 
 # set logging
 if not os.path.exists('./log'):
@@ -290,18 +302,7 @@ try:
         for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection=["_id"]):
             corpus = c["_id"]
             mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-            if first_run and RESET_MONGO:
-                logg.info("resetting mongo")
-                mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-                mongo_pages_coll.update_many({'text_indexation_status': {'$ne': 'DONT_INDEX'}}, {'$set': {'text_indexation_status': 'TO_INDEX'}}, upsert=False)
-                mongo_pages_coll.update_many({'$or': [
-                    {'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}},
-                    {'body': {'$exists': False}},
-                    {'status': {"$ne": 200}},
-                    {'size': 0}]},
-                    {'$set': {'text_indexation_status': 'DONT_INDEX'}},  upsert=False)
-                mongo["hyphe_%s" % corpus]["WEupdates"].update_many({},{'$set':{'index_status': 'PENDING'}})
-                mongo["hyphe_%s" % corpus]["jobs"].update_many({},{'$unset':{'text_indexed':True}})
+            
             
             nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
                 "text_indexation_status": "TO_INDEX",
@@ -311,10 +312,7 @@ try:
             corpora.append(corpus)
             # check index exists in elasticsearch
             index_exists =  index_name(corpus) in existing_es_indices
-            if not index_exists or (first_run and index_exists and DELETE_INDEX):
-                if (first_run and  index_exists and DELETE_INDEX):
-                    es.indices.delete(index=index_name(corpus))
-                    logg.info('index %s deleted'%corpus)
+            if not index_exists:
                 # create ES index
                 es.indices.create(index=index_name(corpus), body = index_mappings)        
                 logg.info("index %s created"%corpus)
