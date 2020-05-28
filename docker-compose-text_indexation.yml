@@ -9,6 +9,7 @@ services:
       - "9200:9200"
     environment:
       - discovery.type=single-node
+      - action.auto_create_index=.watches,.triggered_watches,.watcher-history-*,-hyphe_*
     volumes:
       - ${DATA_PATH}elasticsearch-data:/usr/share/elasticsearch/data
 

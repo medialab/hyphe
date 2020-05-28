@@ -83,9 +83,11 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
                 logg.exception("Trafilatura error")
                 page_to_index["trafilatura"] = None    
         # extract title
-        page_tree = fromstring(html)
-        page_to_index['title'] = page_tree.findtext('.//title')
-        
+        try:
+            page_tree = fromstring(html)
+            page_to_index['title'] = page_tree.findtext('.//title')
+        except Exception:
+            page_to_index['title'] = None
         
         page_to_index["indexDate"] = datetime.datetime.now()
         pages.append(page_to_index)
@@ -121,11 +123,11 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
 
         # update status in mongo
         # TODO : add to_index batch in query ?
-        mongo_pages_coll.update_many({'url' : {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
+        mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid, 'url': {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
         # not indexed page beacause of errors are discarded 
         if len(not_indexed_page)>0:
             for p in not_indexed_page:
-                mongo_pages_coll.update_one({'url' : p['url']}, {'$set': {'text_indexation_status': "ERROR_IN_INDEXATION", 'text_indexation_error': p['error_message']}}, upsert=False)        
+                mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': "ERROR_IN_INDEXATION", 'text_indexation_error': p['error_message']}}, upsert=False)        
 
     except Exception as e:
         # we use raise_on_error=False so we consider an exception to discard the complete batch
@@ -191,10 +193,13 @@ def updateWE_task(corpus, es, mongo):
                         }
                     }
                 }
-            index_result = es.update_by_query(index=index_name(corpus), body = updateQuery, conflicts="proceed")
-            logg.debug(index_result)
-            logg.info("%s: %s pages updated in %sms update %s"%(corpus, index_result['updated'], index_result['took'], weupdate['_id']))
-            weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
+            try:
+                index_result = es.update_by_query(index=index_name(corpus), body = updateQuery, conflicts="proceed")
+            except Exception:
+                logg.exception('update WE %s=>%s failed'%(weupdate['old_webentity'], weupdate['new_webentity']))
+            else:
+                logg.info("%s: %s pages updated in %sms update %s"%(corpus, index_result['updated'], index_result['took'], weupdate['_id']))
+                weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
 
 # worker
 def indexation_worker(input, logging_queue):
@@ -228,8 +233,6 @@ def indexation_worker(input, logging_queue):
 parser = ArgumentParser()
 parser.add_argument('--batch-size', type=int)
 parser.add_argument('--nb-indexation-workers', type=int)
-parser.add_argument('--delete-index', action='store_true')
-parser.add_argument('--reset-mongo', action='store_true')
 args = parser.parse_args()
 # priority to args on config
 if args.batch_size:

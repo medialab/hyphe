@@ -31,11 +31,6 @@ for corpus in args.corpus:
     confirm = input("Confirm resetting %s? (Y/n)"%corpus)
     if confirm in ["yes", "Y", "y", ""]:
         print("resetting %s"%corpus)
-        if index_name(corpus) in existing_es_indices:
-            es.indices.delete(index=index_name(corpus))
-            print('elasticsearch index %s deleted'%index_name(corpus))
-        else:
-            print("no elasticseach index found with name %s"%index_name(corpus))
         # reset mongo
         try:
             mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
@@ -51,5 +46,10 @@ for corpus in args.corpus:
             print("mongo database hyphe_%s reset" % corpus)
         except pymongo.errors.InvalidName:
             print("Could not find the mongo database %s"%"hyphe_%s" % corpus)
+        if index_name(corpus) in existing_es_indices:
+            es.indices.delete(index=index_name(corpus))
+            print('elasticsearch index %s deleted'%index_name(corpus))
+        else:
+            print("no elasticseach index found with name %s"%index_name(corpus))
     else:
         print("you're the boss, skipping %s"% corpus)
