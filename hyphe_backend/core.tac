@@ -2072,6 +2072,18 @@ class Memory_Structure(customJSONRPC):
         self.corpora[corpus]['webentities_discovered'] += new
         logger.msg("...%s new WEs created in traph in %ss" % (new, time.time()-s), system="INFO - %s" % corpus)
 
+        # Inform text indexation of change of webentity for pages under each prefix of the new WE
+        if new and self.corpora[corpus]['options']['indexTextContent'] and job['webentity_id']:
+            parentID = job['webentity_id']
+            for weid, prefixes in res["created_webentities"].items():
+                # check if this new WE is a children. We don't want discovered WE to create WEupdates
+                parent = yield self.traphs.call(corpus, "get_webentity_parent_webentities", weid, prefixes)
+                if not is_error(parent) and parentID in parent['result']:
+                    # a WECR created a child of the crawled WE, we need to update text index
+                    yield self.db.add_update(corpus, parentID, weid, prefixes)
+
+
+
         yield self.db.clean_queue(corpus, page_queue_ids)
 
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
