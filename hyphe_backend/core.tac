@@ -1863,7 +1863,7 @@ class Memory_Structure(customJSONRPC):
         errors = []
         source = "auto" if _automatic else "user"
         WE = webentity_id
-        if not isinstance(startpages_urls, list):
+        if not isinstance(startpages_urls, list) and not isinstance(startpages_urls, set):
             startpages_urls = [startpages_urls]
         for startpage_url in startpages_urls:
             try:
@@ -2052,7 +2052,7 @@ class Memory_Structure(customJSONRPC):
                 elif 300 <= p["status"] < 400 and links:
                     goodautostarts.add(urllru.lru_to_url(links[0]))
         if job['webentity_id']:
-            yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], goodautostarts, corpus=corpus, _automatic=True)
+            yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], list(goodautostarts), corpus=corpus, _automatic=True)
         logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
 
