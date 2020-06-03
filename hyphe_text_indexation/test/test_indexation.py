@@ -11,6 +11,12 @@ ELASTICSEARCH_PORT = 9200
 MONGO_HOST = 'localhost'
 MONGO_PORT = 27017
 PREFIX_TEST_CORPUS = 'tti_'
+START_PAGES = [
+    'https://medialab.sciencespo.fr/activites/',
+    'https://medialab.sciencespo.fr/equipe/paul-girard/',
+    'https://medialab.sciencespo.fr/equipe/tommaso-venturini/',
+    'https://medialab.sciencespo.fr/productions/2020-01-the-eat-datascape-an-experiment-in-digital-social-history-of-art-christophe-leclercq/'
+]
 
 def compare_web_entity_pages_core_es(hyphe_api, elasticsearch, corpus, crawl_finished=True):
     we_r = hyphe_api.store.get_webentities(list_ids=[], sort=None, count=500, page=0,  light=False,  semilight=False, light_for_csv=False, corpus=corpus)
@@ -107,12 +113,12 @@ def test_create_corpus_create_index(hyphe_api, elasticsearch):
     sleep(5.1)
     assert elasticsearch.indices.exists(index='hyphe_%smedialab'%PREFIX_TEST_CORPUS) == True, "newly created corpus not created in elasticsearch"
 
-def test_create_WE_and_crawl(hyphe_api, elasticsearch):
-    we = hyphe_api.store.declare_webentity_by_lru('s:https|h:fr|h:sciencespo|h:medialab|', "médialab", "IN", [], True, "%smedialab"%PREFIX_TEST_CORPUS)
+def test_create_WE_crawl_WECR(hyphe_api, elasticsearch):
+    we = hyphe_api.store.declare_webentity_by_lru('s:https|h:fr|h:sciencespo|h:medialab|', "médialab", "IN", START_PAGES, True, "%smedialab"%PREFIX_TEST_CORPUS)
     assert we['code'] == 'success', 'couldn\'t create médialab WE in hyphe: {}'.format(we['message'])
     we = we['result']
     we_id = we['id']
-    crawl_job = hyphe_api.crawl_webentity(we_id, 1, False, 'IN', {}, "%smedialab"%PREFIX_TEST_CORPUS)
+    crawl_job = hyphe_api.crawl_webentity(we_id, 0, False, 'IN', {}, "%smedialab"%PREFIX_TEST_CORPUS)
     assert crawl_job['code'] == 'success', 'couldn\'t start crawl'
     sleep(0.5)
     r = hyphe_api.store.add_webentity_creationrule("s:https|h:fr|h:sciencespo|h:medialab|p:equipe|", "prefix+1", "%smedialab"%PREFIX_TEST_CORPUS)
@@ -130,3 +136,30 @@ def test_create_WE_and_crawl(hyphe_api, elasticsearch):
     sleep(10)
     # check status of Weupdate tasks in mongo
     compare_web_entity_pages_core_es(hyphe_api, elasticsearch, '%smedialab'%PREFIX_TEST_CORPUS)
+
+def webentity_nb_pages_in_es(webentity_id, elasticsearch):
+    nb_pages_q = elasticsearch.search(index="hyphe_%smedialab"%PREFIX_TEST_CORPUS, body={
+        "query":{
+                "match":{
+                "webentity_id":webentity_id
+            }
+        },
+        "size":0
+	})
+    return nb_pages_q["hits"]["total"]["value"]
+
+def test_manual_WE_creation(hyphe_api, elasticsearch):
+    # get number of page of parent web entity
+    nb_page_parent_before = webentity_nb_pages_in_es(1, elasticsearch)
+    # create a sub webentity
+    datascape_we = hyphe_api.store.declare_webentity_by_lruprefix_as_url('https://medialab.sciencespo.fr/productions/2020-01-the-eat-datascape-an-experiment-in-digital-social-history-of-art-christophe-leclercq/', "publi_datascape", "IN", [], True, "%smedialab"%PREFIX_TEST_CORPUS)
+    assert datascape_we['code'] == 'success', datascape_we['message']
+    print("datascape production WE created, waiting ES to sync") 
+    sleep(5.1)
+    nb_page_parent_after = webentity_nb_pages_in_es(1, elasticsearch)
+    nb_page_new_we = webentity_nb_pages_in_es(datascape_we['result']['id'], elasticsearch)
+    print(nb_page_parent_before, nb_page_parent_after, nb_page_new_we)
+    assert nb_page_new_we == 1
+    assert nb_page_parent_after == nb_page_parent_before - nb_page_new_we
+
+   
