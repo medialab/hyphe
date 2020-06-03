@@ -145,7 +145,7 @@ def updateWE_task(corpus, es, mongo):
     weupdates = list(mongo_webupdates_coll.find({"index_status": "PENDING"}).sort('timestamp'))
     logg.info("%s: %s WE updates waiting"%(corpus, len(weupdates)))
     for weupdate in weupdates:
-        nb_unindexed_jobs = mongo_jobs_coll.count_documents({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}, "started_at":{"$lt":weupdate['timestamp']}})
+        nb_unindexed_jobs = mongo_jobs_coll.count_documents({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}, "scheduled_at":{"$lt":weupdate['timestamp']}})
         # don't update WE structure in text index if there is one crawling job
         if nb_unindexed_jobs == 0:
             print('%s: updating index WE_is %s => %s'%(corpus, weupdate['old_webentity'], weupdate['new_webentity']))
@@ -369,8 +369,10 @@ try:
             # cleaning ES after corpus been deleted in mongo
             logg.info('deleting %s indices'%index_to_delete)
             es.indices.delete(index=','.join(index_to_delete))
-            del extraction_methods_by_corpus[corpus]
-            del nb_index_batches_since_last_update[corpus]
+            if corpus in extraction_methods_by_corpus:
+                del extraction_methods_by_corpus[corpus]
+            if corpus in nb_index_batches_since_last_update:
+                del nb_index_batches_since_last_update[corpus]
         # order corpus by last inserts
         if len(index_to_keep)>0:
             last_index_dates = {r['key']:r['maxIndexDate']['value'] for r in es.search(body={
