@@ -18,4 +18,4 @@
 
 [ ] test multicorpus adding wikipedia ?
 
-[ ] test reset script ?
+[x] test reset script

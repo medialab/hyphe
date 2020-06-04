@@ -6,6 +6,8 @@ from time import sleep
 
 from requests.exceptions import ConnectionError
 
+from reset_text_indexation_for_corpus import reset_text_index
+
 ELASTICSEARCH_HOST = 'localhost'
 ELASTICSEARCH_PORT = 9200
 MONGO_HOST = 'localhost'
@@ -239,3 +241,12 @@ def test_change_prefix(hyphe_api, elasticsearch):
     assert nb_pages_parent_after > nb_pages_parent_before
     assert nb_pages_parent_after == nb_pages_parent_before + (nb_pages_before - nb_pages_after)
 
+def test_reset(elasticsearch, mongodb):
+    reset_text_index('%smedialab'%PREFIX_TEST_CORPUS, elasticsearch, mongodb)
+    # test index has been deleted
+    assert not elasticsearch.indices.exists('%smedialab'%PREFIX_TEST_CORPUS)
+    sleep(5.1)
+    # test it has been recreated
+    assert elasticsearch.indices.exists('hyphe_%smedialab'%PREFIX_TEST_CORPUS)
+    # we can't asses how much doc could have been indexed, commenting nb doc test
+    #print(elasticsearch.indices.stats(index='hyphe_%smedialab'%PREFIX_TEST_CORPUS, metric='docs'))
