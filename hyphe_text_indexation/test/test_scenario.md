@@ -12,7 +12,8 @@
 
 [ ] weird case number 999 : est ce possible qu'une web-entité fille de X soit créée par un crawl d'une autre web entité Y ? Si oui on a un problème.
 
-[ ] test query ouestware
+[x] test query ouestware
+[x] test extraction methods
 [ ] test query ?
 
 [ ] test multicorpus adding wikipedia ?

@@ -17,6 +17,7 @@ START_PAGES = [
     'https://medialab.sciencespo.fr/equipe/tommaso-venturini/',
     'https://medialab.sciencespo.fr/productions/2020-01-the-eat-datascape-an-experiment-in-digital-social-history-of-art-christophe-leclercq/'
 ]
+TEXT_EXTRACTION_METHODS = ['textify', 'dragnet', 'trafilatura']
 
 def compare_web_entity_pages_core_es(hyphe_api, elasticsearch, corpus, crawl_finished=True):
     we_r = hyphe_api.store.get_webentities(list_ids=[], sort=None, count=500, page=0,  light=False,  semilight=False, light_for_csv=False, corpus=corpus)
@@ -107,7 +108,7 @@ def test_docker_environnement_ready(hyphe_api, elasticsearch, mongodb):
     
    
 def test_create_corpus_create_index(hyphe_api, elasticsearch):
-    create_corpus = hyphe_api.create_corpus('%smedialab'%PREFIX_TEST_CORPUS, "", {})
+    create_corpus = hyphe_api.create_corpus('%smedialab'%PREFIX_TEST_CORPUS, "", {"txt_indexation_extraction_methods": TEXT_EXTRACTION_METHODS, "txt_indexation_default_extraction_method":'trafilatura'})
     assert create_corpus['code'] == 'success', 'couldn\'t create a corpus in hyphe: {}'.format(create_corpus['message'])
     # max indexation throttle time
     sleep(5.1)
@@ -171,3 +172,36 @@ def test_manual_child_WE_creation_then_merge(hyphe_api, elasticsearch):
     # the child web entity should have disapeared
     nb_page_new_we = webentity_nb_pages_in_es(datascape_we['result']['id'], elasticsearch)
     assert nb_page_new_we == 0
+
+def test_text_query_and_extraction_methods(hyphe_api, elasticsearch):
+    # find web entity Paul Girard
+    we_r = hyphe_api.store.search_webentities(fieldKeywords=[("name","paul-girard")], count=-1,corpus='tti_medialab')
+    assert we_r['code'] == "success", we_r['message']
+    assert len(we_r['result']) == 1
+    we_pgirard_id = we_r['result'][0]['id']
+    # search ouestware
+    query = {
+        "query":{
+                "match":{
+                "text": "ouestware"
+            }
+        },
+        "size": 5,
+        "aggs": {
+            "webentity":{
+                "terms": { "field" : "webentity_id"}	
+            }
+        }
+    }
+    es_we_ouestware = elasticsearch.search(index='hyphe_%smedialab'%PREFIX_TEST_CORPUS, body=query)
+    assert len(es_we_ouestware["aggregations"]['webentity']['buckets']) == 1
+    assert int(es_we_ouestware["aggregations"]['webentity']['buckets'][0]['key']) == we_pgirard_id
+    # check different text extraction methods are there and different
+    extracted_texts = set()
+    for method in TEXT_EXTRACTION_METHODS:
+        # check method exist
+        assert method in es_we_ouestware['hits']['hits'][0]['_source']
+        # check contents are different (/!\ may be not true in case of extraction errors)
+        assert  es_we_ouestware['hits']['hits'][0]['_source'][method] not in extracted_texts
+        extracted_texts.add(es_we_ouestware['hits']['hits'][0]['_source'][method])
+    del extracted_texts
