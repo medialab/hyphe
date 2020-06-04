@@ -7,8 +7,8 @@
 [x] compare number of pages in index and in traph by web entity
 [x] create one web entity as child and check number of pages in parent and new child
 
-[ ] merge one web entity in parent
-[ ] test if web entity disapear from index & number of pages of parent web entity
+[x] merge one web entity in parent
+[x] test if web entity disapear from index & number of pages of parent web entity
 
 [ ] weird case number 999 : est ce possible qu'une web-entité fille de X soit créée par un crawl d'une autre web entité Y ? Si oui on a un problème.
 

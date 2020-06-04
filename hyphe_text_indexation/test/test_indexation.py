@@ -148,7 +148,7 @@ def webentity_nb_pages_in_es(webentity_id, elasticsearch):
 	})
     return nb_pages_q["hits"]["total"]["value"]
 
-def test_manual_WE_creation(hyphe_api, elasticsearch):
+def test_manual_child_WE_creation_then_merge(hyphe_api, elasticsearch):
     # get number of page of parent web entity
     nb_page_parent_before = webentity_nb_pages_in_es(1, elasticsearch)
     # create a sub webentity
@@ -158,8 +158,16 @@ def test_manual_WE_creation(hyphe_api, elasticsearch):
     sleep(5.1)
     nb_page_parent_after = webentity_nb_pages_in_es(1, elasticsearch)
     nb_page_new_we = webentity_nb_pages_in_es(datascape_we['result']['id'], elasticsearch)
-    print(nb_page_parent_before, nb_page_parent_after, nb_page_new_we)
     assert nb_page_new_we == 1
     assert nb_page_parent_after == nb_page_parent_before - nb_page_new_we
-
-   
+    nb_page_parent_before = nb_page_parent_after
+    merge = hyphe_api.store.merge_webentity_into_another(datascape_we['result']['id'], 1, False, False, False, "%smedialab"%PREFIX_TEST_CORPUS)
+    assert merge['code'] == 'success', merge['message']
+    print("datascape production WE merged into parent, waiting ES to sync") 
+    sleep(5.1)
+    # parent should have gotten page.s back
+    nb_page_parent_after = webentity_nb_pages_in_es(1, elasticsearch)
+    assert nb_page_parent_after == nb_page_parent_before + nb_page_new_we
+    # the child web entity should have disapeared
+    nb_page_new_we = webentity_nb_pages_in_es(datascape_we['result']['id'], elasticsearch)
+    assert nb_page_new_we == 0
