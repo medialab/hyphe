@@ -204,4 +204,38 @@ def test_text_query_and_extraction_methods(hyphe_api, elasticsearch):
         # check contents are different (/!\ may be not true in case of extraction errors)
         assert  es_we_ouestware['hits']['hits'][0]['_source'][method] not in extracted_texts
         extracted_texts.add(es_we_ouestware['hits']['hits'][0]['_source'][method])
-    del extracted_texts
+
+def test_change_prefix(hyphe_api, elasticsearch):
+    # add a prefix to an existing WE
+    lru_prefix = "s:https|h:fr|h:sciencespo|h:medialab|p:activites|"
+    we_r = hyphe_api.store.search_webentities(fieldKeywords=[("name","tommaso-venturini")], count=-1,corpus='tti_medialab')
+    assert we_r['code'] == "success", we_r['message']
+    assert len(we_r['result']) == 1
+    webentity_id = we_r['result'][0]['id']
+    nb_pages_parent_before = webentity_nb_pages_in_es(1, elasticsearch)
+    nb_pages_before = webentity_nb_pages_in_es(webentity_id, elasticsearch)
+    add_prefix = hyphe_api.store.add_webentity_lruprefixes(webentity_id, [lru_prefix], '%smedialab'%PREFIX_TEST_CORPUS)
+    assert add_prefix['code'] == 'success', add_prefix['message']
+    print("added a prefix waiting ES to sync")
+    sleep(5.1)
+    nb_pages_parent_after = webentity_nb_pages_in_es(1, elasticsearch)
+    nb_pages_after = webentity_nb_pages_in_es(webentity_id, elasticsearch)
+    # page.s retired from parent should be in the WE in which we added the prefix
+    assert nb_pages_after > nb_pages_before
+    assert nb_pages_parent_after < nb_pages_parent_before
+    assert nb_pages_after == nb_pages_before + (nb_pages_parent_before - nb_pages_parent_after)
+    
+    # now the other way around
+    nb_pages_before = nb_pages_after
+    nb_pages_parent_before = nb_pages_parent_after
+    we_r = hyphe_api.store.rm_webentity_lruprefix(webentity_id, lru_prefix, '%smedialab'%PREFIX_TEST_CORPUS)
+    assert we_r['code'] == "success", we_r['message']
+    print('removed prefix, wait for ES to sync')
+    sleep(5.1)
+    nb_pages_parent_after = webentity_nb_pages_in_es(1, elasticsearch)
+    nb_pages_after = webentity_nb_pages_in_es(webentity_id, elasticsearch)
+    # page.s retired from parent should be in the WE in which we added the prefix
+    assert nb_pages_after < nb_pages_before
+    assert nb_pages_parent_after > nb_pages_parent_before
+    assert nb_pages_parent_after == nb_pages_parent_before + (nb_pages_before - nb_pages_after)
+

@@ -169,8 +169,13 @@ def updateWE_task(corpus, es, mongo):
                                     }
                                 },
                                 {
-                                    "terms": {
-                                        "prefixes": weupdate['prefixes']
+                                    "bool": {
+                                        "should": [
+                                            {
+                                                "prefix": {"lru": p}
+                                            } for p in weupdate['prefixes']
+                                        ],
+                                        "minimum_should_match": 1
                                     }
                                 }
                             ]
