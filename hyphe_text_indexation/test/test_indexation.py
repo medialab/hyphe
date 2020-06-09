@@ -4,8 +4,6 @@ import jsonrpclib
 import pymongo
 from time import sleep
 
-from requests.exceptions import ConnectionError
-
 from reset_text_indexation_for_corpus import reset_text_index
 
 ELASTICSEARCH_HOST = 'localhost'
@@ -13,45 +11,52 @@ ELASTICSEARCH_PORT = 9200
 MONGO_HOST = 'localhost'
 MONGO_PORT = 27017
 PREFIX_TEST_CORPUS = 'tti_'
-START_PAGES = [
-    'https://medialab.sciencespo.fr/activites/',
-    'https://medialab.sciencespo.fr/equipe/paul-girard/',
-    'https://medialab.sciencespo.fr/equipe/tommaso-venturini/',
-    'https://medialab.sciencespo.fr/productions/2020-01-the-eat-datascape-an-experiment-in-digital-social-history-of-art-christophe-leclercq/'
-]
+START_PAGES = {
+    'medialab': [
+        'https://medialab.sciencespo.fr/activites/',
+        'https://medialab.sciencespo.fr/equipe/paul-girard/',
+        'https://medialab.sciencespo.fr/equipe/tommaso-venturini/',
+        'https://medialab.sciencespo.fr/productions/2020-01-the-eat-datascape-an-experiment-in-digital-social-history-of-art-christophe-leclercq/'
+    ],
+    'ietf': ['https://tools.ietf.org/html/rfc3986']
+}
+
 TEXT_EXTRACTION_METHODS = ['textify', 'dragnet', 'trafilatura']
 
 def compare_web_entity_pages_core_es(hyphe_api, elasticsearch, corpus, crawl_finished=True):
     we_r = hyphe_api.store.get_webentities(list_ids=[], sort=None, count=500, page=0,  light=False,  semilight=False, light_for_csv=False, corpus=corpus)
     assert we_r['code'] == "success", we_r['message']
-    wes_in_core = {we['_id']: we['pages_crawled'] for we in we_r['result']['webentities'] if we['pages_crawled'] > 0}
+    wes_in_core = {}
+    for we in we_r['result']['webentities']:
+        pages = hyphe_api.store.paginate_webentity_pages(we['_id'],5000,None,True,True,False,corpus)
+        assert pages['code'] == 'success', pages['message']
+        nb_pages = 0
+        nb_errors = 0
+        for p in pages['result']['pages']:
+            if p['text_indexation_status'] == 'INDEXED':
+                nb_pages += 1
+            if p['text_indexation_status'] == 'ERROR':
+                nb_errors += 1
+        if nb_pages > 0:
+            wes_in_core[we['_id']] = nb_pages
+        assert nb_errors == 0, "%s errors in indexation" % nb_errors
     # retrive existing indices in ES
-    we_pages_es = elasticsearch.search(index='hyphe_tti_medialab',body={
+    we_pages_es = elasticsearch.search(index='hyphe_%s'%corpus,body={
                 "size":0,
                 "aggs": {
                     "webentity": {
-                            "terms" : { "field" : "webentity_id" } 
+                            "terms" : { "field" : "webentity_id", "size":9999 } 
                         }
                     }  
                 })
     elastic_we_pages = {int(w['key']):w['doc_count'] for w in we_pages_es["aggregations"]["webentity"]["buckets"]}
 
-    for we,pages in wes_in_core.items():
-        print(we,pages)
-        if crawl_finished:
-            assert  we in elastic_we_pages and elastic_we_pages[we]>=pages/2
+    for we,nb_pages in wes_in_core.items():
+        if crawl_finished and nb_pages > 0:
+            assert  we in elastic_we_pages and elastic_we_pages[we] == nb_pages
         else:
-            assert  we not in elastic_we_pages or elastic_we_pages[we] < pages/2
+            assert  we not in elastic_we_pages or elastic_we_pages[we] <= nb_pages
 
-
-def is_responsive(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            return True
-    except ConnectionError:
-        print("connection error")
-        return False
 
 @pytest.fixture(scope="session")
 def elasticsearch():
@@ -117,7 +122,7 @@ def test_create_corpus_create_index(hyphe_api, elasticsearch):
     assert elasticsearch.indices.exists(index='hyphe_%smedialab'%PREFIX_TEST_CORPUS) == True, "newly created corpus not created in elasticsearch"
 
 def test_create_WE_crawl_WECR(hyphe_api, elasticsearch):
-    we = hyphe_api.store.declare_webentity_by_lru('s:https|h:fr|h:sciencespo|h:medialab|', "médialab", "IN", START_PAGES, True, "%smedialab"%PREFIX_TEST_CORPUS)
+    we = hyphe_api.store.declare_webentity_by_lru('s:https|h:fr|h:sciencespo|h:medialab|', "médialab", "IN", START_PAGES['medialab'], True, "%smedialab"%PREFIX_TEST_CORPUS)
     assert we['code'] == 'success', 'couldn\'t create médialab WE in hyphe: {}'.format(we['message'])
     we = we['result']
     we_id = we['id']
@@ -133,7 +138,7 @@ def test_create_WE_crawl_WECR(hyphe_api, elasticsearch):
     while crawl_pending and limit_attemps > 0:
         jobs = hyphe_api.listjobs(list_ids=[crawl_job['result']], corpus='%smedialab'%PREFIX_TEST_CORPUS)
         assert jobs['code'] == 'success', j['message']
-        crawl_pending = jobs['result'][0]['crawling_status'] in ['PENDING', 'RUNNING']
+        crawl_pending = 'text_indexed' not in jobs['result'][0] or jobs['result'][0]['text_indexed'] == False
         limit_attemps -= 1
         sleep(1)
     sleep(10)
@@ -241,12 +246,62 @@ def test_change_prefix(hyphe_api, elasticsearch):
     assert nb_pages_parent_after > nb_pages_parent_before
     assert nb_pages_parent_after == nb_pages_parent_before + (nb_pages_before - nb_pages_after)
 
-def test_reset(elasticsearch, mongodb):
+def test_reset(hyphe_api, elasticsearch, mongodb):
     reset_text_index('%smedialab'%PREFIX_TEST_CORPUS, elasticsearch, mongodb)
     # test index has been deleted
     assert not elasticsearch.indices.exists('%smedialab'%PREFIX_TEST_CORPUS)
     sleep(5.1)
     # test it has been recreated
+    crawl_pending = True
+    limit_attemps = 340
     assert elasticsearch.indices.exists('hyphe_%smedialab'%PREFIX_TEST_CORPUS)
+    while crawl_pending and limit_attemps > 0:
+        jobs = hyphe_api.listjobs(list_ids=[], corpus='%smedialab'%PREFIX_TEST_CORPUS)
+        assert jobs['code'] == 'success', jobs['message']
+        crawl_pending = 'text_indexed' not in jobs['result'][0] or jobs['result'][0]['text_indexed'] == False
+        limit_attemps -= 1
+        sleep(1)
+    sleep(10)
+    compare_web_entity_pages_core_es(hyphe_api, elasticsearch, '%smedialab'%PREFIX_TEST_CORPUS)
     # we can't asses how much doc could have been indexed, commenting nb doc test
     #print(elasticsearch.indices.stats(index='hyphe_%smedialab'%PREFIX_TEST_CORPUS, metric='docs'))
+
+def test_multi_corpus(hyphe_api, elasticsearch, mongodb):
+    create_corpus = hyphe_api.create_corpus('%sietf'%PREFIX_TEST_CORPUS, "", {})
+    print('waiting for corpus to start')
+    sleep(2)
+    assert create_corpus['code'] == 'success', 'couldn\'t create a corpus in hyphe: {}'.format(create_corpus['message'])
+    we = hyphe_api.store.declare_webentity_by_lru('s:https|h:org|h:ietf|h:tools|p:html', "%sietf"%PREFIX_TEST_CORPUS, "IN", START_PAGES['ietf'], True, "%sietf"%PREFIX_TEST_CORPUS)
+    assert we['code'] == 'success', 'couldn\'t create IETF WE in hyphe: {}'.format(we['message'])
+    we = we['result']
+    we_id = we['id']
+    # resetting médialab corpus to test multicorpus indexing simultaneously
+    reset_text_index('%smedialab'%PREFIX_TEST_CORPUS, elasticsearch, mongodb)
+    crawl_job = hyphe_api.crawl_webentity(we_id, 1, False, 'IN', {}, "%sietf"%PREFIX_TEST_CORPUS)
+    assert crawl_job['code'] == 'success', 'couldn\'t start crawl'
+    sleep(0.5)
+    r = hyphe_api.store.add_webentity_creationrule('s:https|h:org|h:ietf|h:tools|p:html', "prefix+1", "%sietf"%PREFIX_TEST_CORPUS)
+    assert r['code'] == 'success'
+    compare_web_entity_pages_core_es(hyphe_api, elasticsearch, '%sietf'%PREFIX_TEST_CORPUS, crawl_finished=False)
+    # wait for end of crawl
+    crawl_pending = True
+    limit_attemps = 340
+    while crawl_pending and limit_attemps > 0:
+        jobs = hyphe_api.listjobs(list_ids=[crawl_job['result']], corpus='%sietf'%PREFIX_TEST_CORPUS)
+        assert jobs['code'] == 'success', j['message']
+        crawl_pending = 'text_indexed' not in jobs['result'][0] or jobs['result'][0]['text_indexed'] == False
+        limit_attemps -= 1
+        sleep(1)
+    sleep(10)
+    # check status of Weupdate tasks in mongo
+    compare_web_entity_pages_core_es(hyphe_api, elasticsearch, '%sietf'%PREFIX_TEST_CORPUS)
+    crawl_pending = True
+    limit_attemps = 340
+    while crawl_pending and limit_attemps > 0:
+        jobs = hyphe_api.listjobs(list_ids=[], corpus='%smedialab'%PREFIX_TEST_CORPUS)
+        assert jobs['code'] == 'success', j['message']
+        crawl_pending = 'text_indexed' not in jobs['result'][0] or jobs['result'][0]['text_indexed'] == False
+        limit_attemps -= 1
+        sleep(1)
+    sleep(10)
+    compare_web_entity_pages_core_es(hyphe_api, elasticsearch, '%smedialab'%PREFIX_TEST_CORPUS)

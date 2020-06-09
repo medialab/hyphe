@@ -127,7 +127,7 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
         # not indexed page beacause of errors are discarded 
         if len(not_indexed_page)>0:
             for p in not_indexed_page:
-                mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': "ERROR_IN_INDEXATION", 'text_indexation_error': p['error_message']}}, upsert=False)        
+                mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': "ERROR", 'text_indexation_error': p['error_message']}}, upsert=False)        
 
     except Exception as e:
         # we use raise_on_error=False so we consider an exception to discard the complete batch
@@ -172,7 +172,7 @@ def updateWE_task(corpus, es, mongo):
                                     "bool": {
                                         "should": [
                                             {
-                                                "prefix": {"lru": p}
+                                                "term": {"prefixes": p}
                                             } for p in weupdate['prefixes']
                                         ],
                                         "minimum_should_match": 1
@@ -205,7 +205,13 @@ def updateWE_task(corpus, es, mongo):
             else:
                 logg.info("%s: %s pages updated in %sms update %s"%(corpus, index_result['updated'], index_result['took'], weupdate['_id']))
                 weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
-
+                # sync write operations to make updates available for next update
+                # see https://discuss.elastic.co/t/update-by-query-and-refresh/20334/3
+                es.indices.refresh(index= index_name(corpus))
+        else:
+            # do nothin A update which can't be made block the sooner ones
+            logg.info("update WE %s blocked by job stopping updates"%weupdate['_id'])
+            return 0
 # worker
 def indexation_worker(input, logging_queue):
     # leave sigint handling to the parent process 
@@ -429,7 +435,7 @@ try:
                 {
                     "$match": {
                         "_job" : {"$in": list(pending_jobs_ids)},
-                        "text_indexation_status": "TO_INDEX",
+                        "text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED","ERROR"]},
                         "forgotten": False
                     }
                 },
@@ -448,13 +454,19 @@ try:
                 if r.modified_count != len(completed_jobs):
                     logg.warning('only %s jobs were modified on %s completed ?'%(r.modified_count, len(completed_jobs)))
                 logg.info("%s: %s jobs were fully indexed. %s pending."%(c, len(completed_jobs), len(not_completed_jobs)))
+                # make sure documents are stored to let update do there jobs
+                # see https://discuss.elastic.co/t/update-by-query-and-refresh/20334/3
+                es.indices.refresh(index= index_name(c))
 
 
-
-        # TODO: SET a different order for updateWE ? 
+        # TODO: SET a different order for updateWE ?
+        # 
+        
+             
         for c in corpora:
             if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
-                task_queue.put({"type": "updateWE", "corpus": c})
+                #task_queue.put({"type": "updateWE", "corpus": c})
+                updateWE_task(c, es, mongo)
                 nb_index_batches_since_last_update[c]=0
         first_run = False
 

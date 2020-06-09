@@ -1851,7 +1851,7 @@ class Memory_Structure(customJSONRPC):
         if self.corpora[corpus]['options']['indexTextContent']:
             parent = yield self.traphs.call(corpus, "retrieve_webentity", lru_prefix)
             if not is_error(parent):
-                yield self.db.add_update(corpus, webentity_id, parent["result"], lru_prefix)
+                yield self.db.add_update(corpus, webentity_id, parent["result"], [lru_prefix])
         res = yield self.update_webentity(WE, "prefixes", lru_prefix, "pop", corpus=corpus)
         returnD(res)
 
@@ -2793,7 +2793,7 @@ class Memory_Structure(customJSONRPC):
   # PAGES, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
-    def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False):
+    def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False, corpus=DEFAULT_CORPUS):
         res = {
             'lru': page['lru'],
             'crawled': page.get('crawled', None)
@@ -2816,13 +2816,15 @@ class Memory_Structure(customJSONRPC):
             res['size'] = data['size']
             res['encoding'] = data.get('encoding')
             res['error'] = data.get('error')
+            if self.corpora[corpus]['options']['indexTextContent']:
+                res['text_indexation_status'] = data.get('text_indexation_status')
 
         if include_body and 'body' in data:
             res['body'] = unicode(base64.b64encode(data['body']))
 
         return res
 
-    def format_pages(self, pages, linked=False, data=None, include_metas=False, include_body=False):
+    def format_pages(self, pages, linked=False, data=None, include_metas=False, include_body=False, corpus=DEFAULT_CORPUS):
         index = None
         if data is not None:
             index = {}
@@ -2832,7 +2834,7 @@ class Memory_Structure(customJSONRPC):
         if is_error(pages):
             return pages
 
-        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body) for page in pages]
+        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body, corpus=corpus) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2859,7 +2861,7 @@ class Memory_Structure(customJSONRPC):
             we_links['pages_total'] = len(pages["result"])
             we_links['pages_uncrawled'] = we_links['pages_total'] - we_links['pages_crawled']
         yield self.parent.update_corpus(corpus, False, True)
-        returnD(format_result(self.format_pages(pages["result"])))
+        returnD(format_result(self.format_pages(pages["result"], corpus=corpus)))
 
     @inlineCallbacks
     def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_metas=False, include_page_body=False, corpus=DEFAULT_CORPUS):
@@ -2918,7 +2920,7 @@ class Memory_Structure(customJSONRPC):
 
         returnD(format_result({
             'token': token,
-            'pages': self.format_pages(pages['pages'], data=page_data, include_metas=include_page_metas, include_body=include_page_body)
+            'pages': self.format_pages(pages['pages'], data=page_data, include_metas=include_page_metas, include_body=include_page_body, corpus=corpus)
         }))
 
     @inlineCallbacks
@@ -2943,7 +2945,7 @@ class Memory_Structure(customJSONRPC):
         pages = yield self.traphs.call(corpus, "get_webentity_most_linked_pages", webentity_id, WE["prefixes"], pages_count=npages, max_depth=max_prefix_distance)
         if is_error(pages):
             returnD(pages)
-        returnD(format_result(self.format_pages(pages["result"], linked=True)))
+        returnD(format_result(self.format_pages(pages["result"], linked=True, corpus=corpus)))
 
     def jsonrpc_get_webentity_subwebentities(self, webentity_id, light=False, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` all sub-webentities of a WebEntity defined by `webentity_id` (meaning webentities having at least one LRU prefix starting with one of the WebEntity's prefixes)."""

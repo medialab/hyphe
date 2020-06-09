@@ -12,12 +12,12 @@ def reset_text_index(corpus, elasticsearch, mongo):
     try:
         mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
         mongo_pages_coll.update_many({'text_indexation_status': {'$ne': 'DONT_INDEX'}}, {'$set': {'text_indexation_status': 'TO_INDEX'}}, upsert=False)
-        mongo_pages_coll.update_many({'$or': [
-            {'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}},
-            {'body': {'$exists': False}},
-            {'status': {"$ne": 200}},
-            {'size': 0}]},
-            {'$set': {'text_indexation_status': 'DONT_INDEX'}},  upsert=False)
+        # mongo_pages_coll.update_many({'$or': [
+        #     {'content_type': {"$not": {"$in": ["text/plain", "text/html"]}}},
+        #     {'body': {'$exists': False}},
+        #     {'status': {"$ne": 200}},
+        #     {'size': 0}]},
+        #     {'$set': {'text_indexation_status': 'DONT_INDEX'}},  upsert=False)
         mongo["hyphe_%s" % corpus]["WEupdates"].update_many({},{'$set':{'index_status': 'PENDING'}})
         mongo["hyphe_%s" % corpus]["jobs"].update_many({},{'$unset':{'text_indexed':True}})
         print("mongo database hyphe_%s reset" % corpus)
