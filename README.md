@@ -138,6 +138,8 @@ If you encounter issues with the Docker builds, please report an [issue](https:/
 
 #### 7. Update to future versions
 
+**WARNING:** Do not do this if you're not sure of what you're doing, upgrading to major new versions can potentially break your existing corpuses making it really complex to get your data back.
+
 If you installed from git by pulling our builds from DockerHub, you should be able to update Hyphe to future minor releases by simply doing the following:
 
 ```bash
