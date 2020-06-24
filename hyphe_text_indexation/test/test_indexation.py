@@ -6,10 +6,13 @@ from time import sleep
 
 from reset_text_indexation_for_corpus import reset_text_index
 
-ELASTICSEARCH_HOST = 'localhost'
-ELASTICSEARCH_PORT = 9200
-MONGO_HOST = 'localhost'
-MONGO_PORT = 27017
+ELASTICSEARCH_HOST = os.getenv('ELASTICSEARCH_HOST', default='localhost')
+ELASTICSEARCH_PORT = os.getenv('ELASTICSEARCH_PORT', default='9200')
+
+HYPHE_API_URL = os.getenv('HYPHE_API_URL', default='http://localhost:80/api/')
+MONGO_HOST = os.getenv('MONGO_HOST', default='localhost')
+MONGO_PORT = os.getenv('MONGO_PORT', default=27017)
+
 PREFIX_TEST_CORPUS = 'tti_'
 START_PAGES = {
     'medialab': [
@@ -69,11 +72,10 @@ def elasticsearch():
 
 @pytest.fixture(scope="session")
 def hyphe_api():
-    api_url = "http://localhost:90/api/"
     try:
         config = jsonrpclib.config.Config(version=1.0)
         history = jsonrpclib.history.History()
-        hyphe_api = jsonrpclib.ServerProxy(api_url, config=config, history=history)
+        hyphe_api = jsonrpclib.ServerProxy(HYPHE_API_URL, config=config, history=history)
     except :
         pytest.exit("can't connect to Hyphe API")
     else:
