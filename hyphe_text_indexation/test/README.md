@@ -97,14 +97,9 @@ test_indexation.py ........
 [ ] test corpus with text option off
 [ ] real crawls in parallel
 
-# known issues
+# TODO
 
-- packaging : ajouter pytest à dans un docker pour permettre de tester avec docker et gestion de la dépendance aux services
-- documentation : documenter comment tester et dev les tests
-- better resilience in exception management ? 
-- refacto : changer sleep en while intelligent 
 - refacto de la méthod create_corpus crawl et WECR utilisé deux fois
 - d'autres tests : 
     - deux crawls en parallèle
-    - reset 
 - conf nginx ES hyphe (GET/POST sur search)
