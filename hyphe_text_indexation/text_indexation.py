@@ -28,7 +28,9 @@ from lxml.html import fromstring
 
 
 
-
+def SIGTERM_handler(signum, frame):
+    # treat SIGTERM as SIGINT
+    raise KeyboardInterrupt()
 
 
 
@@ -38,61 +40,60 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
 
     pages = []
     mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-    # get the prepared batch
-    query = {
-        "text_indexation_status": "IN_BATCH_%s"%batch_uuid
-    }
-    for page in mongo_pages_coll.find(query):
-        
-        stems = page['lru'].rstrip('|').split('|')
-        page_to_index = {
-            '_id': md5(page['url'].encode('UTF8')).hexdigest(),
-            'url': page['url'],
-            'lru': page['lru'],
-            'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))],
-            'HTTP_status': page['status'],
-            'crawlDate': datetime.datetime.fromtimestamp(page['timestamp']/1000)
-        }
-        total += 1
-
-        html = zlib.decompress(page["body"])
-
-        encoding = page.get("encoding", "")
-        try:
-            html = html.decode(encoding)
-        except Exception :
-            html = html.decode("UTF8", "replace")
-            encoding = "UTF8-replace"
-
-        page_to_index["webentity_id"] = page['webentity_when_crawled']
-
-        page["html"] = html
-        if 'textify' in extraction_methods:
-            page_to_index["textify"] = textify(html, encoding=encoding)
-        if 'dragnet' in extraction_methods:
-            try:
-                page_to_index["dragnet"] = dragnet.extract_content(html, encoding=encoding)
-            except Exception as e:
-                # TODO : add page id or something
-                logg.exception("Dragnet error")
-                page_to_index["dragnet"] = None
-        if 'trafilatura' in extraction_methods:
-            try:
-                page_to_index["trafilatura"] = trafilatura.extract(html)
-            except Exception:
-                logg.exception("Trafilatura error")
-                page_to_index["trafilatura"] = None    
-        # extract title
-        try:
-            page_tree = fromstring(html)
-            page_to_index['title'] = page_tree.findtext('.//title')
-        except Exception:
-            page_to_index['title'] = None
-        
-        page_to_index["indexDate"] = datetime.datetime.now()
-        pages.append(page_to_index)
-    # index batch to ES
     try:
+        # get the prepared batch
+        query = {
+            "text_indexation_status": "IN_BATCH_%s"%batch_uuid
+        }
+        for page in mongo_pages_coll.find(query):
+            
+            stems = page['lru'].rstrip('|').split('|')
+            page_to_index = {
+                '_id': md5(page['url'].encode('UTF8')).hexdigest(),
+                'url': page['url'],
+                'lru': page['lru'],
+                'prefixes': ['|'.join(stems[0:i + 1])+'|' for i in range(len(stems))],
+                'HTTP_status': page['status'],
+                'crawlDate': datetime.datetime.fromtimestamp(page['timestamp']/1000)
+            }
+            total += 1
+
+            html = zlib.decompress(page["body"])
+
+            encoding = page.get("encoding", "")
+            try:
+                html = html.decode(encoding)
+            except Exception :
+                html = html.decode("UTF8", "replace")
+                encoding = "UTF8-replace"
+
+            page_to_index["webentity_id"] = page['webentity_when_crawled']
+
+            page["html"] = html
+            if 'textify' in extraction_methods:
+                page_to_index["textify"] = textify(html, encoding=encoding)
+            if 'dragnet' in extraction_methods:
+                try:
+                    page_to_index["dragnet"] = dragnet.extract_content(html, encoding=encoding)
+                except Exception as e:
+                    logg.exception("Dragnet error on page %s"%page['url'])
+                    page_to_index["dragnet"] = None
+            if 'trafilatura' in extraction_methods:
+                try:
+                    page_to_index["trafilatura"] = trafilatura.extract(html)
+                except Exception:
+                    logg.exception("Trafilatura error")
+                    page_to_index["trafilatura"] = None    
+            # extract title
+            try:
+                page_tree = fromstring(html)
+                page_to_index['title'] = page_tree.findtext('.//title')
+            except Exception:
+                page_to_index['title'] = None
+            
+            page_to_index["indexDate"] = datetime.datetime.now()
+            pages.append(page_to_index)
+        # index batch to ES
         nb_indexed_docs, errors = helpers.bulk(es, [{
                 "_op_type": "update",
                 "doc_as_upsert": True,
@@ -121,18 +122,23 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
             else:
                 not_indexed_page.append({'url':p['url'], 'error_message': error_messages[p['_id']]})
 
-        # update status in mongo
-        # TODO : add to_index batch in query ?
-        mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid, 'url': {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
-        # not indexed page beacause of errors are discarded 
-        if len(not_indexed_page)>0:
+        
+        if len(not_indexed_page) == 0:
+            # update status in mongo for all pages
+            mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
+        elif len(not_indexed_page) > 0:
+            # update status in mongo only for no error pages
+            mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid, 'url': {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
+            # not indexed page beacause of errors are discarded 
             for p in not_indexed_page:
                 mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': "ERROR", 'text_indexation_error': p['error_message']}}, upsert=False)        
 
+
     except Exception as e:
-        # we use raise_on_error=False so we consider an exception to discard the complete batch
         pages = []
-        logg.exception("%s: error in index bulk"%corpus)
+        # erase in_batch_ flag in pages mongo collection
+        mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': 'TO_INDEX'}}, upsert=False)
+        logg.exception("%s: error in index bulk, batch flag reset"%corpus)
         logg.debug(e)
         return 1
     return 0     
@@ -216,6 +222,7 @@ def updateWE_task(corpus, es, mongo):
 def indexation_worker(input, logging_queue):
     # leave sigint handling to the parent process 
     signal.signal(signal.SIGINT, signal.SIG_IGN)
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
     es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT_SEC)
     mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
     #logging
@@ -239,6 +246,7 @@ def indexation_worker(input, logging_queue):
 
 
 # init
+signal.signal(signal.SIGTERM, SIGTERM_handler)
 parser = ArgumentParser()
 parser.add_argument('--batch-size', type=int)
 parser.add_argument('--nb-indexation-workers', type=int)
@@ -320,167 +328,170 @@ try:
     hyphe_corpus_coll = mongo["hyphe"]["corpus"]
     extraction_methods_by_corpus = {}
     while True:
-        # get and init corpus index
-        corpora = []
-        nb_pages_to_index = {}
-        nb_we_updates = {}
-        # retrive existing indices in ES
-        existing_es_indices = es.indices.get(index_name('*'))
-        index_to_keep = set()
-        for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection={
-                "options.text_indexation_extraction_methods":1, 
-                "options.text_indexation_default_method":1}):
-            corpus = c["_id"]
-            mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-            
-            
-            nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
-                "text_indexation_status": "TO_INDEX",
-                "forgotten": False
-            })
-            nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
-            corpora.append(corpus)
-            # check index exists in elasticsearch
-            index_exists =  index_name(corpus) in existing_es_indices
-
-            if not index_exists or first_run:
-                # check extraction methods and adapt mapping with alias
-                if 'options' in c and 'text_indexation_default_extraction_method' in c['options']:
-                    default_extraction_method = c['options']['text_indexation_default_extraction_method']
-                else:
-                    default_extraction_method = DEFAULT_EXTRACTION_METHOD
-                if 'options' in c and 'text_indexation_extraction_methods' in c['options']:
-                    extraction_methods = c['options']['text_indexation_extraction_methods']
-                else: 
-                    extraction_methods = EXTRACTION_METHODS
-                # adapt mappings with default extraction methods
-                if not default_extraction_method in ['textify', 'dragnet', 'trafilatura']:
-                    logg.warning("unknown DEFAULT_EXTRACTION_METHOD %s"%default_extraction_method)
-                    if len(extraction_methods)>0:
-                        logg.info("using first method instead %s"%extraction_methods[0])
-                        default_extraction_method = extraction_methods[0]
-                else:
-                    if not default_extraction_method in extraction_methods:
-                        logg.warning("Default extraction method %s was not in extraction methods in config. Adding it.")
-                        extraction_methods.append(default_extraction_method)
-                index_mappings["mappings"]["properties"]["text"]["path"] = default_extraction_method
-                extraction_methods_by_corpus[corpus] = extraction_methods
-                if not index_exists:
-                    # create ES index
-                    es.indices.create(index=index_name(corpus), body = index_mappings)
-                    logg.info("index %s created"%corpus)
-                else:
-                    es.indices.put_mapping(index=index_name(corpus), body=index_mappings['mappings'])
-            index_to_keep.add(index_name(corpus))
-        # checking if some corpus has been deleted
-        index_to_delete = existing_es_indices.keys() - index_to_keep
-        if len(index_to_delete) > 0:
-            # cleaning ES after corpus been deleted in mongo
-            logg.info('deleting %s indices'%index_to_delete)
-            es.indices.delete(index=','.join(index_to_delete))
-            if corpus in extraction_methods_by_corpus:
-                del extraction_methods_by_corpus[corpus]
-            if corpus in nb_index_batches_since_last_update:
-                del nb_index_batches_since_last_update[corpus]
-        # order corpus by last inserts
-        if len(index_to_keep)>0:
-            last_index_dates = {r['key']:r['maxIndexDate']['value'] for r in es.search(body={
-                "size":0,
-                "aggs": {
-                    "indices": {
-                    "terms": {
-                        "field": "_index"   
-                    },
-                    "aggs":{
-                        "maxIndexDate": { "max" : { "field" : "indexDate" } }
-                        }
-                    }  
-                }
-            })["aggregations"]["indices"]["buckets"]}
-        else:
-            last_index_dates = {}
-
-        corpora = sorted(corpora, key=lambda c : last_index_dates[index_name(c)] if index_name(c) in last_index_dates else 0)
-        
-        # add tasks in queue
-        for c in corpora:
-            if nb_pages_to_index[c] > 0:
-                # create a batch
-                batch_ids = [d['_id'] for d in mongo["hyphe_%s" % c]["pages"].find({
+        try:
+            # get and init corpus index
+            corpora = []
+            nb_pages_to_index = {}
+            nb_we_updates = {}
+            # retrive existing indices in ES
+            existing_es_indices = es.indices.get(index_name('*'))
+            index_to_keep = set()
+            for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection={
+                    "options.text_indexation_extraction_methods":1, 
+                    "options.text_indexation_default_method":1}):
+                corpus = c["_id"]
+                mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
+                
+                
+                nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
                     "text_indexation_status": "TO_INDEX",
-                    "forgotten": False,
-                }, projection=["_id"]).sort('timestamp').limit(BATCH_SIZE)]
-                batch_uuid = md5("|".join(batch_ids).encode('UTF8')).hexdigest()
-                # change index status to "in batch"
-                logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
-                mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
-                # create task with corpus and batch uuid
-                task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]})
-            nb_index_batches_since_last_update[c]+=1
+                    "forgotten": False
+                })
+                nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
+                corpora.append(corpus)
+                # check index exists in elasticsearch
+                index_exists =  index_name(corpus) in existing_es_indices
 
-        # checking job completion 
-        for c in corpora:
-            mongo_jobs_coll = mongo["hyphe_%s" % c]["jobs"]
-            mongo_pages_coll = mongo["hyphe_%s" % c]["pages"]
-            # look for unindexed but finished jobs
-            pending_jobs_ids = set([j['crawljob_id'] for j in mongo_jobs_coll.find({
-                'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']},
-                'text_indexed': {'$ne': True}
-            }, projection=('_id','crawljob_id'))])
-            
-            # tag jobs when completed
-            not_completed_jobs_pipeline = [
-                {
-                    "$match": {
-                        "_job" : {"$in": list(pending_jobs_ids)},
-                        "text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED","ERROR"]},
-                        "forgotten": False
+                if not index_exists or first_run:
+                    # check extraction methods and adapt mapping with alias
+                    if 'options' in c and 'text_indexation_default_extraction_method' in c['options']:
+                        default_extraction_method = c['options']['text_indexation_default_extraction_method']
+                    else:
+                        default_extraction_method = DEFAULT_EXTRACTION_METHOD
+                    if 'options' in c and 'text_indexation_extraction_methods' in c['options']:
+                        extraction_methods = c['options']['text_indexation_extraction_methods']
+                    else: 
+                        extraction_methods = EXTRACTION_METHODS
+                    # adapt mappings with default extraction methods
+                    if not default_extraction_method in ['textify', 'dragnet', 'trafilatura']:
+                        logg.warning("unknown DEFAULT_EXTRACTION_METHOD %s"%default_extraction_method)
+                        if len(extraction_methods)>0:
+                            logg.info("using first method instead %s"%extraction_methods[0])
+                            default_extraction_method = extraction_methods[0]
+                    else:
+                        if not default_extraction_method in extraction_methods:
+                            logg.warning("Default extraction method %s was not in extraction methods in config. Adding it.")
+                            extraction_methods.append(default_extraction_method)
+                    index_mappings["mappings"]["properties"]["text"]["path"] = default_extraction_method
+                    extraction_methods_by_corpus[corpus] = extraction_methods
+                    if not index_exists:
+                        # create ES index
+                        es.indices.create(index=index_name(corpus), body = index_mappings)
+                        logg.info("index %s created"%corpus)
+                    else:
+                        es.indices.put_mapping(index=index_name(corpus), body=index_mappings['mappings'])
+                index_to_keep.add(index_name(corpus))
+            # checking if some corpus has been deleted
+            index_to_delete = existing_es_indices.keys() - index_to_keep
+            if len(index_to_delete) > 0:
+                # cleaning ES after corpus been deleted in mongo
+                logg.info('deleting %s indices'%index_to_delete)
+                es.indices.delete(index=','.join(index_to_delete))
+            # cleaning memory for deleted corpus
+            for c in extraction_methods_by_corpus.keys() - set(corpora):
+                if c in extraction_methods_by_corpus:
+                    del extraction_methods_by_corpus[c]
+                if c in nb_index_batches_since_last_update:
+                    del nb_index_batches_since_last_update[c]
+            # order corpus by last inserts
+            if len(index_to_keep)>0:
+                last_index_dates = {r['key']:r['maxIndexDate']['value'] for r in es.search(body={
+                    "size":0,
+                    "aggs": {
+                        "indices": {
+                        "terms": {
+                            "field": "_index"   
+                        },
+                        "aggs":{
+                            "maxIndexDate": { "max" : { "field" : "indexDate" } }
+                            }
+                        }  
                     }
-                },
-                {
-                    "$group": {
-                        "_id": "$_job"
+                })["aggregations"]["indices"]["buckets"]}
+            else:
+                last_index_dates = {}
+
+            corpora = sorted(corpora, key=lambda c : last_index_dates[index_name(c)] if index_name(c) in last_index_dates else 0)
+            
+            # add tasks in queue
+            for c in corpora:
+                if nb_pages_to_index[c] > 0:
+                    # create a batch
+                    batch_ids = [d['_id'] for d in mongo["hyphe_%s" % c]["pages"].find({
+                        "text_indexation_status": "TO_INDEX",
+                        "forgotten": False,
+                    }, projection=["_id"]).sort('timestamp').limit(BATCH_SIZE)]
+                    batch_uuid = md5("|".join(batch_ids).encode('UTF8')).hexdigest()
+                    # change index status to "in batch"
+                    logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
+                    # create task with corpus and batch uuid
+                    task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]})
+                    mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
+                nb_index_batches_since_last_update[c]+=1
+
+            # checking job completion 
+            for c in corpora:
+                mongo_jobs_coll = mongo["hyphe_%s" % c]["jobs"]
+                mongo_pages_coll = mongo["hyphe_%s" % c]["pages"]
+                # look for unindexed but finished jobs
+                pending_jobs_ids = set([j['crawljob_id'] for j in mongo_jobs_coll.find({
+                    'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']},
+                    'text_indexed': {'$ne': True}
+                }, projection=('_id','crawljob_id'))])
+                
+                # tag jobs when completed
+                not_completed_jobs_pipeline = [
+                    {
+                        "$match": {
+                            "_job" : {"$in": list(pending_jobs_ids)},
+                            # TODO: we might want to use a regexp IN_BATCH_\d here. Les performant but resilient to introduction of new statuses 
+                            "text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED","ERROR"]},
+                            "forgotten": False
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": "$_job"
+                        }
                     }
-                }
-            ]
-            # counting completed jobs
-            not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
-            completed_jobs = pending_jobs_ids - not_completed_jobs
-            
-            if len(completed_jobs) > 0:
-                r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}}, {'$set': {'text_indexed': True}})
-                if r.modified_count != len(completed_jobs):
-                    logg.warning('only %s jobs were modified on %s completed ?'%(r.modified_count, len(completed_jobs)))
-                logg.info("%s: %s jobs were fully indexed. %s pending."%(c, len(completed_jobs), len(not_completed_jobs)))
-                # make sure documents are stored to let update do there jobs
-                # see https://discuss.elastic.co/t/update-by-query-and-refresh/20334/3
-                es.indices.refresh(index= index_name(c))
+                ]
+                # counting completed jobs
+                not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
+                completed_jobs = pending_jobs_ids - not_completed_jobs
+                
+                if len(completed_jobs) > 0:
+                    r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}}, {'$set': {'text_indexed': True}})
+                    if r.modified_count != len(completed_jobs):
+                        logg.warning('only %s jobs were modified on %s completed ?'%(r.modified_count, len(completed_jobs)))
+                    logg.info("%s: %s jobs were fully indexed. %s pending."%(c, len(completed_jobs), len(not_completed_jobs)))
+                    # make sure documents are stored to let update do there jobs
+                    # see https://discuss.elastic.co/t/update-by-query-and-refresh/20334/3
+                    es.indices.refresh(index= index_name(c))
 
 
 
-        for c in corpora:
-            if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
-                updateWE_task(c, es, mongo)
-                nb_index_batches_since_last_update[c]=0
-        first_run = False
+            for c in corpora:
+                if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
+                    updateWE_task(c, es, mongo)
+                    nb_index_batches_since_last_update[c]=0
+            first_run = False
 
-        # loop
-        if sum(nb_pages_to_index.values()) == 0 and sum(nb_we_updates.values()) == 0: 
-            # wait for more tasks to be created
-            logg.info('waiting %s'%throttle)
-            time.sleep(throttle)
-            if throttle < 5:
-                throttle += 0.5
-        else:
-            # next throttlet will be 
-            throttle = 0.5
-            
-except KeyboardInterrupt:
-    # do not raise, closing nicely done in finally clause
-    pass
-except Exception:
-    logg.exception("in main")
-finally:
+            # loop
+            if sum(nb_pages_to_index.values()) == 0 and sum(nb_we_updates.values()) == 0: 
+                # wait for more tasks to be created
+                logg.info('waiting %s'%throttle)
+                time.sleep(throttle)
+                if throttle < 5:
+                    throttle += 0.5
+            else:
+                # next throttlet will be 
+                throttle = 0.5
+        except KeyboardInterrupt:
+            # raise, closing nicely will be done in the root except clause
+            raise 
+        except Exception:
+            logg.exception("in main, trying to continue operations")
+except:
     logg.info('waiting for workers to stop')
     # flush pending tasks
     while not task_queue.empty():
@@ -491,7 +502,11 @@ finally:
     # wait for them to finish their current task
     for w in workers:
         w.join(timeout=3000)
-    # TODO : remove in_batch status from page in mongo ?
+    # remove in_batch status in mongo from pages which were queued but not treated to trigger a retry in next run
+    for c in corpora:
+        r = mongo["hyphe_%s" % c]["pages"].update_many({"text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED","ERROR"]}}, {'$set': {'text_indexation_status': 'TO_INDEX'}})
+        if r.modified_count and r.modified_count > 0:
+            logg.info('reset in_batch* flags for %s pages in %s'%(r.modified_count, c))
     task_queue.close()
     logg.info('workers died, killing myself')
     logging_listener.stop()
