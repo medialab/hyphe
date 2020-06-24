@@ -230,8 +230,6 @@ def indexation_worker(input, logging_queue):
         try:
             if task['type'] == "indexation":
                 indexation_task(task['corpus'], task['batch_uuid'], task['extraction_methods'], es, mongo)
-            if task['type'] == "updateWE":
-                updateWE_task(task['corpus'], es, mongo)
         except Exception:
             logg.exception("ERROR in task %s for corpus %s"%(task['type'],task['corpus']))       
     logg.info('stopping')
@@ -459,13 +457,9 @@ try:
                 es.indices.refresh(index= index_name(c))
 
 
-        # TODO: SET a different order for updateWE ?
-        # 
-        
-             
+
         for c in corpora:
             if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
-                #task_queue.put({"type": "updateWE", "corpus": c})
                 updateWE_task(c, es, mongo)
                 nb_index_batches_since_last_update[c]=0
         first_run = False
