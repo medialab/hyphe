@@ -1,0 +1,18 @@
+version: "2"
+services:
+    test_text_indexation:
+        build:
+            context: ./hyphe_text_indexation
+            dockerfile: ./test/Dockerfile
+        environment:
+            - "ELASTICSEARCH_HOST=elasticsearch"
+            - "ELASTICSEARCH_PORT=9200"
+            - "HYPHE_API_URL=http://frontend/api/"
+            - "MONGO_HOST=mongo"
+            - "MONGO_PORT=27017"
+        depends_on:
+            - elasticsearch
+            - text_indexation
+            - mongo
+            - backend
+            - frontend

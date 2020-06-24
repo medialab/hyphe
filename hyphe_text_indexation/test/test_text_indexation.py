@@ -12,7 +12,7 @@ ELASTICSEARCH_PORT = os.getenv('ELASTICSEARCH_PORT', default='9200')
 
 HYPHE_API_URL = os.getenv('HYPHE_API_URL', default='http://localhost:80/api/')
 MONGO_HOST = os.getenv('MONGO_HOST', default='localhost')
-MONGO_PORT = os.getenv('MONGO_PORT', default=27017)
+MONGO_PORT = int(os.getenv('MONGO_PORT', default=27017))
 
 PREFIX_TEST_CORPUS = 'tti_'
 START_PAGES = {
@@ -70,7 +70,8 @@ def are_web_entity_pages_synced(hyphe_api, elasticsearch, corpus, crawl_finished
 def elasticsearch():
     try:
         es = Elasticsearch('%s:%s'%(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT))
-    except:
+    except Exception as e:
+        print(e)
         pytest.exit('can\"t connect to ES')
     else:
         return es
@@ -81,7 +82,8 @@ def hyphe_api():
         config = jsonrpclib.config.Config(version=1.0)
         history = jsonrpclib.history.History()
         hyphe_api = jsonrpclib.ServerProxy(HYPHE_API_URL, config=config, history=history)
-    except :
+    except Exception as e:
+        print(e)
         pytest.exit("can't connect to Hyphe API")
     else:
         return hyphe_api
@@ -90,7 +92,8 @@ def hyphe_api():
 def mongodb():
     try:
         mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
-    except :
+    except Exception as e:
+        print(e)
         pytest.exit("can't connect to mongodb")
     else:
         return mongo
