@@ -301,3 +301,10 @@ def test_multi_corpus(hyphe_api, elasticsearch, mongodb):
     assert crawl_pending == False
 
     assert waiting_for(lambda:are_web_entity_pages_synced(hyphe_api, elasticsearch, '%smedialab'%PREFIX_TEST_CORPUS), True) == True
+
+def test_destroy_corpus_delete_index(hyphe_api, elasticsearch):
+    for c in ['medialab', 'ietf']:
+        destroy_corpus = hyphe_api.destroy_corpus('%s%s'%(PREFIX_TEST_CORPUS,c), False)
+        assert destroy_corpus['code'] == 'success', 'couldn\'t destoy a corpus in hyphe: {}'.format(destroy_corpus['message'])
+        index_exists = waiting_for(lambda: elasticsearch.indices.exists(index='hyphe_%s%s'%(PREFIX_TEST_CORPUS,c)), False)
+        assert index_exists == False, "destroyed corpus not deleted in elasticsearch"
