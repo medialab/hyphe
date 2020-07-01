@@ -478,6 +478,8 @@ try:
 
             for c in corpora:
                 if nb_we_updates[c] > 0 and nb_index_batches_since_last_update[c] > UPDATE_WE_FREQ:
+                    # TODO : applying WE update is blocking and can last quite some time in some cases
+                    # Doing it from the main process might block indexation if updating time ie greater than indexing all the pages batch previously added to the queue
                     updateWE_task(c, es, mongo)
                     nb_index_batches_since_last_update[c]=0
             first_run = False
