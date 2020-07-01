@@ -414,18 +414,24 @@ try:
             
             # add tasks in queue
             for c in corpora:
-                if nb_pages_to_index[c] > 0:
+                if nb_pages_to_index[c] > 0 and not task_queue.full():
                     # create a batch
                     batch_ids = [d['_id'] for d in mongo["hyphe_%s" % c]["pages"].find({
                         "text_indexation_status": "TO_INDEX",
                         "forgotten": False,
                     }, projection=["_id"]).sort('timestamp').limit(BATCH_SIZE)]
                     batch_uuid = md5("|".join(batch_ids).encode('UTF8')).hexdigest()
-                    # change index status to "in batch"
-                    logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
-                    # create task with corpus and batch uuid
-                    task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]})
-                    mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
+                    # we don't want putting in the queue to be blocking if queue is full cause this which might limit the possibility to update WEs in parallel of long indexation batchs 
+                    try:
+                        # create task with corpus and batch uuid
+                        task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]}, block=False)
+                    except Queue.full:
+                        log.info('indexation queue is full')
+                    else:
+                        # change index status to "in batch"
+                        logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
+                        # flag as in batch only if task correclty added to the queue
+                        mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
                 nb_index_batches_since_last_update[c]+=1
 
             # checking job completion 
