@@ -322,7 +322,6 @@ try:
         workers.append(p)
 
     first_run = True
-    UPDATE_WE_FREQ = 5 # unit is the number of indexation batches 
     nb_index_batches_since_last_update = Counter()
     throttle = 0.5
     hyphe_corpus_coll = mongo["hyphe"]["corpus"]
