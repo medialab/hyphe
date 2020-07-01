@@ -449,7 +449,8 @@ try:
                     {
                         "$match": {
                             "_job" : {"$in": list(pending_jobs_ids)},
-                            # TODO: we might want to use a regexp IN_BATCH_\d here. Les performant but resilient to introduction of new statuses 
+                            # TODO: we might want to use a regexp IN_BATCH_.* here. Less performant but resilient to introduction of new statuses
+                            # OR we should split IN_BATCH status and UUID 
                             "text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED","ERROR"]},
                             "forgotten": False
                         }
