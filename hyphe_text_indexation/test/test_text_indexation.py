@@ -6,9 +6,11 @@ from time import sleep
 import os
 
 from reset_text_indexation_for_corpus import reset_text_index
+from elasticsearch_utils import connect_to_es
 
 ELASTICSEARCH_HOST = os.getenv('ELASTICSEARCH_HOST', default='localhost')
 ELASTICSEARCH_PORT = os.getenv('ELASTICSEARCH_PORT', default='9200')
+ELASTICSEARCH_TIMEOUT = os.getenv('ELASTICSEARCH_TIMEOUT', default=20)
 
 HYPHE_API_URL = os.getenv('HYPHE_API_URL', default='http://localhost:80/api/')
 MONGO_HOST = os.getenv('MONGO_HOST', default='localhost')
@@ -69,7 +71,7 @@ def are_web_entity_pages_synced(hyphe_api, elasticsearch, corpus, crawl_finished
 @pytest.fixture(scope="session")
 def elasticsearch():
     try:
-        es = Elasticsearch('%s:%s'%(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT))
+        es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT)
     except Exception as e:
         print(e)
         pytest.exit('can\"t connect to ES')
@@ -78,25 +80,39 @@ def elasticsearch():
 
 @pytest.fixture(scope="session")
 def hyphe_api():
-    try:
-        config = jsonrpclib.config.Config(version=1.0)
-        history = jsonrpclib.history.History()
-        hyphe_api = jsonrpclib.ServerProxy(HYPHE_API_URL, config=config, history=history)
-    except Exception as e:
-        print(e)
-        pytest.exit("can't connect to Hyphe API")
-    else:
-        return hyphe_api
+    hyphe_ready = False
+    timeout = 20
+    waiting = 0
+    while not hyphe_ready and waiting < timeout:
+        try:
+            config = jsonrpclib.config.Config(version=1.0)
+            history = jsonrpclib.history.History()
+            hyphe_api = jsonrpclib.ServerProxy(HYPHE_API_URL, config=config, history=history)
+        except Exception as e:
+            sleep(1)
+            waiting += 1
+        else:
+            return hyphe_api
+    # couldn't connect to hyphe after as many attemps as timeout
+    pytest.exit("can't connect to Hyphe API")
 
 @pytest.fixture(scope="session")
 def mongodb():
-    try:
-        mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
-    except Exception as e:
-        print(e)
-        pytest.exit("can't connect to mongodb")
+    mongodb_ready = False
+    timeout = 20
+    waiting = 0
+    while not mongodb_ready and waiting < timeout:
+        try:
+            mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
+        except Exception as e:
+            sleep(1)
+            waiting= + 1
+        else: 
     else:
-        return mongo
+        else: 
+            return mongo
+    # couldn't connect to hyphe after as many attemps as timeout
+    pytest.exit("can't connect to mongodb")    
 
 def waiting_for(test, ready_value, throttle=0.2, timeout=5):
     time = 0
@@ -108,12 +124,12 @@ def waiting_for(test, ready_value, throttle=0.2, timeout=5):
     return t
 
 def test_docker_environment_ready(hyphe_api, elasticsearch, mongodb):
-    
+
     pong = hyphe_api.ping()    
     assert pong['result'] == "pong"
-    
-    # test mongodb connection and check no corpus exists 
-    corpus = mongodb['hyphe']['corpus'].find({}, projection={"_id":1})
+
+    # test mongodb connection and check no corpus exists
+    corpus = mongodb['hyphe']['corpus'].find({}, projection={"_id": 1})
     destroy = False
     for c in corpus:
         if c['_id'] != '--test-corpus--' and PREFIX_TEST_CORPUS not in c['_id']:
@@ -121,7 +137,7 @@ def test_docker_environment_ready(hyphe_api, elasticsearch, mongodb):
         elif  PREFIX_TEST_CORPUS in c['_id']:
             print("destroying corpus %s"%c['_id'])
             hyphe_api.start_corpus(corpus = c['_id'])
-            sleep(2)
+            waiting_for(lambda: hyphe_api.test_corpus(corpus = c['_id'])['result'], "ready")
             destroy = hyphe_api.destroy_corpus(c['_id'], False)
             assert destroy['code'] == 'success', 'couldn\'t destroy a corpus in hyphe: {}'.format(destroy['message'])
             destroy = True
@@ -136,7 +152,7 @@ def test_docker_environment_ready(hyphe_api, elasticsearch, mongodb):
 def test_create_corpus_create_index(hyphe_api, elasticsearch):
     create_corpus = hyphe_api.create_corpus('%smedialab'%PREFIX_TEST_CORPUS, "", {"indexTextContent":True, "txt_indexation_extraction_methods": TEXT_EXTRACTION_METHODS, "txt_indexation_default_extraction_method":'trafilatura'})
     assert create_corpus['code'] == 'success', 'couldn\'t create a corpus in hyphe: {}'.format(create_corpus['message'])
-    # max indexation throttle time
+    waiting_for(lambda: hyphe_api.test_corpus(corpus = '%smedialab'%PREFIX_TEST_CORPUS)['result'], "ready")
     index_exists = waiting_for(lambda: elasticsearch.indices.exists(index='hyphe_%smedialab'%PREFIX_TEST_CORPUS), True)
     assert index_exists == True, "newly created corpus not created in elasticsearch"
 
@@ -172,7 +188,7 @@ def webentity_nb_pages_in_es(webentity_id, elasticsearch):
             }
         },
         "size":0
-	})
+    })
     return nb_pages_q["hits"]["total"]["value"]
 
 def test_manual_child_WE_creation_then_merge(hyphe_api, elasticsearch):
@@ -277,17 +293,17 @@ def test_reset(hyphe_api, elasticsearch, mongodb):
 def test_multi_corpus(hyphe_api, elasticsearch, mongodb):
     create_corpus = hyphe_api.create_corpus('%sietf'%PREFIX_TEST_CORPUS, "", {"indexTextContent":True})
     print('waiting for corpus to start')
-    sleep(2)
     assert create_corpus['code'] == 'success', 'couldn\'t create a corpus in hyphe: {}'.format(create_corpus['message'])
+    waiting_for(lambda: hyphe_api.test_corpus(corpus = '%sietf'%PREFIX_TEST_CORPUS)['result'], "ready")
     we = hyphe_api.store.declare_webentity_by_lru('s:https|h:org|h:ietf|h:tools|p:html', "%sietf"%PREFIX_TEST_CORPUS, "IN", START_PAGES['ietf'], True, "%sietf"%PREFIX_TEST_CORPUS)
     assert we['code'] == 'success', 'couldn\'t create IETF WE in hyphe: {}'.format(we['message'])
     we = we['result']
     we_id = we['id']
-    # resetting médialab corpus to test multicorpus indexing simultaneously
-    reset_text_index('%smedialab'%PREFIX_TEST_CORPUS, elasticsearch, mongodb)
     crawl_job = hyphe_api.crawl_webentity(we_id, 1, False, 'IN', {}, "%sietf"%PREFIX_TEST_CORPUS)
     assert crawl_job['code'] == 'success', 'couldn\'t start crawl'
     sleep(0.5)
+    # resetting médialab corpus to test multicorpus indexing simultaneously
+    reset_text_index('%smedialab'%PREFIX_TEST_CORPUS, elasticsearch, mongodb)
     r = hyphe_api.store.add_webentity_creationrule('s:https|h:org|h:ietf|h:tools|p:html', "prefix+1", "%sietf"%PREFIX_TEST_CORPUS)
     assert r['code'] == 'success'
     assert are_web_entity_pages_synced(hyphe_api, elasticsearch, '%sietf'%PREFIX_TEST_CORPUS, crawl_finished=False) == True
@@ -296,7 +312,7 @@ def test_multi_corpus(hyphe_api, elasticsearch, mongodb):
     assert crawl_pending == False
    
     # TODO: check status of Weupdate tasks in mongo
-    assert are_web_entity_pages_synced(hyphe_api, elasticsearch, '%sietf'%PREFIX_TEST_CORPUS) == True
+    assert waiting_for(lambda: are_web_entity_pages_synced(hyphe_api, elasticsearch, '%sietf'%PREFIX_TEST_CORPUS), True, 0.5, 20) == True
     crawl_pending = waiting_for(lambda:is_crawl_pending([], '%smedialab'%PREFIX_TEST_CORPUS, hyphe_api), False, 1, 340)
     assert crawl_pending == False
 
