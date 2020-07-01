@@ -155,7 +155,7 @@ def updateWE_task(corpus, es, mongo):
         # don't update WE structure in text index if there is one crawling job
         if nb_unindexed_jobs == 0:
             print('%s: updating index WE_is %s => %s'%(corpus, weupdate['old_webentity'], weupdate['new_webentity']))
-            # two cases , trivial if no prefixes, complexe otherwiase
+            # two cases , trivial if no prefixes, complexe otherwise
             if weupdate['prefixes'] and len(weupdate['prefixes']) > 0:
                 updateQuery = {
                     "script": {
