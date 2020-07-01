@@ -171,3 +171,6 @@ optional arguments:
   --batch-size BATCH_SIZE
   --nb-indexation-workers NB_INDEXATION_WORKERS
 ```
+### tests
+
+see [the test documentation](./test/README.md)
