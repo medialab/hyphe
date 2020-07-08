@@ -27,7 +27,7 @@ build_backend_image:
   environment:
     name: $CI_COMMIT_REF_SLUG
   only:
-    - preprod
+    - staging
     - prod
     - tags
 
@@ -40,7 +40,7 @@ build_crawler_image:
   environment:
     name: $CI_COMMIT_REF_SLUG
   only:
-    - preprod
+    - staging
     - prod
     - tags
 
@@ -53,21 +53,25 @@ build_frontend_image:
   environment:
     name: $CI_COMMIT_REF_SLUG
   only:
-    - preprod
+    - staging
     - prod
     - tags
 
 deploy:
+  image:
+    name: jrisp/kubehelper:latest
+    entrypoint: [""]
   stage: deploy
-  image: cdrx/rancher-gitlab-deploy
-  variables:
-    GIT_STRATEGY: none
   script:
-    - upgrade --rancher-key $RANCHER_ACCESS_KEY --rancher-secret $RANCHER_SECRET_KEY --rancher-url $RANCHER_URL --environment $RANCHER_ENV --stack $RANCHER_STACK --service $RANCHER_BACKEND_SERVICE --start-before-stopping
-    - upgrade --rancher-key $RANCHER_ACCESS_KEY --rancher-secret $RANCHER_SECRET_KEY --rancher-url $RANCHER_URL --environment $RANCHER_ENV --stack $RANCHER_STACK --service $RANCHER_CRAWLER_SERVICE --start-before-stopping
-    - upgrade --rancher-key $RANCHER_ACCESS_KEY --rancher-secret $RANCHER_SECRET_KEY --rancher-url $RANCHER_URL --environment $RANCHER_ENV --stack $RANCHER_STACK --service $RANCHER_FRONTEND_SERVICE --start-before-stopping
+    - kubectl config set-cluster k8s --server="$KUBE_URL" --certificate-authority="$KUBE_CA_PEM_FILE"
+    - kubectl config set-credentials gitlab-admin --token="$KUBE_TOKEN"
+    - kubectl config set-context default --cluster=k8s --user=gitlab-admin
+    - kubectl config use-context default
+    - kubectl -n $STACK rollout restart deployment backend
+    - kubectl -n $STACK rollout restart deployment crawler
+    - kubectl -n $STACK rollout restart deployment frontend
   environment:
     name: $CI_COMMIT_REF_SLUG
   only:
-    - preprod
-    - prod
+   - staging
+   - prod
