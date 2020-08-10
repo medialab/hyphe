@@ -217,6 +217,8 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
+* HERASIMOVICH, Volha, & ALZUA-SORZABAL, Aurkene. "[Communication network analysis to advance mapping ‘sport for development and peace’ complexity: Cohesion and leadership](https://journals.sagepub.com/doi/10.1177/1012690220909748)" (2020), in International Review for the Sociology of Sport. DOI: 10.1177/1012690220909748
+
 * TOURNAY Virginie, JACOMY Mathieu, NECULA Andra, LEIBING Annette & BLASIMME Alessandro, 2019, "[A New Web-Based Big Data Analytics for Dynamic Public Opinion Mapping in Digital Networks on Contested Biotechnology Fields](https://www.liebertpub.com/doi/10.1089/omi.2019.0130)", in OMICS: A Journal of Integrative Biology. DOI: 10.1089/omi.2019.0130
 
 * CARDON, Dominique, Jean-Philippe COINTET, Benjamin OOGHE, and Guillaume PLIQUE. "[Unfolding the Multi-Layered Structure of the French Mediascape](https://spire.sciencespo.fr/hdl:/2441/52avseho8m9rjbmeot0eogd0iu/resources/wp1medialab-unfolding-the-multi-layered-structure-of-french-media-landscape-vf-2.pdf)" (2019), report for Institut Montaigne.
