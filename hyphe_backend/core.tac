@@ -2722,7 +2722,7 @@ class Memory_Structure(customJSONRPC):
                         values |= set(tags[ns][cat].keys())
         return format_result(list(values))
 
-  # PAGES, LINKS AND NETWORKS
+  # PAGES\, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
     def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False):

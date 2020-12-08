@@ -843,8 +843,7 @@ The API will always answer as such:
 
  Returns for a `corpus` a list of all existing values in the webentities tags. Optionally limits to a specific `namespace` and/or `category`.
 
-### PAGES
-  + _`LINKS AND NETWORKS
+### PAGES, LINKS AND NETWORKS
 
 - __`get_webentity_pages`:__
   + _`webentity_id`_ (mandatory)
