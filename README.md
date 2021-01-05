@@ -217,7 +217,9 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
-* HERASIMOVICH, Volha, & ALZUA-SORZABAL, Aurkene. "[Communication network analysis to advance mapping ‘sport for development and peace’ complexity: Cohesion and leadership](https://journals.sagepub.com/doi/10.1177/1012690220909748)" (2020), in International Review for the Sociology of Sport. DOI: 10.1177/1012690220909748
+* CAFIERO, Florian, Cafiero, GUILLE-ESCURET Paul, WARD Jeremy K, "[“I’m not an antivaxxer, but…”: Spurious and authentic diversity among vaccine critical activists](http://www.sciencedirect.com/science/article/pii/S0378873320300964) (2021), in Social Networks, Volume 65, 2021, Pages 63-70, ISSN 0378-8733. DOI : 10.1016/j.socnet.2020.11.004.
+
+* HERASIMOVICH, Volha, ALZUA-SORZABAL, Aurkene. "[Communication network analysis to advance mapping ‘sport for development and peace’ complexity: Cohesion and leadership](https://journals.sagepub.com/doi/10.1177/1012690220909748)" (2020), in International Review for the Sociology of Sport. DOI: 10.1177/1012690220909748
 
 * WARD Jeremy K, GUILLE-ESCURET Paul, ALAPETITE Clément, "[Les « antivaccins », figure de l’anti-Science](https://www.cairn.info/revue-deviance-et-societe-2019-2-page-221.htm)" (2019), in Déviance et Société, 2019/2 (Vol. 43), p. 221-251. DOI : 10.3917/ds.432.0221
 
