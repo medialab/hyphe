@@ -217,11 +217,11 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
-* CAFIERO, Florian, Cafiero, GUILLE-ESCURET Paul, WARD Jeremy K, "[“I’m not an antivaxxer, but…”: Spurious and authentic diversity among vaccine critical activists](http://www.sciencedirect.com/science/article/pii/S0378873320300964) (2021), in Social Networks, Volume 65, 2021, Pages 63-70, ISSN 0378-8733. DOI : 10.1016/j.socnet.2020.11.004.
+* CAFIERO, Florian, Cafiero, GUILLE-ESCURET Paul, WARD Jeremy K, "[“I’m not an antivaxxer, but…”: Spurious and authentic diversity among vaccine critical activists](http://www.sciencedirect.com/science/article/pii/S0378873320300964) (2021), in Social Networks, Volume 65, 2021, Pages 63-70, ISSN 0378-8733. DOI: 10.1016/j.socnet.2020.11.004.
 
 * HERASIMOVICH, Volha, ALZUA-SORZABAL, Aurkene. "[Communication network analysis to advance mapping ‘sport for development and peace’ complexity: Cohesion and leadership](https://journals.sagepub.com/doi/10.1177/1012690220909748)" (2020), in International Review for the Sociology of Sport. DOI: 10.1177/1012690220909748
 
-* WARD Jeremy K, GUILLE-ESCURET Paul, ALAPETITE Clément, "[Les « antivaccins », figure de l’anti-Science](https://www.cairn.info/revue-deviance-et-societe-2019-2-page-221.htm)" (2019), in Déviance et Société, 2019/2 (Vol. 43), p. 221-251. DOI : 10.3917/ds.432.0221
+* WARD Jeremy K, GUILLE-ESCURET Paul, ALAPETITE Clément, "[Les « antivaccins », figure de l’anti-Science](https://www.cairn.info/revue-deviance-et-societe-2019-2-page-221.htm)" (2019), in Déviance et Société, 2019/2 (Vol. 43), p. 221-251. DOI: 10.3917/ds.432.0221
 
 * TOURNAY Virginie, JACOMY Mathieu, NECULA Andra, LEIBING Annette & BLASIMME Alessandro, 2019, "[A New Web-Based Big Data Analytics for Dynamic Public Opinion Mapping in Digital Networks on Contested Biotechnology Fields](https://www.liebertpub.com/doi/10.1089/omi.2019.0130)", in OMICS: A Journal of Integrative Biology. DOI: 10.1089/omi.2019.0130
 
@@ -235,7 +235,7 @@ See our [roadmap](doc/roadmap.md)!
 
 * DESFRICHES-DORIA, Orélie, SERGENT, Henri, TRAN, Félicia, HAETTICH, Yoann & BOREL, Justine (2018), "[What is Digital Humanities' identity in interdisciplinary practices?: An experiment with digital tools for visualizing the francophone DH network](https://dl.acm.org/citation.cfm?doid=3240431.3240439), In Proceedings of the 2nd International Conference on Web Studies (WS.2 2018), Everardo Reyes, Mark Bernstein, Giancarlo Ruffo, and Imad Saleh (Eds.). ACM, New York, NY, USA, 39-47. DOI: https://doi.org/10.1145/3240431.3240439
 
-* WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://www.sciencedirect.com/science/article/pii/S0277953618306282). Social Science & Medicine. 220. 10.1016/j.socscimed.2018.10.032. 2018. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
+* WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://www.sciencedirect.com/science/article/pii/S0277953618306282) (2018), in Social Science & Medicine. 220. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
 
 * COUSIN Grégoire & PONTRANDOLFO Stefania (2018), [Sull’uso politico dei rom in campagna elettorale. Una ricerca sul web](http://www.dsu.univr.it/?ent=pubbdip&id=977168&lang=nb). In Pontrandolfo, S. (ed.), Politiche locali per Rom e Sinti in Italia. Roma, CISU, pp. 243-265.
 
