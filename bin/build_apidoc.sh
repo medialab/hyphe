@@ -52,7 +52,7 @@ echo "
 defcorpus=$(grep DEFAULT_CORPUS hyphe_backend/lib/config_hci.py | head -n 1 | sed 's/^.*= //' | sed s'/"//g')
 downloaddelay=$(grep download_delay config/config.json.example | head -n 1 | sed 's/^.*: //' | sed 's/[ ,]\+//')
 
-grep 'def jsonrpc_\|accessible jsonrpc\|"""\|^  #' hyphe_backend/core.tac   |
+grep 'def jsonrpc_\|accessible jsonrpc\|^        """\|^  #' hyphe_backend/core.tac   |
  sed 's/# accessible jsonrpc.*\(".*"\)/\n\n## Commands for namespace: \1/'  |
  sed 's/^  #\s*/### /'                                                      |
  sed 's/^ \+"""/ /'                                                         |

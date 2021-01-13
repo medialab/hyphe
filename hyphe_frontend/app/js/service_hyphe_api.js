@@ -209,15 +209,16 @@ angular.module('hyphe.service_hyphe_api', [])
     ns.declareWebentity = buildApiCall(
         API.WEBENTITY_LIST_CREATE_BY_LRU_LIST
         ,function(settings){
-          return [
-              settings.prefixes             // LRU list
-              ,settings.name || ''          // Name
-              ,'IN'                         // Status
-              ,settings.startPages || []    // Start pages
+          return {
+              list_lrus: settings.prefixes             // LRU list
+              ,name: settings.name || ''          // Name
+              ,status: 'IN'                         // Status
+              ,startpages: settings.startPages || []    // Start pages
     // Automatically include LRU variations (http/https www/nowww)
-              ,settings.lruVariations || false
-              ,corpus.getId()
-            ]}
+              ,lruVariations: settings.lruVariations || false
+              ,tags: settings.tags || {}
+              ,corpus: corpus.getId()
+            }}
       )
 
     ns.urlLookup = buildApiCall(

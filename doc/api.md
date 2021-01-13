@@ -414,6 +414,7 @@ The API will always answer as such:
   + _`status`_ (optional, default: `null`)
   + _`startpages`_ (optional, default: `[]`)
   + _`lruVariations`_ (optional, default: `true`)
+  + _`tags`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Creates for a `corpus` a WebEntity defined for the LRU prefix given as a `url` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity.
@@ -425,6 +426,7 @@ The API will always answer as such:
   + _`status`_ (optional, default: `null`)
   + _`startpages`_ (optional, default: `[]`)
   + _`lruVariations`_ (optional, default: `true`)
+  + _`tags`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Creates for a `corpus` a WebEntity defined for a `lru_prefix` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity.
@@ -436,6 +438,7 @@ The API will always answer as such:
   + _`status`_ (optional, default: `null`)
   + _`startpages`_ (optional, default: `[]`)
   + _`lruVariations`_ (optional, default: `true`)
+  + _`tags`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as URLs under `list_urls` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity.
@@ -447,6 +450,7 @@ The API will always answer as such:
   + _`status`_ (optional, default: `""`)
   + _`startpages`_ (optional, default: `[]`)
   + _`lruVariations`_ (optional, default: `true`)
+  + _`tags`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Creates for a `corpus` a WebEntity defined for a set of LRU prefixes given as `list_lrus` and optionnally for the corresponding http/https and www/no-www variations if `lruVariations` is true. Optionally set the newly created WebEntity's `name` `status` ("in"/"out"/"undecided"/"discovered") and list of `startpages`. Returns the newly created WebEntity.
@@ -691,16 +695,6 @@ The API will always answer as such:
  Returns for a `corpus` all WebEntities having at least one tag in any namespace/category equal to `value`.
  Results are paginated and will include a `token` to be reused to collect the other pages via `get_webentities_page`: see `search_webentities` for explanations on `sort` `count` and `page`.
 
- function() {
-              }""" % (namespace
-  + _`namespace`_ (mandatory)
-  + _`value)
- function() {
-              }""" % (category
-  + _`category`_ (mandatory)
-  + _`value)
- function() {
-              }""" % value
 
 - __`get_webentities_by_tag_category`:__
   + _`namespace`_ (mandatory)
