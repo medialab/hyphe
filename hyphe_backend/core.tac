@@ -1376,12 +1376,21 @@ class Memory_Structure(customJSONRPC):
         returnD(homepages)
 
     @inlineCallbacks
+    def clear_traph(self, corpus=DEFAULT_CORPUS):
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        default_WECR = [cr["regexp"] for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] == "DEFAULT_WEBENTITY_CREATION_RULE"][0]
+        WECRs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
+        res = yield self.traphs.call(corpus, "clear", default_WECR, WECRs)
+        returnD(res)
+
+    @inlineCallbacks
     def reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _restart=True):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not _quiet:
             logger.msg("Empty Traph content", system="INFO - %s" % corpus)
-        res = yield self.traphs.call(corpus, "clear")
+        res = yield self.clear_traph(corpus)
         if is_error(res):
             returnD(res)
         if not _quiet:
@@ -2085,7 +2094,7 @@ class Memory_Structure(customJSONRPC):
             returnD(False)
         if self.corpora[corpus]['reset']:
             yield self.db.queue(corpus).drop()
-            yield self.traphs.call(corpus, "clear")
+            yield self.clear_traph(corpus)
             returnD(None)
         self.corpora[corpus]['loop_running'] = "Diagnosing"
         yield self.count_webentities(corpus)
@@ -2107,7 +2116,7 @@ class Memory_Structure(customJSONRPC):
                 if not jobs:
                     self.corpora[corpus]['reset'] = True
                     yield self.db.queue(corpus).drop()
-                    yield self.traphs.call(corpus, "clear")
+                    yield self.clear_traph(corpus)
                     self.corpora[corpus]['reset'] = False
                     returnD(None)
                 logger.msg("Indexing job with pages in queue but not found in jobs: %s" % oldest_page_in_queue['_job'], system="WARNING - %s" % corpus)
@@ -2164,7 +2173,7 @@ class Memory_Structure(customJSONRPC):
                 yield self.parent.jsonrpc_set_corpus_options(corpus, {"keepalive": int(self.corpora[corpus]['links_duration'] * 2)})
             logger.msg("...got WebEntity links in %ss." % s, system="INFO - %s" % corpus)
         if self.corpora[corpus]['reset']:
-            yield self.traphs.call(corpus, "clear")
+            yield self.clear_traph(corpus)
         self.corpora[corpus]['loop_running'] = None
 
     @inlineCallbacks
