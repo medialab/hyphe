@@ -41,6 +41,7 @@ The API will always answer as such:
     * __`ping`__
     * __`reinitialize`__
     * __`destroy_corpus`__
+    * __`force_destroy_corpus`__
     * __`clear_all`__
   + [CORE AND CORPUS STATUS](#core-and-corpus-status)
     * __`get_status`__
@@ -217,6 +218,12 @@ The API will always answer as such:
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Backups, resets, then definitely deletes a `corpus` and anything associated with it.
+
+
+- __`force_destroy_corpus`:__
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Deletes completely and definitely a `corpus` without restarting it (backup may be less complete).
 
 
 - __`clear_all`:__

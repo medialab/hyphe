@@ -366,6 +366,20 @@ class Core(customJSONRPC):
         del(self.corpora[corpus]["starting"])
         returnD(self.jsonrpc_test_corpus(corpus))
 
+    def build_tags_dictionary_from_msgpack(self, msgpack_tags):
+        dico = {}
+        tags = msgpack.unpackb(msgpack_tags)
+        for ns, categories in tags.items():
+            ns = ns.decode("utf-8")
+            dico[ns] = {}
+            for cat, values in categories.items():
+                cat = cat.decode("utf-8")
+                dico[ns][cat] = {}
+                for val, count in values.items():
+                    val = val.decode("utf-8")
+                    dico[ns][cat][val] = count
+        return dico
+
     @inlineCallbacks
     def prepare_corpus(self, corpus=DEFAULT_CORPUS, corpus_conf=None, _noloop=False):
         if not corpus_conf:
@@ -392,16 +406,7 @@ class Core(customJSONRPC):
         self.corpora[corpus]["links_duration"] = corpus_conf.get("links_duration", 1)
         self.corpora[corpus]["last_links_loop"] = corpus_conf['last_links_loop']
         try:
-            tags = msgpack.unpackb(corpus_conf['tags'])
-            for ns, categories in tags.items():
-                ns = ns.decode("utf-8")
-                self.corpora[corpus]["tags"][ns] = {}
-                for cat, values in categories.items():
-                    cat = cat.decode("utf-8")
-                    self.corpora[corpus]["tags"][ns][cat] = {}
-                    for val, count in values.items():
-                        val = val.decode("utf-8")
-                        self.corpora[corpus]["tags"][ns][cat][val] = count
+            self.corpora[corpus]["tags"] = self.build_tags_dictionary_from_msgpack(corpus_conf['tags'])
         except Exception as e:
             logger.msg("Could not unpack tags from Mongo: %s (%s), rebuilding dictionary..." % (e, type(e)), system="WARNING - %s" % corpus)
             self.corpora[corpus]["tags"] = {}
@@ -483,20 +488,25 @@ class Core(customJSONRPC):
         return format_result(self.corpora[corpus]["tlds"])
 
     @inlineCallbacks
-    def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS):
+    def jsonrpc_backup_corpus(self, corpus=DEFAULT_CORPUS, _no_startup=False):
         """Saves locally on the server in the archive directory a timestamped backup of `corpus` including 4 json backup files of all webentities/links/crawls and corpus options."""
-        if not self.corpus_ready(corpus):
+        ready = self.corpus_ready(corpus)
+        if not ready and not _no_startup:
             returnD(self.corpus_error(corpus))
         now = datetime.today().isoformat()[:19]
         path = os.path.join("archives", corpus, now)
         test_and_make_dir(path)
         with open(os.path.join(path, "options.json"), "w") as f:
             options = yield self.db.get_corpus(corpus)
+            if _no_startup and not ready:
+                tags = self.build_tags_dictionary_from_msgpack(options["tags"])
+            else:
+                tags = self.corpora[corpus]["tags"]
             for key in ["tags", "webentities_links"]:
                 del(options[key])
             jsondump(options, f)
         with open(os.path.join(path, "tags.json"), "w") as f:
-            jsondump(self.corpora[corpus]["tags"], f)
+            jsondump(tags, f)
         with open(os.path.join(path, "crawls.json"), "w") as f:
             crawls = yield self.jsonrpc_listjobs(corpus=corpus)
             if is_error(crawls):
@@ -584,6 +594,42 @@ class Core(customJSONRPC):
             returnD(res)
         yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
+        del(self.destroying[corpus])
+        self.existing_corpora.remove(corpus)
+        returnD(format_result("Corpus %s destroyed successfully" % corpus))
+
+    @inlineCallbacks
+    def jsonrpc_force_destroy_corpus(self, corpus=DEFAULT_CORPUS):
+        """Deletes completely and definitely a `corpus` without restarting it (backup may be less complete)."""
+        if corpus in self.destroying:
+            # TODO: how to handle this
+            returnD(format_result("Corpus already being destroyed, patience..."))
+        if corpus not in self.existing_corpora:
+            returnD(format_result("There is no corpus with the id '%s'." % corpus))
+        if corpus != TEST_CORPUS:
+            yield self.jsonrpc_backup_corpus(corpus, _no_startup=True)
+        logger.msg("Destroying corpus...", system="INFO - %s" % corpus)
+        self.destroying[corpus] = True
+        if corpus in self.corpora:
+            yield self.stop_loops(corpus)
+        self.crawler.crawlqueue.cancel_corpus_jobs(corpus)
+        list_jobs = yield self.crawler.list(corpus)
+        if not is_error(list_jobs):
+            list_jobs = list_jobs['result']
+            for item in list_jobs['pending'] + list_jobs['running']:
+                args = {'project': corpus_project(corpus), 'job': item['id']}
+                yield self.crawler.crawlqueue.send_scrapy_query('cancel', args)
+                yield self.crawler.crawlqueue.send_scrapy_query('cancel', args)
+        yield self.crawler.jsonrpc_delete_crawler(corpus)
+        yield self.db.clean_WEs_query(corpus)
+        yield self.db.drop_corpus_collections(corpus)
+        yield self.db.delete_corpus(corpus)
+        if corpus not in self.traphs.corpora:
+            yield self.traphs.start_corpus(corpus)
+        yield self.store.clear_traph(corpus)
+        yield self.traphs.stop_corpus(corpus)
+        if corpus in self.corpora:
+            del(self.corpora[corpus])
         del(self.destroying[corpus])
         self.existing_corpora.remove(corpus)
         returnD(format_result("Corpus %s destroyed successfully" % corpus))
@@ -705,8 +751,6 @@ class Core(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_listjobs(self, list_ids=None, from_ts=None, to_ts=None, light=False, corpus=DEFAULT_CORPUS):
         """Returns the list and details of all "finished"/"running"/"pending" crawl jobs of a `corpus`. Optionally returns only the jobs whose id is given in an array of `list_ids` and/or that was created after timestamp `from_ts` or before `to_ts`. Set `light` to true to get only essential metadata for heavy queries."""
-        if not self.corpus_ready(corpus):
-            returnD(self.corpus_error(corpus))
         query = {}
         if list_ids:
             query = {'_id': {'$in': list_ids}}
@@ -1243,14 +1287,15 @@ class Memory_Structure(customJSONRPC):
             if not self.corpora[corpus]['stats_loop'].running:
                 self.corpora[corpus]['stats_loop'].start(60, False)
 
-    def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, weight=None, corpus=DEFAULT_CORPUS):
+    def format_webentity(self, WE, job={}, homepage=None, light=False, semilight=False, light_for_csv=False, weight=None, corpus=DEFAULT_CORPUS, _links=None):
         if not WE:
             return None
         res = {'_id': WE["_id"], 'id': WE["_id"], 'name': WE["name"], 'status': WE["status"], 'prefixes': WE["prefixes"]}
         if weight is not None:
             res['weight'] = weight
+        links = _links or self.corpora[corpus]["webentities_links"]
         for key in ['undirected_', 'in', 'out']:
-            res[key + 'degree'] = self.corpora[corpus]["webentities_links"].get(WE["_id"], {}).get(key + 'degree', 0)
+            res[key + 'degree'] = links.get(WE["_id"], {}).get(key + 'degree', 0)
         if test_bool_arg(light):
             return res
         res['creation_date'] = WE["creationDate"]
@@ -1264,7 +1309,7 @@ class Memory_Structure(customJSONRPC):
             res['indexing_status'] = indexing_statuses.UNINDEXED
             res['crawled'] = False
         for key in ['total', 'crawled']:
-            res['pages_' + key] = self.corpora[corpus]['webentities_links'].get(WE['_id'], {}).get('pages_' + key, 0)
+            res['pages_' + key] = links.get(WE['_id'], {}).get('pages_' + key, 0)
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
         for tag, values in WE["tags"].iteritems():
@@ -1339,7 +1384,11 @@ class Memory_Structure(customJSONRPC):
         homepages = {}
         if not (test_bool_arg(light) or test_bool_arg(semilight) or test_bool_arg(light_for_csv)):
             homepages = yield self.get_webentities_missing_linkpages(WEs, corpus=corpus)
-        returnD([self.format_webentity(WE, jobs.get(WE["_id"], {}), homepages.get(WE["_id"], None), light, semilight, light_for_csv, weight=(weights.get(WE["_id"], 0) if weights else None), corpus=corpus) for WE in WEs])
+        links = None
+        if not self.parent.corpus_ready(corpus):
+            options = yield self.db.get_corpus(corpus)
+            links = msgpack.unpackb(options["webentities_links"])
+        returnD([self.format_webentity(WE, jobs.get(WE["_id"], {}), homepages.get(WE["_id"], None), light, semilight, light_for_csv, weight=(weights.get(WE["_id"], 0) if weights else None), corpus=corpus, _links=links) for WE in WEs])
 
     @inlineCallbacks
     def get_webentities_missing_linkpages(self, WEs, corpus=DEFAULT_CORPUS):
@@ -2347,8 +2396,6 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=[], sort=None, count=100, page=0, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS, _weights=None):
         """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids`.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` == -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
-        if not self.parent.corpus_ready(corpus):
-            returnD(self.parent.corpus_error(corpus))
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
@@ -3031,8 +3078,6 @@ class Memory_Structure(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_get_webentities_network(self, include_links_from_OUT=INCLUDE_LINKS_FROM_OUT, include_links_from_DISCOVERED=INCLUDE_LINKS_FROM_DISCOVERED, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` the list of all agregated weighted links between WebEntities."""
-        if not self.parent.corpus_ready(corpus):
-            returnD(self.parent.corpus_error(corpus))
         s = time.time()
         logger.msg("Generating WebEntities network...", system="INFO - %s" % corpus)
         if not (include_links_from_OUT and include_links_from_DISCOVERED):
@@ -3044,7 +3089,12 @@ class Memory_Structure(customJSONRPC):
             WEs_to_keep = yield self.db.get_WEs(corpus, {"status": {"$in": statuses_to_keep}}, projection=["_id"])
             WEs_to_keep = set(we["_id"] for we in WEs_to_keep)
         res = []
-        for target, sources in self.corpora[corpus]["webentities_links"].items():
+        if not self.parent.corpus_ready(corpus):
+            options = yield self.db.get_corpus(corpus)
+            links = msgpack.unpackb(options["webentities_links"])
+        else:
+            links = self.corpora[corpus]["webentities_links"]
+        for target, sources in links.items():
             for source, weight in sources.items():
                 if not isinstance(source, int):
                     continue
