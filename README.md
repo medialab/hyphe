@@ -30,6 +30,9 @@ Docker enables isolated install and execution of software stacks, which helps in
 
 Docker's containers are sizeable: you should ensure **at least 4GB** of empty space is available before installing. In any case, as expressed above, for a regular and complete use of Hyphe, you should better ensure at least 100GB are available.
 
+**Note for Mac OS:** you need [Apple's XCode](https://developer.apple.com/xcode/) installed to allow Docker to run on Mac OS.
+
+
 #### 1. Install Docker
 
 First, you should deploy **Docker** on your machine following its [official installation instructions](https://docs.docker.com/install/).
