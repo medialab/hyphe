@@ -25,6 +25,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = '1+'
         $scope.limitAll = ''
+        $scope.hideLinksFromOUT = true
 
         $scope.settings = {
           in: $scope.statuses.in
@@ -33,6 +34,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         , discovered: $scope.statuses.discovered
         , limitDiscovered: '1+'
         , limitAll: ''
+        , hideLinksFromOUT: true
         }
         $scope.settingsChanged
 
@@ -199,8 +201,14 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           for(var status in $scope.statuses){
             $scope.settings[status] = $scope.statuses[status]
           }
+
+          if ($scope.settings.hideLinksFromOUT !== $scope.hideLinksFromOUT) {
+            $scope.data.links.loaded = false
+          }
+
           $scope.settings.limitDiscovered = $scope.limitDiscovered
           $scope.settings.limitAll = $scope.limitAll
+          $scope.settings.hideLinksFromOUT = $scope.hideLinksFromOUT
 
           $scope.touchSettings()
           updateCounts()
@@ -213,6 +221,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           }
           $scope.limitDiscovered = $scope.settings.limitDiscovered
           $scope.limitAll = $scope.settings.limitAll
+          $scope.hideLinksFromOUT = $scope.settings.hideLinksFromOUT
           $scope.touchSettings()
         }
 
@@ -229,6 +238,9 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             difference = true
           }
           if ($scope.limitAll != $scope.settings.limitAll) {
+            difference = true
+          }
+          if ($scope.hideLinksFromOUT != $scope.settings.hideLinksFromOUT) {
             difference = true
           }
 
@@ -512,7 +524,9 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             $scope.status = {message: 'Loading links'}
             $scope.data.links.loading = true
             api.getNetwork(
-              {}
+              {
+                include_links_from_OUT: !$scope.hideLinksFromOUT
+              }
               ,function(links){
                 $scope.data.links.links = links
                 $scope.data.links.loading = false
