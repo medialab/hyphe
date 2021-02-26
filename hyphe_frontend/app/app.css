@@ -1276,6 +1276,9 @@ textarea.over-error {
   color: #93BDE0;
 }
 
+.hide-out.md-checked .md-icon {
+  color: #ADA299;
+}
 
 
 /* ==========================================================================

@@ -231,9 +231,9 @@
         vertical="true"
       ></hyphe-status-box>
 
-      <md-input-container>
+      <md-input-container ng-show="statuses.discovered">
         <label>Filter DISCOVERED web entities</label>
-        <md-select ng-model="limitDiscovered" ng-disabled="!statuses.discovered">
+        <md-select ng-model="limitDiscovered">
           <md-option value=""><em>No filtering</em></md-option>
           <md-option value="1+">Display only connected DISCOVERED</md-option>
           <md-option value="2+">Display only DISCOVERED with 2+ links</md-option>
@@ -254,6 +254,10 @@
           <md-option value="5+">Display only web entities with 5+ links</md-option>
         </md-select>
       </md-input-container>
+
+      <md-checkbox class="hide-out" ng-model="hideLinksFromOUT" aria-label="Hide links coming from OUT webentities" ng-show="statuses.out" ng-change="touchSettings()">
+        <label>Hide links coming from OUT</label>
+      </md-checkbox>
 
       <div layout="row">
         <!-- Validation -->
