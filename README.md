@@ -30,6 +30,9 @@ Docker enables isolated install and execution of software stacks, which helps in
 
 Docker's containers are sizeable: you should ensure **at least 4GB** of empty space is available before installing. In any case, as expressed above, for a regular and complete use of Hyphe, you should better ensure at least 100GB are available.
 
+**Note for Mac OS:** you need [Apple's XCode](https://developer.apple.com/xcode/) installed to allow Docker to run on Mac OS.
+
+
 #### 1. Install Docker
 
 First, you should deploy **Docker** on your machine following its [official installation instructions](https://docs.docker.com/install/).
@@ -235,7 +238,7 @@ See our [roadmap](doc/roadmap.md)!
 
 * DESFRICHES-DORIA, Orélie, SERGENT, Henri, TRAN, Félicia, HAETTICH, Yoann & BOREL, Justine (2018), "[What is Digital Humanities' identity in interdisciplinary practices?: An experiment with digital tools for visualizing the francophone DH network](https://dl.acm.org/citation.cfm?doid=3240431.3240439), In Proceedings of the 2nd International Conference on Web Studies (WS.2 2018), Everardo Reyes, Mark Bernstein, Giancarlo Ruffo, and Imad Saleh (Eds.). ACM, New York, NY, USA, 39-47. DOI: https://doi.org/10.1145/3240431.3240439
 
-* WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://www.sciencedirect.com/science/article/pii/S0277953618306282) (2018), in Social Science & Medicine. 220. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
+* WARD, Jeremy, CAFIERO, Florian, FRETIGNY, Raphael, COLGROVE, James & SEROR, Valérie. [France's citizen consultation on vaccination and the challenges of participatory democracy in health](https://hal.archives-ouvertes.fr/hal-01959783) (2018), in Social Science & Medicine. 220. DOI: https://doi.org/10.1016/j.socscimed.2018.10.032
 
 * COUSIN Grégoire & PONTRANDOLFO Stefania (2018), [Sull’uso politico dei rom in campagna elettorale. Una ricerca sul web](http://www.dsu.univr.it/?ent=pubbdip&id=977168&lang=nb). In Pontrandolfo, S. (ed.), Politiche locali per Rom e Sinti in Italia. Roma, CISU, pp. 243-265.
 
