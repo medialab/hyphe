@@ -1,11 +1,12 @@
-service_identity==14
+service_identity==18.1.0
 urllib3[secure]
-Twisted>=18,<=19
-Scrapy==1.6.0
-scrapyd==1.2.0
+Twisted==20.3.0
+Scrapy==1.8.0
+scrapyd==1.2.1
 scrapyd-client==1.2.0a1
 selenium==2.42.1
 pymongo==3.8
-txmongo>=18,<=19
+queuelib==1.4.2
+txmongo==19.2.0
 ural==0.20.0
 tld==0.11.10
