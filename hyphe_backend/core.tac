@@ -171,6 +171,10 @@ class Core(customJSONRPC):
         if 'phantom' in options and options['phantom'] != self.corpora[corpus]['options']['phantom']:
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
+      # TODO? Restrict setting archives only at start?
+        if 'webarchives' in options and options['webarchives'] != self.corpora[corpus]['options']['webarchives']:
+            redeploy = True
+            self.corpora[corpus]["options"]["webarchives"].update(options.pop("webarchives"))
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus)

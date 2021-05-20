@@ -64,6 +64,11 @@
     "whitelist_domains": [
     ]
   },
+  "webarchives": {
+    "enabled": false,
+    "url_prefix": "https://web.archive.org/web/",
+    "date": "2010-01-01"
+  },
   "ADMIN_PASSWORD": null,
   "OPEN_CORS_API": false,
   "DEBUG": 0

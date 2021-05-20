@@ -177,6 +177,35 @@
               </md-content>
             </div>
 
+            <!-- Web Archives -->
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+                <h3 style="margin:0px">CRAWL WEB ARCHIVES (experimental)</h3>
+                <dl class="key-value-pairs">
+
+                  <dt>Status</dt>
+                  <div flex="50">
+                    <md-checkbox ng-model="ed_webarchive_enabled" aria-label="">
+                      {{ options.webarchives.enabled ? "enabled" : "disabled" }}
+                    </md-checkbox>
+                  </div>
+
+                  <dt>Archive URLs prefix</dt>
+                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                    <input ng-model="ed_webarchive_urlprefix" aria-label="editHost">
+                  </md-input-container>
+
+                <!-- TODO: DATE SELECTOR -->
+                  <dt>Date to try to approach</dt>
+                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                    <input ng-model="ed_webarchive_date">
+                  </md-input-container>
+
+                </dl>
+
+              </md-content>
+            </div>
+
             <!-- REDIRECTION DOMAINS -->
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
@@ -282,6 +311,26 @@
 
               <dl class="key-value-pairs" ng-if="!options.phantom.whitelist_domains.length>0">
                 <dd><em>None</em></dd>
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- Web Archives -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">CRAWL WEB ARCHIVES</h3>
+              <dl class="key-value-pairs">
+
+                <dt>Status</dt>
+                <dd style="min-height: 22px">{{ options.webarchives.enabled ? "enabled" : "disabled" }}</dd>
+
+                <dt>Archive URLs prefix</dt>
+                <dd style="min-height: 22px">{{options.webarchives.url_prefix}}</dd>
+
+                <dt>Date to try to approach</dt>
+                <dd style="min-height: 22px">{{options.webarchives.date}}</dd>
+
               </dl>
 
             </md-content>

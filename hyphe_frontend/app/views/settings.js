@@ -99,6 +99,11 @@ angular.module('hyphe.settingsController', [])
             "idle_timeout": $scope.ed_idle_timeout,
             "whitelist_domains": $scope.ed_whitelist
           },
+          "webarchives": {
+            "enabled": $scope.ed_webarchive_enabled,
+            "url_prefix": $scope.ed_webarchive_urlprefix,
+            "date": $scope.ed_webarchive_date,
+          },
           "follow_redirects": $scope.ed_follow_redirects,
           "defaultCreationRule": $scope.ed_defaultCreationRule
         };
@@ -121,14 +126,18 @@ angular.module('hyphe.settingsController', [])
       }
       $scope.ed_max_depth             = $scope.options.max_depth;
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
-      $scope.ed_proxy_host            = $scope.options.proxy.host+"";
-      $scope.ed_proxy_port            = $scope.options.proxy.port+0;
-      $scope.ed_timeout               = $scope.options.phantom.timeout+0;
-      $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout+0;
-      $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout+0;
+      $scope.ed_proxy_host            = $scope.options.proxy.host + "";
+      $scope.ed_proxy_port            = $scope.options.proxy.port + 0;
+      $scope.ed_webarchive_enabled    = !!$scope.options.webarchives.enabled;
+      $scope.ed_webarchive_urlprefix  = $scope.options.webarchives.url_prefix + "";
+    // TODO VALIDATE DATE
+      $scope.ed_webarchive_date       = $scope.options.webarchives.date;
+      $scope.ed_timeout               = $scope.options.phantom.timeout + 0;
+      $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout + 0;
+      $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout + 0;
       $scope.ed_whitelist             = $scope.options.phantom.whitelist_domains.slice();
       $scope.ed_follow_redirects      = $scope.options.follow_redirects.slice();
-      $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule+"";
+      $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule + "";
       $scope.startpages_homepage      = $scope.options.defaultStartpagesMode.includes('homepage');
       $scope.startpages_prefixes      = $scope.options.defaultStartpagesMode.includes('prefixes');
       $scope.startpages_pages         = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
