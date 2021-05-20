@@ -27,7 +27,7 @@ from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
+from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, ARCHIVES
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -44,8 +44,11 @@ class PagesCrawler(Spider):
         job = mongo.find_one({"_id": kwargs["job_id"]})
         args = job["crawl_arguments"]
         self.args = args
+
         self.start_urls = to_list(args['start_urls'])
+
         self.maxdepth = int(args['max_depth'])
+
         self.follow_prefixes = to_list(args['follow_prefixes'])
         self.nofollow_prefixes = to_list(args['nofollow_prefixes'])
         self.prefixes_trie = LRUTrie()
@@ -53,18 +56,28 @@ class PagesCrawler(Spider):
             self.prefixes_trie.set_lru(p, True)
         for p in self.nofollow_prefixes:
             self.prefixes_trie.set_lru(p, False)
+
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
+
+        # Init this dictionary to be filled by resolver from within pipelines.py
         self.resolved_links = {}
+
         self.user_agent = args['user_agent']
+
         self.phantom = 'phantom' in args and args['phantom'] and args['phantom'].lower() != "false"
-        self.cookies = None
-        if 'cookies' in args and args["cookies"]:
-            self.cookies = dict(cookie.split('=', 1) for cookie in re.split(r'\s*;\s*', args['cookies']) if '=' in cookie)
         if self.phantom:
             self.ph_timeout = int(args.get('phantom_timeout', PHANTOM['TIMEOUT']))
             self.ph_idle_timeout = int(args.get('phantom_idle_timeout', PHANTOM['IDLE_TIMEOUT']))
             self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT']))
         self.errors = 0
+
+        if ARCHIVES["ENABLED"]:
+            self.archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"])) + "120000"
+            self.archiveprefix = "%s/%s/" % (ARCHIVES["URL_PREFIX"].rstrip('/'), self.archivedate)
+
+        self.cookies = None
+        if 'cookies' in args and args["cookies"]:
+            self.cookies = dict(cookie.split('=', 1) for cookie in re.split(r'\s*;\s*', args['cookies']) if '=' in cookie)
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -76,8 +89,12 @@ class PagesCrawler(Spider):
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
         self.log("ARGUMENTS : "+str(self.args), logging.INFO)
+        if ARCHIVES["ENABLED"]:
+            self.log("Crawling on Web Archive using for prefix %s" % self.archiveprefix)
+
         if self.phantom:
             self.init_phantom()
+
         for url in self.start_urls:
             yield self._request(url)
 
@@ -281,6 +298,8 @@ class PagesCrawler(Spider):
             kw['cookies'] = self.cookies
         if self.phantom:
             kw['method'] = 'HEAD'
+        if ARCHIVES["ENABLED"]:
+            return Request(self.archiveprefix + url, **kw)
         return Request(url, **kw)
 
 

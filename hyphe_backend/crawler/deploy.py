@@ -80,6 +80,8 @@ try:
     config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"])
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
+    for opt in ["enabled", "url_prefix", "date"]:
+        config['mongo-scrapy']['webarchives_%s' % opt] = config['webarchives'][opt]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:

@@ -48,6 +48,12 @@ PHANTOM = {
   "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
 }
 
+ARCHIVES = {
+  "ENABLED": {{webarchives_enabled}},
+  "URL_PREFIX": '{{webarchives_url_prefix}}',
+  "DATE": '{{webarchives_date}}'
+}
+
 STORE_HTML = {{store_crawled_html_content}}
 
 if 'SCRAPY_JOB' in os.environ:
