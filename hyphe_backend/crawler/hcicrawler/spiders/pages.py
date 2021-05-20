@@ -144,8 +144,6 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
-        lru = url_to_lru_clean(response.url, TLDS_TREE)
-
         if self.phantom:
             self.phantom.get(response.url)
 
@@ -178,7 +176,7 @@ class PagesCrawler(Spider):
                 except Exception as e:
                     self.log("Scrolling/Unfolding crashed: %s %s" % (type(e), e), logging.ERROR)
                     self.errors += 1
-                    return self._make_raw_page(response, lru)
+                    return self._make_raw_page(response)
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
             response._set_body(bod_w_iframes.encode('utf-8'))
 
@@ -195,13 +193,13 @@ class PagesCrawler(Spider):
                 pass
 
         if 300 < response.status < 400 or isinstance(response, HtmlResponse):
-            return self.parse_html(response, lru)
+            return self.parse_html(response)
         else:
-            return self._make_raw_page(response, lru)
+            return self._make_raw_page(response)
 
     def handle_error(self, failure, response=None):
         if response:
-            p = self._make_raw_page(response, failure.request.url)
+            p = self._make_raw_page(response)
             p['error'] = error_name(failure.value)
             return p
         elif not "://www" in failure.request.url:
@@ -213,12 +211,24 @@ class PagesCrawler(Spider):
         self.errors += 1
         return
 
-    def parse_html(self, response, lru):
+    def parse_html(self, response):
+        orig_url = response.url
+        if ARCHIVES["ENABLED"]:
+            orig_url = orig_url.replace(self.archiveprefix, "")
+        lru = url_to_lru_clean(orig_url, TLDS_TREE)
         lrulinks = []
+
         # handle redirects
         realdepth = response.meta['depth']
         if 300 < response.status < 400:
             redir_url = response.headers['Location']
+            # TODO !
+            # + handle skipping redirection to same page
+            if ARCHIVES["ENABLED"]:
+                pass
+                # rewrite redir_url
+                # p['archive_date_obtained'] = "TODO"
+
             if redir_url.startswith('/'):
                 redir_url = "%s%s" % (lru_get_host_url(lru).strip('/'), redir_url)
             elif redir_url.startswith('../'):
@@ -231,6 +241,7 @@ class PagesCrawler(Spider):
                 redir_url = "%s%s" % (lru_get_path_url(lru).strip('/'), redir_url[1:])
             links = [{'url': redir_url}]
             response.meta['depth'] -= 1
+
         else:
             try:
                 links = self.link_extractor.extract_links(response)
@@ -253,17 +264,25 @@ class PagesCrawler(Spider):
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
         response.meta['depth'] = realdepth
-        yield self._make_html_page(response, lru, lrulinks)
+        yield self._make_html_page(response, lrulinks)
 
-    def _make_html_page(self, response, lru, lrulinks):
-        p = self._make_raw_page(response, lru)
+    def _make_html_page(self, response, lrulinks):
+        p = self._make_raw_page(response)
         if STORE_HTML:
             p['body'] = Binary(response.body.encode('zip'))
         p['lrulinks'] = lrulinks
         return p
 
-    def _make_raw_page(self, response, lru):
-        p = self._new_page(response.url, lru)
+    def _make_raw_page(self, response):
+        p = Page()
+        p['url'] = response.url
+        if ARCHIVES["ENABLED"]:
+            p['url'] = p['url'].replace(self.archiveprefix, "")
+            p['archive_url'] = response.url
+            p['archive_date_requested'] = self.archivedate
+        p['lru'] = url_to_lru_clean(p['url'], TLDS_TREE)
+        p['depth'] = 0
+        p['timestamp'] = int(time.time()*1000)
         p['status'] = response.status
         p['size'] = len(response.body)
         if isinstance(response, HtmlResponse):
@@ -273,16 +292,6 @@ class PagesCrawler(Spider):
         if response.headers.get('content-type'):
             p['content_type'] = response.headers.get('content-type').partition(';')[0]
         p['error'] = None
-        return p
-
-    def _new_page(self, url, lru=None):
-        if lru is None:
-            lru = url_to_lru_clean(url, TLDS_TREE)
-        p = Page()
-        p['url'] = url
-        p['lru'] = lru
-        p['depth'] = 0
-        p['timestamp'] = int(time.time()*1000)
         return p
 
     def _should_follow(self, depth, tolru):
