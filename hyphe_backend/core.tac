@@ -1183,6 +1183,8 @@ class Crawler(customJSONRPC):
         if not starts:
             returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
         # preparation of the request to scrapyd
+        if self.corpora[corpus]["options"]["webarchives"]["enabled"]:
+            download_delay = 2
         args = {
           'project': corpus_project(corpus),
           'spider': 'pages',

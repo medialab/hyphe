@@ -14,8 +14,14 @@ ITEM_PIPELINES = {
     'hcicrawler.pipelines.OutputQueue': 500,
 }
 
-CONCURRENT_REQUESTS = {{max_simul_requests}}
-CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
+ARCHIVES = {
+  "ENABLED": {{webarchives_enabled}},
+  "URL_PREFIX": '{{webarchives_url_prefix}}',
+  "DATE": '{{webarchives_date}}'
+}
+
+CONCURRENT_REQUESTS = {{max_simul_requests}} if not ARCHIVES["ENABLED"] else 3
+CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}} if not ARCHIVES["ENABLED"] else 1
 
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 
@@ -46,12 +52,6 @@ PHANTOM = {
   "TIMEOUT": {{phantom_timeout}},
   "IDLE_TIMEOUT": {{phantom_idle_timeout}},
   "AJAX_TIMEOUT": {{phantom_ajax_timeout}}
-}
-
-ARCHIVES = {
-  "ENABLED": {{webarchives_enabled}},
-  "URL_PREFIX": '{{webarchives_url_prefix}}',
-  "DATE": '{{webarchives_date}}'
 }
 
 STORE_HTML = {{store_crawled_html_content}}
