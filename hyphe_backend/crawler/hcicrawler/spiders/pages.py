@@ -24,7 +24,7 @@ from selenium.common.exceptions import WebDriverException, TimeoutException as S
 from ural import normalize_url
 from ural.lru import LRUTrie
 
-from hcicrawler.linkextractor import RegexpLinkExtractor
+from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
@@ -34,7 +34,7 @@ from hcicrawler.errors import error_name
 def timeout_alarm(*args):
     raise SeleniumTimeout
 
-RE_ARCHIVE_REDIRECT = re.compile(r'function go\(\) \{.*document.location.href = "(%s[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>' % ARCHIVES["URL_PREFIX"], re.I|re.S)
+RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
 
 def normalize(url):
     return normalize_url(
@@ -81,11 +81,14 @@ class PagesCrawler(Spider):
             self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT']))
         self.errors = 0
 
+        # TODO: handle bypassing ARCHIVES default config from job's arguments
         if ARCHIVES["ENABLED"]:
             self.archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"])) + "120000"
             archiveprefix = ARCHIVES["URL_PREFIX"].rstrip('/')
             self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
             self.archiveregexp = re.compile(r"^%s/(\d{14})/" % archiveprefix, re.I)
+            self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % ARCHIVES["URL_PREFIX"], re.I|re.S)
+
 
         self.cookies = None
         if 'cookies' in args and args["cookies"]:
@@ -209,6 +212,7 @@ class PagesCrawler(Spider):
                 redir_url = response.headers['Location']
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
+                # TODO: check date obtained fits into a user defined timerange and return 404 otherwise
                 if self.archiveregexp.match(redir_url) and normalize(real_url) == normalize(orig_url):
                     if "depth" in response.meta:
                         response.meta['depth'] -= 1
@@ -247,8 +251,9 @@ class PagesCrawler(Spider):
         # handle redirects
         realdepth = response.meta['depth']
         if ARCHIVES["ENABLED"]:
-            redir_url = RE_ARCHIVE_REDIRECT.search(response.body)
+            redir_url = self.archiveredirect.search(response.body)
             if redir_url:
+                # TODO: check date obtained fits into a user defined timerange and return 404 otherwise
                 response.headers['Location'] = redir_url.group(1)
                 response.status = int(redir_url.group(2))
 
@@ -279,24 +284,31 @@ class PagesCrawler(Spider):
                 self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e), logging.ERROR)
                 links = []
                 self.errors += 1
+
         for link in links:
             try:
                 url = link.url
             except AttributeError:
                 url = link['url']
+
             if ARCHIVES["ENABLED"]:
                 url = self.archiveregexp.sub("", url)
-                if url.startswith(ARCHIVES["URL_PREFIX"]):
+                if url.startswith(ARCHIVES["URL_PREFIX"]) or \
+                  url.split(":")[0].lower() in SCHEME_FILTERS:
                     continue
+
             try:
                 lrulink = url_to_lru_clean(url, TLDS_TREE)
             except (ValueError, IndexError) as e:
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
+
             lrulinks.append((url, lrulink))
+
             if self._should_follow(response.meta['depth'], lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
+
         response.meta['depth'] = realdepth
         yield self._make_html_page(response, lrulinks)
 
