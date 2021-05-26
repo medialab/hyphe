@@ -170,11 +170,15 @@ angular.module('hyphe.webentityController', [])
       }
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
+          ,includePageMetas: true
           ,token: $scope.pagesToken
         }
         ,function(result){
           var pagesBatch = []
           result.pages.forEach(function(page){
+            if (page.archive_url && page.archive_date_obtained) {
+              page.archive_date_obtained = page.archive_date_obtained.replace(/^(....)(..)(..).*$/, "$1-$2-$3")
+            }
             if (!$scope.webentity.startpages.includes(page.url)) {
               pagesBatch.push(page)
             } else {

@@ -2818,6 +2818,9 @@ class Memory_Structure(customJSONRPC):
             res['size'] = data['size']
             res['encoding'] = data.get('encoding')
             res['error'] = data.get('error')
+            res['archive_url'] = data.get('archive_url')
+            res['archive_date_requested'] = data.get('archive_date_requested')
+            res['archive_date_obtained'] = data.get('archive_date_obtained')
 
         if include_body and 'body' in data:
             res['body'] = unicode(base64.b64encode(data['body']))

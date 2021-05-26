@@ -482,10 +482,17 @@
                     <md-list-item
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
-                      <a href="{{page.url}}" target="_blank">
-                        <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
-                        <md-icon>link</md-icon>
-                      </a>
+                      <div class="md-primary">
+                        <a href="{{page.url}}" target="_blank">
+                          <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                          <md-icon>link</md-icon>
+                        </a>
+                        <br ng-if="page.archive_url" />
+                        <a ng-if="page.archive_url" href="{{page.archive_url}}" target="_blank">
+                          <md-tooltip md-direction="left">Open archived page (from {{ page.archive_date_obtained}}) in a new tab</md-tooltip>
+                          <md-icon>history</md-icon>
+                        </a>
+                      </div>
                       <div ng-if="page.url===webentity.homepage">
                         <md-tooltip md-direction="left">Homepage</md-tooltip>
                         &nbsp;<md-icon>home</md-icon>
