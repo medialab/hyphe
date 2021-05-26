@@ -21,6 +21,7 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
+from ural import normalize_url
 from ural.lru import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
@@ -32,6 +33,15 @@ from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
     raise SeleniumTimeout
+
+RE_ARCHIVE_REDIRECT = re.compile(r'function go\(\) \{.*document.location.href = "(%s[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>' % ARCHIVES["URL_PREFIX"], re.I|re.S)
+
+def normalize(url):
+    return normalize_url(
+        url,
+        strip_index=False,
+        strip_irrelevant_subdomains=False
+    )
 
 class PagesCrawler(Spider):
 
@@ -73,7 +83,9 @@ class PagesCrawler(Spider):
 
         if ARCHIVES["ENABLED"]:
             self.archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"])) + "120000"
-            self.archiveprefix = "%s/%s/" % (ARCHIVES["URL_PREFIX"].rstrip('/'), self.archivedate)
+            archiveprefix = ARCHIVES["URL_PREFIX"].rstrip('/')
+            self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
+            self.archiveregexp = re.compile(r"^%s/(\d{14})/" % archiveprefix, re.I)
 
         self.cookies = None
         if 'cookies' in args and args["cookies"]:
@@ -192,7 +204,21 @@ class PagesCrawler(Spider):
             except:
                 pass
 
-        if 300 < response.status < 400 or isinstance(response, HtmlResponse):
+        if ARCHIVES["ENABLED"]:
+            if response.status == 302:
+                redir_url = response.headers['Location']
+                real_url = self.archiveregexp.sub("", redir_url)
+                orig_url = self.archiveregexp.sub("", response.url)
+                if self.archiveregexp.match(redir_url) and normalize(real_url) == normalize(orig_url):
+                    if "depth" in response.meta:
+                        response.meta['depth'] -= 1
+                    else:
+                        response.meta['depth'] = -1
+                    return self._request(redir_url)
+            if response.status >= 400:
+                return self._make_raw_page(response)
+
+        if 300 <= response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response)
         else:
             return self._make_raw_page(response)
@@ -214,20 +240,23 @@ class PagesCrawler(Spider):
     def parse_html(self, response):
         orig_url = response.url
         if ARCHIVES["ENABLED"]:
-            orig_url = orig_url.replace(self.archiveprefix, "")
+            orig_url = self.archiveregexp.sub("", orig_url)
         lru = url_to_lru_clean(orig_url, TLDS_TREE)
         lrulinks = []
 
         # handle redirects
         realdepth = response.meta['depth']
-        if 300 < response.status < 400:
+        if ARCHIVES["ENABLED"]:
+            redir_url = RE_ARCHIVE_REDIRECT.search(response.body)
+            if redir_url:
+                response.headers['Location'] = redir_url.group(1)
+                response.status = int(redir_url.group(2))
+
+        if 300 <= response.status < 400:
             redir_url = response.headers['Location']
-            # TODO !
-            # + handle skipping redirection to same page
-            if ARCHIVES["ENABLED"]:
-                pass
-                # rewrite redir_url
-                # p['archive_date_obtained'] = "TODO"
+
+            if ARCHIVES["ENABLED"] and self.archiveregexp.match(redir_url):
+                redir_url = self.archiveregexp.sub("", redir_url)
 
             if redir_url.startswith('/'):
                 redir_url = "%s%s" % (lru_get_host_url(lru).strip('/'), redir_url)
@@ -239,6 +268,7 @@ class PagesCrawler(Spider):
                 redir_url = "%s/%s" % (lru_to_url(lrustart+'|'), redir_url)
             elif redir_url.startswith('./') or not redir_url.startswith('http'):
                 redir_url = "%s%s" % (lru_get_path_url(lru).strip('/'), redir_url[1:])
+
             links = [{'url': redir_url}]
             response.meta['depth'] -= 1
 
@@ -254,6 +284,10 @@ class PagesCrawler(Spider):
                 url = link.url
             except AttributeError:
                 url = link['url']
+            if ARCHIVES["ENABLED"]:
+                url = self.archiveregexp.sub("", url)
+                if url.startswith(ARCHIVES["URL_PREFIX"]):
+                    continue
             try:
                 lrulink = url_to_lru_clean(url, TLDS_TREE)
             except (ValueError, IndexError) as e:
@@ -277,9 +311,11 @@ class PagesCrawler(Spider):
         p = Page()
         p['url'] = response.url
         if ARCHIVES["ENABLED"]:
-            p['url'] = p['url'].replace(self.archiveprefix, "")
+            p['url'] = self.archiveregexp.sub("", response.url)
             p['archive_url'] = response.url
             p['archive_date_requested'] = self.archivedate
+            if 'archive_timestamp' in response.meta:
+                p['archive_date_obtained'] = response.meta['archive_timestamp']
         p['lru'] = url_to_lru_clean(p['url'], TLDS_TREE)
         p['depth'] = 0
         p['timestamp'] = int(time.time()*1000)
@@ -308,7 +344,12 @@ class PagesCrawler(Spider):
         if self.phantom:
             kw['method'] = 'HEAD'
         if ARCHIVES["ENABLED"]:
-            return Request(self.archiveprefix + url, **kw)
+            if url.startswith(ARCHIVES["URL_PREFIX"]):
+                kw["meta"]["archive_timestamp"] = self.archiveregexp.search(url).group(1)
+                return Request(url, **kw)
+            else:
+                kw["meta"]["archive_timestamp"] = self.archivedate
+                return Request(self.archiveprefix + url, **kw)
         return Request(url, **kw)
 
 
