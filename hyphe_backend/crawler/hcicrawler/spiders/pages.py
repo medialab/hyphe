@@ -21,7 +21,7 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
-from ural import normalize_url
+from ural import normalize_url, get_domain_name
 from ural.lru import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
@@ -86,9 +86,10 @@ class PagesCrawler(Spider):
             self.archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"])) + "120000"
             archiveprefix = ARCHIVES["URL_PREFIX"].rstrip('/')
             self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
-            self.archiveregexp = re.compile(r"^%s/(\d{14})/" % archiveprefix, re.I)
-            self.archivedomain = "/".join(archiveprefix.split('/')[:3])
-            archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivedomain, ""))
+            self.archiveregexp = re.compile(r"^%s/(\d{14}).?/" % archiveprefix, re.I)
+            self.archivehost = "/".join(archiveprefix.split('/')[:3])
+            self.archivedomain_lru = url_to_lru_clean("http://%s" % get_domain_name(archiveprefix), TLDS_TREE)
+            archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivehost, ""))
             self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % archivedomain_regexp, re.I|re.S)
 
 
@@ -210,6 +211,7 @@ class PagesCrawler(Spider):
                 pass
 
         if ARCHIVES["ENABLED"]:
+            # Handle transparently redirections from archives to another available timestamp
             if response.status == 302:
                 redir_url = response.headers['Location']
                 real_url = self.archiveregexp.sub("", redir_url)
@@ -250,16 +252,18 @@ class PagesCrawler(Spider):
         lru = url_to_lru_clean(orig_url, TLDS_TREE)
         lrulinks = []
 
-        # handle redirects
+        # Handle redirects
         realdepth = response.meta['depth']
+
         if ARCHIVES["ENABLED"]:
+            # Specific case of redirections from website returned by archives as JS redirections with code 200
             redir_url = self.archiveredirect.search(response.body)
             if redir_url:
                 # TODO: check date obtained fits into a user defined timerange and return 404 otherwise
                 response.status = int(redir_url.group(2))
                 redir_location = redir_url.group(1)
                 if redir_location.startswith("/"):
-                    redir_location = "%s%s" % (self.archivedomain, redir_location)
+                    redir_location = "%s%s" % (self.archivehost, redir_location)
                 response.headers['Location'] = redir_location
 
         if 300 <= response.status < 400:
@@ -297,8 +301,9 @@ class PagesCrawler(Spider):
                 url = link['url']
 
             if ARCHIVES["ENABLED"]:
+                # Rewrite archives urls and filter internal archives links
                 url = self.archiveregexp.sub("", url)
-                if url.startswith(ARCHIVES["URL_PREFIX"]) or \
+                if url.startswith(self.archivehost) or \
                   url.split(":")[0].lower() in SCHEME_FILTERS:
                     continue
 
@@ -307,6 +312,11 @@ class PagesCrawler(Spider):
             except (ValueError, IndexError) as e:
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
+
+            if ARCHIVES["ENABLED"]:
+                # Filter more links added within archives to other pieces of the archive
+                if lrulink.replace("s:https|", "s:http|").startswith(self.archivedomain_lru):
+                    continue
 
             lrulinks.append((url, lrulink))
 
