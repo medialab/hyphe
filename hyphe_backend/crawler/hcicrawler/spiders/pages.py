@@ -34,7 +34,7 @@ from hcicrawler.errors import error_name
 def timeout_alarm(*args):
     raise SeleniumTimeout
 
-RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
+RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s/[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
 
 def normalize(url):
     return normalize_url(
@@ -87,7 +87,9 @@ class PagesCrawler(Spider):
             archiveprefix = ARCHIVES["URL_PREFIX"].rstrip('/')
             self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
             self.archiveregexp = re.compile(r"^%s/(\d{14})/" % archiveprefix, re.I)
-            self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % ARCHIVES["URL_PREFIX"], re.I|re.S)
+            self.archivedomain = "/".join(archiveprefix.split('/')[:3])
+            archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivedomain, ""))
+            self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % archivedomain_regexp, re.I|re.S)
 
 
         self.cookies = None
@@ -254,8 +256,11 @@ class PagesCrawler(Spider):
             redir_url = self.archiveredirect.search(response.body)
             if redir_url:
                 # TODO: check date obtained fits into a user defined timerange and return 404 otherwise
-                response.headers['Location'] = redir_url.group(1)
                 response.status = int(redir_url.group(2))
+                redir_location = redir_url.group(1)
+                if redir_location.startswith("/"):
+                    redir_location = "%s%s" % (self.archivedomain, redir_location)
+                response.headers['Location'] = redir_location
 
         if 300 <= response.status < 400:
             redir_url = response.headers['Location']
