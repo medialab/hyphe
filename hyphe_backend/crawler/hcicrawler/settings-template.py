@@ -17,7 +17,8 @@ ITEM_PIPELINES = {
 ARCHIVES = {
   "ENABLED": {{webarchives_enabled}},
   "URL_PREFIX": '{{webarchives_url_prefix}}',
-  "DATE": '{{webarchives_date}}'
+  "DATE": '{{webarchives_date}}',
+  "DAYS_RANGE": {{webarchives_days_range}}
 }
 
 CONCURRENT_REQUESTS = {{max_simul_requests}} if not ARCHIVES["ENABLED"] else 3

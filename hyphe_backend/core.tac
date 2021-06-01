@@ -1182,9 +1182,10 @@ class Crawler(customJSONRPC):
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
         if not starts:
             returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
-        # preparation of the request to scrapyd
+        # lighten queries on web archives since all crawls rely on the same server
         if self.corpora[corpus]["options"]["webarchives"]["enabled"]:
             download_delay = 2
+        # preparation of the request to scrapyd
         args = {
           'project': corpus_project(corpus),
           'spider': 'pages',

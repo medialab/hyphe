@@ -3,6 +3,7 @@
 import os, time, signal, re
 import json
 import logging
+from datetime import datetime, timedelta
 
 from pymongo import MongoClient
 try:
@@ -83,7 +84,12 @@ class PagesCrawler(Spider):
 
         # TODO: handle bypassing ARCHIVES default config from job's arguments
         if ARCHIVES["ENABLED"]:
-            self.archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"])) + "120000"
+            archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"]))
+            self.archivedate = str(archivedate) + "120000"
+            archivedt = datetime.strptime(self.archivedate, "%Y%m%d%H%M%S")
+            self.archivemindate = datetime.strftime(archivedt - timedelta(ARCHIVES["DAYS_RANGE"]/2.), "%Y%m%d%H%M%S")
+            self.archivemaxdate = datetime.strftime(archivedt + timedelta(ARCHIVES["DAYS_RANGE"]/2.), "%Y%m%d%H%M%S")
+
             archiveprefix = ARCHIVES["URL_PREFIX"].rstrip('/')
             self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
             self.archiveregexp = re.compile(r"^%s/(\d{14}).?/" % archiveprefix, re.I)
@@ -216,13 +222,18 @@ class PagesCrawler(Spider):
                 redir_url = response.headers['Location']
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
-                # TODO: check date obtained fits into a user defined timerange and return 404 otherwise
-                if self.archiveregexp.match(redir_url) and normalize(real_url) == normalize(orig_url):
-                    if "depth" in response.meta:
-                        response.meta['depth'] -= 1
-                    else:
-                        response.meta['depth'] = -1
-                    return self._request(redir_url)
+                match = self.archiveregexp.search(redir_url)
+                if match:
+                    # Check date obtained fits into a user defined timerange and return 404 otherwise
+                    if not self.archivemindate <= match.group(1) <= self.archivemaxdate:
+                        self.log("Skipping archive page (%s) with date outside desired range (%s/%s)" % (redir_url, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                        return
+                    if normalize(real_url) == normalize(orig_url):
+                        if "depth" in response.meta:
+                            response.meta['depth'] -= 1
+                        else:
+                            response.meta['depth'] = -1
+                        return self._request(redir_url)
             if response.status >= 400:
                 return self._make_raw_page(response)
 
@@ -259,7 +270,10 @@ class PagesCrawler(Spider):
             # Specific case of redirections from website returned by archives as JS redirections with code 200
             redir_url = self.archiveredirect.search(response.body)
             if redir_url:
-                # TODO: check date obtained fits into a user defined timerange and return 404 otherwise
+                # Check date obtained fits into a user defined timerange and return 404 otherwise
+                if not self.archivemindate <= redir_url.group(2) <= self.archivemaxdate:
+                    self.log("Skipping archive page (%s) with date outside desired range (%s/%s)" % (redir_url.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    return
                 response.status = int(redir_url.group(2))
                 redir_location = redir_url.group(1)
                 if redir_location.startswith("/"):

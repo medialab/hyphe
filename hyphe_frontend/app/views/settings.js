@@ -103,6 +103,7 @@ angular.module('hyphe.settingsController', [])
             "enabled": $scope.ed_webarchive_enabled,
             "url_prefix": $scope.ed_webarchive_urlprefix,
             "date": $scope.ed_webarchive_date,
+            "days_range": $scope.ed_webarchive_daysrange
           },
           "follow_redirects": $scope.ed_follow_redirects,
           "defaultCreationRule": $scope.ed_defaultCreationRule
@@ -130,8 +131,9 @@ angular.module('hyphe.settingsController', [])
       $scope.ed_proxy_port            = $scope.options.proxy.port + 0;
       $scope.ed_webarchive_enabled    = !!$scope.options.webarchives.enabled;
       $scope.ed_webarchive_urlprefix  = $scope.options.webarchives.url_prefix + "";
-    // TODO VALIDATE DATE
+    // TODO VALIDATE DATE AND RANGE
       $scope.ed_webarchive_date       = $scope.options.webarchives.date;
+      $scope.ed_webarchive_daysrange  = $scope.options.webarchives.days_range + 0;
       $scope.ed_timeout               = $scope.options.phantom.timeout + 0;
       $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout + 0;
       $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout + 0;

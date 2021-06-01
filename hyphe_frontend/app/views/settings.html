@@ -201,6 +201,12 @@
                     <input ng-model="ed_webarchive_date">
                   </md-input-container>
 
+                <!-- TODO: use DATE SELECTOR to define the days range-->
+                  <dt>Days to consider around the date</dt>
+                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                    <input type="number" min="1" ng-model="ed_webarchive_daysrange">
+                  </md-input-container>
+
                 </dl>
 
               </md-content>
@@ -330,6 +336,9 @@
 
                 <dt>Date to try to approach</dt>
                 <dd style="min-height: 22px">{{options.webarchives.date}}</dd>
+
+                <dt>Days to consider around the date</dt>
+                <dd style="min-height: 22px">{{options.webarchives.days_range}}</dd>
 
               </dl>
 

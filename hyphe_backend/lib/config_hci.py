@@ -146,6 +146,7 @@ GLOBAL_CONF_SCHEMA = {
     }
   }, "webarchives": {
     "type": dict,
+    "int_fields": ["days_range"],
     "str_fields": ["url_prefix"],
     "extra_fields": {
       "enabled": bool,
@@ -195,6 +196,7 @@ CORPUS_CONF_SCHEMA = {
   },
   "webarchives": {
     "type": dict,
+    "int_fields": ["days_range"],
     "str_fields": ["url_prefix"],
     "extra_fields": {
       "enabled": bool,

@@ -67,7 +67,8 @@
   "webarchives": {
     "enabled": false,
     "url_prefix": "https://web.archive.org/web/",
-    "date": "2010-01-01"
+    "date": "2010-01-01",
+    "days_range": 365
   },
   "ADMIN_PASSWORD": null,
   "OPEN_CORS_API": false,
