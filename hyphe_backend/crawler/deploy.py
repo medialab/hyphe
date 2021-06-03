@@ -9,7 +9,7 @@ from contextlib import nested
 
 verbose = False
 for arg in [a for a in sys.argv[1:] if a.strip()]:
-    if arg == "-v" or arg == "--verbose":
+    if len(sys.argv) > 2 and (arg == "-v" or arg == "--verbose"):
         verbose = True
     else:
         project = arg
