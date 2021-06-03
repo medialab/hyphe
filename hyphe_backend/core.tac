@@ -234,9 +234,6 @@ class Core(customJSONRPC):
 
         # Get TLDs for corpus
         tlds = yield collect_tlds()
-        # Write TLDs for use in scrapyd egg
-        with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
-            print >> tlds_file, "TLDS_TREE =", tlds
 
         # Adjust corpus settings
         if options:
@@ -1100,6 +1097,9 @@ class Crawler(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False):
         """Prepares and deploys on the ScrapyD server a spider (crawler) for a `corpus`."""
+        # Write corpus TLDs for use in scrapyd egg
+        with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
+            print >> tlds_file, "TLDS_TREE =", self.corpora[corpus]["tlds"]
         output = subprocess.Popen([sys.executable, 'deploy.py', corpus], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='hyphe_backend/crawler', env=os.environ).communicate()[0]
         res = yield self.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
