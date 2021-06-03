@@ -256,7 +256,7 @@ class Core(customJSONRPC):
 
         # Deploy crawler
         try:
-            res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
+            res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet, _tlds=tlds)
         except Exception as e:
             logger.msg("Could not deploy crawler for new corpus: %s %s" % (type(e), e), system="ERROR - %s" % corpus)
             returnD(format_error("Could not deploy crawler for corpus"))
@@ -335,7 +335,7 @@ class Core(customJSONRPC):
         res = yield self.crawler.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
             logger.msg("Couldn't find crawler, redeploying it...", system="ERROR - %s" % corpus)
-            res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet)
+            res = yield self.crawler.jsonrpc_deploy_crawler(corpus, _quiet=_quiet, _tlds=corpus_conf["tlds"])
             if is_error(res):
                 del(self.corpora[corpus]["starting"])
                 returnD(res)
@@ -1095,11 +1095,11 @@ class Crawler(customJSONRPC):
         self.crawlqueue = JobsQueue(config["mongo-scrapy"])
 
     @inlineCallbacks
-    def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False):
+    def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False, _tlds=None):
         """Prepares and deploys on the ScrapyD server a spider (crawler) for a `corpus`."""
         # Write corpus TLDs for use in scrapyd egg
         with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
-            print >> tlds_file, "TLDS_TREE =", self.corpora[corpus]["tlds"]
+            print >> tlds_file, "TLDS_TREE =", self.corpora[corpus].get("tlds", _tlds)
         output = subprocess.Popen([sys.executable, 'deploy.py', corpus], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='hyphe_backend/crawler', env=os.environ).communicate()[0]
         res = yield self.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
