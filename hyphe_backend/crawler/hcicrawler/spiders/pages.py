@@ -220,13 +220,15 @@ class PagesCrawler(Spider):
             # Handle transparently redirections from archives to another available timestamp
             if response.status == 302:
                 redir_url = response.headers['Location']
+                if redir_url.startswith("/"):
+                    redir_url = "%s%s" % (self.archivehost, redir_url)
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
                 match = self.archiveregexp.search(redir_url)
                 if match:
                     # Check date obtained fits into a user defined timerange and return 404 otherwise
-                    if not self.archivemindate <= match.group(1) <= self.archivemaxdate:
-                        self.log("Skipping archive page (%s) with date outside desired range (%s/%s)" % (redir_url, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    if not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
+                        self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_url, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
                         return
                     if normalize(real_url) == normalize(orig_url):
                         if "depth" in response.meta:
@@ -270,14 +272,15 @@ class PagesCrawler(Spider):
             # Specific case of redirections from website returned by archives as JS redirections with code 200
             redir_url = self.archiveredirect.search(response.body)
             if redir_url:
-                # Check date obtained fits into a user defined timerange and return 404 otherwise
-                if not self.archivemindate <= redir_url.group(2) <= self.archivemaxdate:
-                    self.log("Skipping archive page (%s) with date outside desired range (%s/%s)" % (redir_url.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
-                    return
                 response.status = int(redir_url.group(2))
                 redir_location = redir_url.group(1)
                 if redir_location.startswith("/"):
                     redir_location = "%s%s" % (self.archivehost, redir_location)
+                # Check date obtained fits into a user defined timerange and return 404 otherwise
+                match = self.archiveregexp.search(redir_location)
+                if match and not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
+                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_location, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    return
                 response.headers['Location'] = redir_location
 
         if 300 <= response.status < 400:
