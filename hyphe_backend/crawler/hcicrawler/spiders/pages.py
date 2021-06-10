@@ -224,6 +224,12 @@ class PagesCrawler(Spider):
                 redir_url = response.headers['Location']
                 if redir_url.startswith("/"):
                     redir_url = "%s%s" % (self.archivehost, redir_url)
+                if ARCHIVES["URL_PREFIX"].contains("archivesinternet.bnf.fr"):
+                    if "depth" in response.meta:
+                        response.meta['depth'] -= 1
+                    else:
+                        response.meta['depth'] = -1
+                    return self._request(redir_url)
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
                 match = self.archiveregexp.search(redir_url)
@@ -271,6 +277,9 @@ class PagesCrawler(Spider):
         realdepth = response.meta['depth']
 
         if ARCHIVES["ENABLED"]:
+
+            #TODO : remove BNF banner and extract timestamp for metadata + filtering
+
             # Specific case of redirections from website returned by archives as JS redirections with code 200
             redir_url = self.archiveredirect.search(response.body)
             if redir_url:
@@ -377,8 +386,6 @@ class PagesCrawler(Spider):
         return p
 
     def _should_follow(self, depth, tolru):
-        if tolru.startswith("s:http|h:fr|h:bnf|h:archivesinternet|"):
-            return True
         c1 = depth < self.maxdepth
         c2 = self.prefixes_trie.match_lru(tolru)
         return c1 and c2
