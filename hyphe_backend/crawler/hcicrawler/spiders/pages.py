@@ -229,7 +229,7 @@ class PagesCrawler(Spider):
                         response.meta['depth'] -= 1
                     else:
                         response.meta['depth'] = -1
-                    return self._request(redir_url)
+                    return self._request(redir_url, redirection=True)
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
                 match = self.archiveregexp.search(redir_url)
@@ -390,7 +390,7 @@ class PagesCrawler(Spider):
         c2 = self.prefixes_trie.match_lru(tolru)
         return c1 and c2
 
-    def _request(self, url, noproxy=False, **kw):
+    def _request(self, url, noproxy=False, redirection=False, **kw):
         kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
@@ -403,7 +403,9 @@ class PagesCrawler(Spider):
                 kw['headers'] = {
                     "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.job)
                 }
-                return Request("%s/%s/%s" % (ARCHIVES["URL_PREFIX"], self.archivedate, url), **kw)
+                if url.startswith(ARCHIVES["URL_PREFIX"]) or redirection:
+                    return Request(url, **kw)
+                return Request("%s/%s/%s" % (ARCHIVES["URL_PREFIX"].rstrip('/'), self.archivedate, url), **kw)
             if url.startswith(ARCHIVES["URL_PREFIX"]):
                 kw["meta"]["archive_timestamp"] = self.archiveregexp.search(url).group(1)
                 return Request(url, **kw)
