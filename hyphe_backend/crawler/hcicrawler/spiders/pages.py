@@ -224,7 +224,7 @@ class PagesCrawler(Spider):
                 redir_url = response.headers['Location']
                 if redir_url.startswith("/"):
                     redir_url = "%s%s" % (self.archivehost, redir_url)
-                if ARCHIVES["URL_PREFIX"].contains("archivesinternet.bnf.fr"):
+                if "archivesinternet.bnf.fr" in ARCHIVES["URL_PREFIX"]:
                     if "depth" in response.meta:
                         response.meta['depth'] -= 1
                     else:
@@ -399,7 +399,7 @@ class PagesCrawler(Spider):
         if self.phantom:
             kw['method'] = 'HEAD'
         if ARCHIVES["ENABLED"]:
-            if ARCHIVES["URL_PREFIX"].contains("archivesinternet.bnf.fr"):
+            if "archivesinternet.bnf.fr" in ARCHIVES["URL_PREFIX"]:
                 kw['headers'] = {
                     "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.job)
                 }
