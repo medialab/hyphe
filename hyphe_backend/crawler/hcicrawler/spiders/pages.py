@@ -36,6 +36,8 @@ def timeout_alarm(*args):
     raise SeleniumTimeout
 
 RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s/[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
+RE_BNF_ARCHIVES_PERMALINK = re.compile(r'<input id="permalink" class="BANNER_PERMALIEN_LINK_CUSTOMED" value="([^"]+)"')
+RE_BNF_ARCHIVES_BANNER = re.compile(r'<div id="MAIN_BANNER_BNF_CUSTOM".*$', re.DOTALL)
 
 def normalize(url):
     return normalize_url(
@@ -267,6 +269,8 @@ class PagesCrawler(Spider):
         return
 
     def parse_html(self, response):
+        archive_url = None
+        archive_timestamp = None
         orig_url = response.url
         if ARCHIVES["ENABLED"]:
             orig_url = self.archiveregexp.sub("", orig_url)
@@ -277,12 +281,28 @@ class PagesCrawler(Spider):
         realdepth = response.meta['depth']
 
         if ARCHIVES["ENABLED"]:
-
-            #TODO : remove BNF banner and extract timestamp for metadata + filtering
+            redir_url = self.archiveredirect.search(response.body)
+            # Collect archive date from BNF archives from the added banner with the permalink
+            if "archivesinternet.bnf.fr" in ARCHIVES["URL_PREFIX"]:
+                archive_url = RE_BNF_ARCHIVES_PERMALINK.search(response.body)
+                if not archive_url:
+                    self.log("Skipping archive page (%s) within which BNF banner could not be found." % response.url, logging.WARNING)
+                    return
+                archive_url = archive_url.group(1)
+                # Check date obtained fits into a user defined timerange and return 404 otherwise
+                archive_timestamp = self.archiveregexp.search(archive_url)
+                if not archive_timestamp:
+                    self.log("Skipping archive page (%s) for which archive date could not be found within permalink (%s)." % (response.url, archive_url), logging.WARNING)
+                    return
+                archive_timestamp = archive_timestamp.group(1)
+                if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
+                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    return
+                # Remove BNF banner
+                response.body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
 
             # Specific case of redirections from website returned by archives as JS redirections with code 200
-            redir_url = self.archiveredirect.search(response.body)
-            if redir_url:
+            elif redir_url:
                 response.status = int(redir_url.group(2))
                 redir_location = redir_url.group(1)
                 if redir_location.startswith("/"):
@@ -353,13 +373,16 @@ class PagesCrawler(Spider):
                 yield self._request(url)
 
         response.meta['depth'] = realdepth
-        yield self._make_html_page(response, lrulinks)
+        yield self._make_html_page(response, lrulinks, archive_url=archive_url, archive_timestamp=archive_timestamp)
 
-    def _make_html_page(self, response, lrulinks):
+    def _make_html_page(self, response, lrulinks, archive_url=None, archive_timestamp=None):
         p = self._make_raw_page(response)
         if STORE_HTML:
             p['body'] = Binary(response.body.encode('zip'))
         p['lrulinks'] = lrulinks
+        if ARCHIVES["ENABLED"] and archive_url:
+            p['archive_url'] = archive_url
+            p['archive_timestamp'] = archive_timestamp
         return p
 
     def _make_raw_page(self, response):
