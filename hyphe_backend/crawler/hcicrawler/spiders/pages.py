@@ -26,6 +26,7 @@ from ural import normalize_url, get_domain_name
 from ural.lru import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
+from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF_ARCHIVES_PERMALINK, RE_BNF_ARCHIVES_BANNER
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
@@ -34,10 +35,6 @@ from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
     raise SeleniumTimeout
-
-RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s/[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
-RE_BNF_ARCHIVES_PERMALINK = re.compile(r'<input id="permalink" class="BANNER_PERMALIEN_LINK_CUSTOMED" value="([^"]+)"')
-RE_BNF_ARCHIVES_BANNER = re.compile(r'<div id="MAIN_BANNER_BNF_CUSTOM".*$', re.DOTALL)
 
 def normalize(url):
     return normalize_url(

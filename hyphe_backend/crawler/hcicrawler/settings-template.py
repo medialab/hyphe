@@ -1,4 +1,5 @@
 import os, uuid
+from hcicrawler.webarchives import ARCHIVES_OPTIONS
 
 HYPHE_PROJECT = '{{db_name}}.{{project}}'
 BOT_NAME = 'hcicrawler'
@@ -15,10 +16,10 @@ ITEM_PIPELINES = {
 }
 
 ARCHIVES = {
-  "ENABLED": {{webarchives_enabled}},
-  "URL_PREFIX": '{{webarchives_url_prefix}}',
+  "ENABLED": '{{webarchives_option}}',
   "DATE": '{{webarchives_date}}',
-  "DAYS_RANGE": {{webarchives_days_range}}
+  "DAYS_RANGE": {{webarchives_days_range}},
+  "URL_PREFIX": ARCHIVES_OPTIONS.get('{{webarchives_option}}', {}).get('url_prefix', None)
 }
 
 CONCURRENT_REQUESTS = {{max_simul_requests}} if not ARCHIVES["ENABLED"] else 3
@@ -29,6 +30,9 @@ DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 REDIRECT_ENABLED = False
 
 PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
+
+if ARCHIVES["ENABLED"] and ARCHIVES["ENABLED"] in ARCHIVES_OPTIONS and "proxy" in ARCHIVES_OPTIONS[ARCHIVES["ENABLED"]]:
+    PROXY = ARCHIVES_OPTIONS[ARCHIVES["ENABLED"]]["proxy"]
 
 DOWNLOADER_MIDDLEWARES = {
     'hcicrawler.middlewares.ProxyMiddleware': 100,

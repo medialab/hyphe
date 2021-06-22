@@ -65,9 +65,8 @@
     ]
   },
   "webarchives": {
-    "enabled": false,
-    "url_prefix": "https://web.archive.org/web/",
-    "date": "2010-01-01",
+    "options": ["archive.org"],
+    "date": "2010-07-02",
     "days_range": 365
   },
   "ADMIN_PASSWORD": null,

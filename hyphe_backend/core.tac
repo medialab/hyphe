@@ -31,6 +31,7 @@ from hyphe_backend.lib import urllru
 from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.config_hci import test_and_make_dir, check_conf_sanity, clean_missing_corpus_options, CORPUS_CONF_SCHEMA, DEFAULT_CORPUS, TEST_CORPUS
 from hyphe_backend.lib.creationrules import getPreset as getWECR
+from hyphe_backend.lib.webarchives import ARCHIVES_OPTIONS
 from hyphe_backend.lib.user_agents import get_random_user_agent
 from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jobsqueue import JobsQueue
@@ -172,9 +173,11 @@ class Core(customJSONRPC):
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
       # TODO? Restrict setting archives only at start?
-        if 'webarchives' in options and options['webarchives'] != self.corpora[corpus]['options']['webarchives']:
-            redeploy = True
-            self.corpora[corpus]["options"]["webarchives"].update(options.pop("webarchives"))
+        for k in ["option", "date", "days_range"]:
+            key = "webarchives_" + k
+            if key in options and options[key] != self.corpora[corpus]['options'][key]:
+                redeploy = True
+                self.corpora[corpus]["options"][key] = options.pop(key)
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus)
@@ -669,12 +672,14 @@ class Core(customJSONRPC):
 
     def jsonrpc_get_status(self, corpus=DEFAULT_CORPUS):
         """Returns global metadata on Hyphe's status and specific information on a `corpus`."""
+        available_archives = [dict(v, id=k) for k, v in ARCHIVES_OPTIONS.items() if not k or k.lower() in [x.lower() for x in config["webarchives"]["options"]]]
         status = {
           'hyphe': {
             'corpus_running': self.traphs.total_running(),
             'crawls_running': sum([c['crawls_running'] for c in self.corpora.values() if "crawls_running" in c]),
             'crawls_pending': sum([c['crawls_pending'] for c in self.corpora.values() if "crawls_pending" in c]),
-            'max_depth': config["mongo-scrapy"]["max_depth"]
+            'max_depth': config["mongo-scrapy"]["max_depth"],
+            'available_archives': available_archives
           },
           'corpus': {
           }
@@ -1185,7 +1190,7 @@ class Crawler(customJSONRPC):
         if not starts:
             returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
         # lighten queries on web archives since all crawls rely on the same server
-        if self.corpora[corpus]["options"]["webarchives"]["enabled"]:
+        if self.corpora[corpus]["options"]["webarchives_option"]:
             download_delay = 2
         # preparation of the request to scrapyd
         args = {

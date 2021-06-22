@@ -9,6 +9,7 @@ TEST_CORPUS = "--test-corpus--"
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
 from hyphe_backend.lib import creationrules
+from hyphe_backend.lib import webarchives
 try:
     from pymongo import MongoClient
 except:
@@ -91,25 +92,6 @@ def validateStartpagesMode(modes):
         return False
     return True
 
-def validateArchiveDate(dt):
-    """be a string or an int of the form YYYYSMMSDD with S being non numerical separators or empty and year comprised between 1980 and 2050."""
-    try:
-        valid_dt = re.sub(r"\D", "", str(dt))
-        if len(valid_dt) != 8:
-            return False
-        year = int(valid_dt[0:4])
-        month = int(valid_dt[4:6])
-        day = int(valid_dt[6:8])
-        if not (
-            1980 <= year <= 2050 and
-            1 <= month <= 12 and
-            1 <= day <= 31
-        ):
-            return False
-    except:
-        return False
-    return True
-
 GLOBAL_CONF_SCHEMA = {
   "mongo-scrapy": {
     "type": dict,
@@ -147,10 +129,9 @@ GLOBAL_CONF_SCHEMA = {
   }, "webarchives": {
     "type": dict,
     "int_fields": ["days_range"],
-    "str_fields": ["url_prefix"],
     "extra_fields": {
-      "enabled": bool,
-      "date": validateArchiveDate
+      "options": webarchives.validateOptions,
+      "date": webarchives.validateArchiveDate
     }
   }, "DEBUG": {
     "type": int
@@ -194,15 +175,17 @@ CORPUS_CONF_SCHEMA = {
     },
     "default": "global/phantom"
   },
-  "webarchives": {
-    "type": dict,
-    "int_fields": ["days_range"],
-    "str_fields": ["url_prefix"],
-    "extra_fields": {
-      "enabled": bool,
-      "date": validateArchiveDate
-    },
-    "default": "global/webarchives"
+  "webarchives_option": {
+    "type": webarchives.validateOption,
+    "default": ""
+  },
+  "webarchives_date": {
+    "type": webarchives.validateArchiveDate,
+    "default": "global/webarchives/date"
+  },
+  "webarchives_days_range": {
+    "type": int,
+    "default": "global/webarchives/days_range"
   }
 }
 

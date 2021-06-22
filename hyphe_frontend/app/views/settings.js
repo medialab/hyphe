@@ -99,16 +99,14 @@ angular.module('hyphe.settingsController', [])
             "idle_timeout": $scope.ed_idle_timeout,
             "whitelist_domains": $scope.ed_whitelist
           },
-          "webarchives": {
-            "enabled": $scope.ed_webarchive_enabled,
-            "url_prefix": $scope.ed_webarchive_urlprefix,
-            "date": $scope.ed_webarchive_date,
-            "days_range": $scope.ed_webarchive_daysrange
-          },
+          "webarchives_option": $scope.ed_webarchive_option,
+          "webarchives_date": $scope.ed_webarchive_date,
+          "webarchives_days_range": $scope.ed_webarchive_daysrange,
           "follow_redirects": $scope.ed_follow_redirects,
           "defaultCreationRule": $scope.ed_defaultCreationRule
         };
 
+        $scope.webarchives_chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === $scope.ed_webarchive_option})[0]
         $scope.status = {message: 'Saving new settings'};
 
         api.setCorpusOptions({
@@ -129,11 +127,10 @@ angular.module('hyphe.settingsController', [])
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice();
       $scope.ed_proxy_host            = $scope.options.proxy.host + "";
       $scope.ed_proxy_port            = $scope.options.proxy.port + 0;
-      $scope.ed_webarchive_enabled    = !!$scope.options.webarchives.enabled;
-      $scope.ed_webarchive_urlprefix  = $scope.options.webarchives.url_prefix + "";
+      $scope.ed_webarchive_option     = $scope.options.webarchives_option;
     // TODO VALIDATE DATE AND RANGE
-      $scope.ed_webarchive_date       = $scope.options.webarchives.date;
-      $scope.ed_webarchive_daysrange  = $scope.options.webarchives.days_range + 0;
+      $scope.ed_webarchive_date       = $scope.options.webarchives_date;
+      $scope.ed_webarchive_daysrange  = $scope.options.webarchives_days_range + 0;
       $scope.ed_timeout               = $scope.options.phantom.timeout + 0;
       $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout + 0;
       $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout + 0;
@@ -172,8 +169,10 @@ angular.module('hyphe.settingsController', [])
               ,https: rule.prefix.indexOf('s:https') === 0
             };
           })
+          $scope.webarchives_options = corpus_status.hyphe.available_archives
+          $scope.webarchives_chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === corpus_status.corpus.options.webarchives_option})[0]
           $scope.loading = false
-          $scope.status = {};
+          $scope.status = {}
 
 
         },function(data, status, headers, config){

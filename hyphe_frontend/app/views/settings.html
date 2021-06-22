@@ -183,29 +183,27 @@
                 <h3 style="margin:0px">CRAWL WEB ARCHIVES (experimental)</h3>
                 <dl class="key-value-pairs">
 
-                  <dt>Status</dt>
-                  <div flex="50">
-                    <md-checkbox ng-model="ed_webarchive_enabled" aria-label="">
-                      {{ ed_webarchive_enabled ? "enabled" : "disabled" }}
-                    </md-checkbox>
+                  <dt style="margin-bottom:18px">Choose a source of web archives:</dt>
+                  <md-radio-group ng-model="ed_webarchive_option" class="md-primary">
+                    <div ng-repeat="option in webarchives_options">
+                      <small>{{option.description}}</small>
+                      <md-radio-button value="{{option.id}}" class="md-primary">{{option.label}}</md-radio-button>
+                    </div>
+                  </md-radio-group>
+
+                  <div ng-hide="ed_webarchive_option === ''">
+                  <!-- TODO: DATE SELECTOR -->
+                    <dt>Date to try to approach</dt>
+                    <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                      <input ng-model="ed_webarchive_date">
+                    </md-input-container>
+
+                  <!-- TODO: use DATE SELECTOR to define the days range-->
+                    <dt>Days to consider around the date</dt>
+                    <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                      <input type="number" min="1" ng-model="ed_webarchive_daysrange">
+                    </md-input-container>
                   </div>
-
-                  <dt>Archive URLs prefix</dt>
-                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
-                    <input ng-model="ed_webarchive_urlprefix" aria-label="editHost">
-                  </md-input-container>
-
-                <!-- TODO: DATE SELECTOR -->
-                  <dt>Date to try to approach</dt>
-                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
-                    <input ng-model="ed_webarchive_date">
-                  </md-input-container>
-
-                <!-- TODO: use DATE SELECTOR to define the days range-->
-                  <dt>Days to consider around the date</dt>
-                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
-                    <input type="number" min="1" ng-model="ed_webarchive_daysrange">
-                  </md-input-container>
 
                 </dl>
 
@@ -328,17 +326,16 @@
               <h3 style="margin:0px">CRAWL WEB ARCHIVES</h3>
               <dl class="key-value-pairs">
 
-                <dt>Status</dt>
-                <dd style="min-height: 22px">{{ options.webarchives.enabled ? "enabled" : "disabled" }}</dd>
+                <dt>Source</dt>
+                <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
 
-                <dt>Archive URLs prefix</dt>
-                <dd style="min-height: 22px">{{options.webarchives.url_prefix}}</dd>
+                <div ng-hide="options.webarchives_option === ''">
+                  <dt>Date to try to approach</dt>
+                  <dd style="min-height: 22px">{{options.webarchives_date}}</dd>
 
-                <dt>Date to try to approach</dt>
-                <dd style="min-height: 22px">{{options.webarchives.date}}</dd>
-
-                <dt>Days to consider around the date</dt>
-                <dd style="min-height: 22px">{{options.webarchives.days_range}}</dd>
+                  <dt>Days to consider around the date</dt>
+                  <dd style="min-height: 22px">{{options.webarchives_days_range}}</dd>
+                </div>
 
               </dl>
 
