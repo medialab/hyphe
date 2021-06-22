@@ -1066,7 +1066,7 @@ class Core(customJSONRPC):
         elif url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders.get('server', [""])[0]:
             response.code = 301
         # BNF Archives return 301 when using HEAD queries so do not consider it as error
-        elif proxy_host and not ("archivesinternet.bnf.fr" in proxy_host and 300 <= response.code < 400) and \
+        elif use_proxy and not ("archivesinternet.bnf.fr" in proxy_host and 300 <= response.code < 400) and \
           not (deadline and deadline < time.time()) and \
           not (url.startswith("https") and response.code/100 == 4) and \
           (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
