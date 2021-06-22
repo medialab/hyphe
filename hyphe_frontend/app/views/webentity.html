@@ -352,6 +352,9 @@
                             <div ng-show="job.nb_unindexed_pages">
                               ({{job.nb_unindexed_pages}} not indexed yet)
                             </div>
+                            <div ng-show="job.crawl_arguments.webarchives.option !== ''" class="subtitle">
+                              from web archives at {{job.crawl_arguments.webarchives.option}},<br/>{{job.crawl_arguments.webarchives.days_range}} days around {{job.crawl_arguments.webarchives.date}}
+                            </div>
                           </div>
                         </div>
 

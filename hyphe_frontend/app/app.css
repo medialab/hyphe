@@ -639,6 +639,10 @@ textarea.over-error {
   font-weight: 300;
 }
 
+.crawl-tile-overlay .stats .subtitle {
+  text-align: center;
+}
+
 .crawl-tile-overlay .stats {
   font-family: 'Roboto', sans-serif;
   font-size: 0.9em;

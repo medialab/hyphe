@@ -124,6 +124,9 @@
                         <div ng-show="job.nb_unindexed_pages">
                           ({{job.nb_unindexed_pages}} not indexed yet)
                         </div>
+                        <div ng-show="job.crawl_arguments.webarchives.option !== ''" class="subtitle">
+                          from web archives at {{job.crawl_arguments.webarchives.option}},<br/>{{job.crawl_arguments.webarchives.days_range}} days around {{job.crawl_arguments.webarchives.date}}
+                        </div>
                       </div>
                     </div>
 
@@ -353,6 +356,31 @@
                   
                 </dl>
 
+                <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.webarchives.option !== ''">
+                  <h3 style="margin-bottom:0px">WEB ARCHIVES USED</h3>
+                  <dl class="key-value-pairs">
+                    <dt>Source</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.webarchives.option}}</dd>
+                    <dt>Date approached</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.webarchives.date}}</dd>
+                    <dt>Days considered around the date</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.webarchives.days_range}}</dd>
+                  </dl>
+                </div>
+
+                <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.phantom">
+                  <h3 style="margin-bottom:0px">CAUTIOUS CRAWL SETTINGS</h3>
+                  <dl class="key-value-pairs">
+                    <dt>Page Timeout</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_timeout}}</dd>
+                    <dt>Ajax queries Timeout</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_ajax_timeout}}</dd>
+                    <dt>Idle Timeout</dt>
+                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_idle_timeout}}</dd>
+                  </dl>
+                </div>
+
+
                 <h3 style="margin-bottom:0px">ACTIVITY</h3>
                 <dl class="key-value-pairs">
 
@@ -427,18 +455,6 @@
                 <dl ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.start_urls.length" class="key-value-pairs">
                   <dd>None</dd>
                 </dl>
-
-                <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.phantom">
-                  <h3 style="margin-bottom:0px">CAUTIOUS CRAWL SETTINGS</h3>
-                  <dl class="key-value-pairs">
-                    <dt>Page Timeout</dt>
-                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_timeout}}</dd>
-                    <dt>Ajax queries Timeout</dt>
-                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_ajax_timeout}}</dd>
-                    <dt>Idle Timeout</dt>
-                    <dd>{{crawljobsIndex[focusedJobId].crawl_arguments.phantom_idle_timeout}}</dd>
-                  </dl>
-                </div>
 
                 <h3 style="margin-bottom:0px">DETAILED SETTINGS</h3>
                 <dl class="key-value-pairs">

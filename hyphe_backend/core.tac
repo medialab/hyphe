@@ -779,6 +779,7 @@ class Core(customJSONRPC):
               "nb_pages",
               "nb_links",
               "crawl_arguments.max_depth",
+              "crawl_arguments.webarchives",
               "crawling_status",
               "indexing_status",
               "created_at",
@@ -1205,8 +1206,12 @@ class Crawler(customJSONRPC):
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
           'user_agent': get_random_user_agent(),
-          'cookies': cookies_string
+          'cookies': cookies_string,
+          'webarchives': {}
         }
+        for key in ["option", "date", "days_range"]:
+            args["webarchives"][key] = self.corpora[corpus]["options"]["webarchives_%s" % key]
+
         if phantom_crawl:
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
             for t in ["", "ajax_", "idle_"]:
