@@ -329,16 +329,16 @@
           <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
             <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
               <h3 style="margin:0px">CRAWL WEB ARCHIVES</h3>
+
               <div class="disclaimer">
                 <div class="disclaimer-header">/!\ EXPERIMENTAL /!\</div>
                 <div class="text">This is an experimental feature: you should understand that crawling web archives is necessarily much slower since all crawls will query only one same server.</div>
               </div>
-              <dl class="key-value-pairs">
 
+              <dl class="key-value-pairs">
                 <div ng-hide="options.webarchives_option !== ''">
                   <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
                 </div>
-
                 <div ng-hide="options.webarchives_option === ''">
                   <dt>Source</dt>
                   <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
@@ -349,7 +349,6 @@
                   <dt>Days to consider around the date</dt>
                   <dd style="min-height: 22px">{{options.webarchives_days_range}}</dd>
                 </div>
-
               </dl>
 
             </md-content>
