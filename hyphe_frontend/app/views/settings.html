@@ -181,6 +181,11 @@
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
                 <h3 style="margin:0px">CRAWL WEB ARCHIVES (experimental)</h3>
+                <div class="disclaimer">
+                  <div class="disclaimer-header">/!\ EXPERIMENTAL /!\</div>
+                  <div class="text">This is an experimental feature: you should understand that crawling web archives is necessarily much slower since all crawls will query only one same server.</div>
+                </div>
+
                 <dl class="key-value-pairs">
 
                   <dt style="margin-bottom:18px">Choose a source of web archives:</dt>
@@ -324,12 +329,20 @@
           <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
             <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
               <h3 style="margin:0px">CRAWL WEB ARCHIVES</h3>
+              <div class="disclaimer">
+                <div class="disclaimer-header">/!\ EXPERIMENTAL /!\</div>
+                <div class="text">This is an experimental feature: you should understand that crawling web archives is necessarily much slower since all crawls will query only one same server.</div>
+              </div>
               <dl class="key-value-pairs">
 
-                <dt>Source</dt>
-                <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
+                <div ng-hide="options.webarchives_option !== ''">
+                  <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
+                </div>
 
                 <div ng-hide="options.webarchives_option === ''">
+                  <dt>Source</dt>
+                  <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
+
                   <dt>Date to try to approach</dt>
                   <dd style="min-height: 22px">{{options.webarchives_date}}</dd>
 
