@@ -30,6 +30,9 @@ sudo chkconfig --levels 235 httpd on
 sudo service httpd restart
 ```
 
+Hyphe still relies on python2 for now which might disappear from official distributions repositories in the future. If you need to install it manually (for instance via pyenv), make sure to install the following system dependencies first (change -devel into -dev for all under apt based architectures such as Ubuntu or Debian):
+`zlib-devel bzip2-devel openssl openssl-devel sqlite-devel readline-devel`
+
 
 ## 1) Clone the source code
 
