@@ -60,9 +60,10 @@ class OutputStore(MongoOutput):
 
 class ResolveLinks(object):
 
-    def __init__(self, proxy_host=None, proxy_port=None):
+    def __init__(self, proxy=None):
         self.proxy = None
-        if proxy_host and proxy_port:
+        if proxy:
+            proxy_host, proxy_port = proxy.split(":", 1)
             self.proxy = {
               "host": proxy_host,
               "port": int(proxy_port)
@@ -70,9 +71,9 @@ class ResolveLinks(object):
 
     @classmethod
     def from_crawler(cls, crawler):
-        proxy = crawler.settings['PROXY']
-        if proxy != "" and not proxy.startswith(':'):
-            return cls(*proxy.split(":"))
+        proxy = crawler.spider.proxy
+        if proxy:
+            return cls(proxy)
         return cls()
 
     @inlineCallbacks

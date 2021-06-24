@@ -44,10 +44,6 @@ if corpus_conf:
     for k in ["option", "date", "days_range"]:
         key = "webarchives_" + k
         config["mongo-scrapy"][key] = corpus_conf.get(key)
-    if corpus_conf["proxy"]["host"]:
-        config["mongo-scrapy"]["proxy_host"] = corpus_conf["proxy"]["host"]
-    if corpus_conf["proxy"]["port"]:
-        config["mongo-scrapy"]["proxy_port"] = corpus_conf["proxy"]["port"]
 else:
     print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
 

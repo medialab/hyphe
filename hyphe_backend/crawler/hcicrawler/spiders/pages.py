@@ -30,7 +30,7 @@ from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import PROXY, HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, ARCHIVES
+from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, ARCHIVES
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -81,6 +81,11 @@ class PagesCrawler(Spider):
             self.ph_ajax_timeout = int(args.get('phantom_ajax_timeout', PHANTOM['AJAX_TIMEOUT']))
         self.errors = 0
 
+        self.proxy = None
+        if "proxy" in args and args["proxy"] and not args["proxy"].startswith(":"):
+            self.proxy = args["proxy"]
+            self.log("Using proxy %s" % self.proxy, logging.INFO)
+
         # TODO: handle bypassing ARCHIVES default config from job's arguments
         if ARCHIVES["ENABLED"]:
             archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"]))
@@ -97,6 +102,8 @@ class PagesCrawler(Spider):
             archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivehost, ""))
             self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % archivedomain_regexp, re.I|re.S)
 
+            if ARCHIVES["ENABLED"] in ARCHIVES_OPTIONS and "proxy" in ARCHIVES_OPTIONS[ARCHIVES["ENABLED"]]:
+                self.proxy = ARCHIVES_OPTIONS[ARCHIVES["ENABLED"]]["proxy"]
 
         self.cookies = None
         if 'cookies' in args and args["cookies"]:
@@ -130,8 +137,8 @@ class PagesCrawler(Spider):
         )
         self.log("Using path %s for PhantomJS crawl" % self.prefixfiles, logging.INFO)
         phantom_args = []
-        if PROXY and not PROXY.startswith(':'):
-            phantom_args.append('--proxy=%s' % PROXY)
+        if self.proxy:
+            phantom_args.append('--proxy=%s' % self.proxy)
         phantom_args.append('--cookies-file=%s-phantomjs-cookie.txt' % self.prefixfiles)
         phantom_args.append('--ignore-ssl-errors=true')
         phantom_args.append('--load-images=false')
@@ -167,7 +174,6 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
-        self.log("HEADERS for "+response.url+" "+str(response.headers))
 
         if self.phantom:
             self.phantom.get(response.url)
@@ -260,7 +266,7 @@ class PagesCrawler(Spider):
             return self._request(failure.request.url.replace('://', '://www.'))
         error = failure.getErrorMessage()
         self.log("ERROR : %s" % error, logging.ERROR)
-        if PROXY and not PROXY.startswith(':') and "OpenSSL.SSL.Error" in error:
+        if self.proxy and "OpenSSL.SSL.Error" in error:
             return self._request(failure.request.url, noproxy=True)
         self.errors += 1
         return
