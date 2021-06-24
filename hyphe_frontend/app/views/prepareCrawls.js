@@ -82,6 +82,8 @@ angular.module('hyphe.preparecrawlsController', [])
                 webentityId: obj.webentity.id
                 ,depth: $scope.crawlDepth
                 ,cautious: $scope.cautious
+                ,proxy: null
+                ,cookies_string: null
               }
             ,function(data){                      // Success callback
                 obj_setStatus(obj, 'scheduled')
