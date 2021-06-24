@@ -84,6 +84,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 ,cautious: $scope.cautious
                 ,proxy: null
                 ,cookies_string: null
+                ,webarchives: {}
               }
             ,function(data){                      // Success callback
                 obj_setStatus(obj, 'scheduled')

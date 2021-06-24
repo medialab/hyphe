@@ -283,6 +283,7 @@ The API will always answer as such:
   + _`proxy`_ (optional, default: `null`)
   + _`cookies_string`_ (optional, default: `null`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
+  + _`webarchives`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
@@ -290,6 +291,7 @@ The API will always answer as such:
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
  Optionally add a HTTP `proxy` specified as "domain_or_IP:port".
  Also optionally add known `cookies_string` with auth rights to a protected website.
+ Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"archive.org"/"bnf.fr".
  Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic, see details in `propose_webentity_startpages`).
 
 
@@ -302,6 +304,7 @@ The API will always answer as such:
   + _`proxy`_ (optional, default: `null`)
   + _`cookies_string`_ (optional, default: `null`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
+  + _`webarchives`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.
@@ -310,6 +313,7 @@ The API will always answer as such:
  Optionally add a HTTP `proxy` specified as "domain_or_IP:port".
  Also optionally add known `cookies_string` with auth rights to a protected website.
  Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
+ Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"archive.org"/"bnf.fr".
 
 
 - __`get_webentity_jobs`:__
@@ -385,6 +389,7 @@ The API will always answer as such:
   + _`download_delay`_ (optional, default: `1`)
   + _`proxy`_ (optional, default: `null`)
   + _`cookies_string`_ (optional, default: `null`)
+  + _`webarchives`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):
@@ -396,6 +401,7 @@ The API will always answer as such:
   * a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.
   * an HTTP `proxy` specified as "domain_or_IP:port"
   * a known `cookies_string` with auth rights to a protected website.
+ Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"archive.org"/"bnf.fr".
 
 
 - __`cancel`:__

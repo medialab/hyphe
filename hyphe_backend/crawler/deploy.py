@@ -41,12 +41,11 @@ corpus_conf = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scr
 if corpus_conf:
     corpus_conf = corpus_conf["options"]
     config["phantom"].update(corpus_conf["phantom"])
-    for k in ["option", "date", "days_range"]:
-        key = "webarchives_" + k
-        config["mongo-scrapy"][key] = corpus_conf.get(key)
+    if "webarchives" in corpus_conf and corpus_conf["webarchives"].get("option", None):
+        config["mongo-scrapy"]["max_simul_requests"] = 3
+        config["mongo-scrapy"]["max_simul_requests_per_host"] = 1
 else:
     print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
-
 # Copy Hyphe libraries from HCI lib/
 for f in ["urllru", "webarchives", "tlds"]:
     if verbose:

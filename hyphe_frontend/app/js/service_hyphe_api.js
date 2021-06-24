@@ -441,6 +441,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.proxy || null
             ,settings.cookies_string || null
             ,{}                                 // phantom timeouts
+            ,settings.webarchives || {}
             ,corpus.getId()
           ]}
       )
@@ -477,6 +478,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.startmode || 'default'
             ,settings.proxy || null
             ,{}                                 // phantom timeouts
+            ,settings.webarchives || {}
             ,corpus.getId()
           ]}
       )

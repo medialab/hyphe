@@ -30,7 +30,7 @@ from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, ARCHIVES
+from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -86,15 +86,18 @@ class PagesCrawler(Spider):
             self.proxy = args["proxy"]
             self.log("Using proxy %s" % self.proxy, logging.INFO)
 
-        # TODO: handle bypassing ARCHIVES default config from job's arguments
-        if ARCHIVES["ENABLED"]:
-            archivedate = re.sub(r"\D", "", str(ARCHIVES["DATE"]))
+        self.webarchives = args.get("webarchives", {})
+        if "option" not in self.webarchives or self.webarchives["option"] not in ARCHIVES_OPTIONS:
+            self.webarchives = {}
+        if self.webarchives:
+            self.webarchives["url_prefix"] = ARCHIVES_OPTIONS[self.webarchives["option"]].get("url_prefix", None)
+            archivedate = re.sub(r"\D", "", str(self.webarchives["date"]))
             self.archivedate = str(archivedate) + "120000"
             archivedt = datetime.strptime(self.archivedate, "%Y%m%d%H%M%S")
-            self.archivemindate = datetime.strftime(archivedt - timedelta(ARCHIVES["DAYS_RANGE"]/2.), "%Y%m%d%H%M%S")
-            self.archivemaxdate = datetime.strftime(archivedt + timedelta(ARCHIVES["DAYS_RANGE"]/2.), "%Y%m%d%H%M%S")
+            self.archivemindate = datetime.strftime(archivedt - timedelta(self.webarchives["days_range"]/2.), "%Y%m%d%H%M%S")
+            self.archivemaxdate = datetime.strftime(archivedt + timedelta(self.webarchives["days_range"]/2.), "%Y%m%d%H%M%S")
 
-            archiveprefix = ARCHIVES["URL_PREFIX"].rstrip('/')
+            archiveprefix = self.webarchives["url_prefix"].rstrip('/')
             self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
             self.archiveregexp = re.compile(r"^%s/(\d{14}).?/" % archiveprefix, re.I)
             self.archivehost = "/".join(archiveprefix.split('/')[:3])
@@ -102,8 +105,8 @@ class PagesCrawler(Spider):
             archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivehost, ""))
             self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % archivedomain_regexp, re.I|re.S)
 
-            if ARCHIVES["ENABLED"] in ARCHIVES_OPTIONS and "proxy" in ARCHIVES_OPTIONS[ARCHIVES["ENABLED"]]:
-                self.proxy = ARCHIVES_OPTIONS[ARCHIVES["ENABLED"]]["proxy"]
+            if "proxy" in ARCHIVES_OPTIONS[self.webarchives["option"]]:
+                self.proxy = ARCHIVES_OPTIONS[self.webarchives["option"]]["proxy"]
 
         self.cookies = None
         if 'cookies' in args and args["cookies"]:
@@ -119,7 +122,7 @@ class PagesCrawler(Spider):
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
         self.log("ARGUMENTS : "+str(self.args), logging.INFO)
-        if ARCHIVES["ENABLED"]:
+        if self.webarchives:
             self.log("Crawling on Web Archive using for prefix %s" % self.archiveprefix)
 
         if self.phantom:
@@ -223,13 +226,13 @@ class PagesCrawler(Spider):
             except:
                 pass
 
-        if ARCHIVES["ENABLED"]:
+        if self.webarchives:
             # Handle transparently redirections from archives to another available timestamp
             if response.status == 302:
                 redir_url = response.headers['Location']
                 if redir_url.startswith("/"):
                     redir_url = "%s%s" % (self.archivehost, redir_url)
-                if "archivesinternet.bnf.fr" in ARCHIVES["URL_PREFIX"]:
+                if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                     if "depth" in response.meta:
                         response.meta['depth'] -= 1
                     else:
@@ -275,7 +278,7 @@ class PagesCrawler(Spider):
         archive_url = None
         archive_timestamp = None
         orig_url = response.url
-        if ARCHIVES["ENABLED"]:
+        if self.webarchives:
             orig_url = self.archiveregexp.sub("", orig_url)
         lru = url_to_lru_clean(orig_url, TLDS_TREE)
         lrulinks = []
@@ -283,10 +286,10 @@ class PagesCrawler(Spider):
         # Handle redirects
         realdepth = response.meta['depth']
 
-        if ARCHIVES["ENABLED"]:
+        if self.webarchives:
             redir_url = self.archiveredirect.search(response.body)
             # Collect archive date from BNF archives from the added banner with the permalink
-            if "archivesinternet.bnf.fr" in ARCHIVES["URL_PREFIX"]:
+            if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 archive_url = RE_BNF_ARCHIVES_PERMALINK.search(response.body)
                 if not archive_url:
                     self.log("Skipping archive page (%s) within which BNF banner could not be found." % response.url, logging.WARNING)
@@ -320,7 +323,7 @@ class PagesCrawler(Spider):
         if 300 <= response.status < 400:
             redir_url = response.headers['Location']
 
-            if ARCHIVES["ENABLED"] and self.archiveregexp.match(redir_url):
+            if self.webarchives and self.archiveregexp.match(redir_url):
                 redir_url = self.archiveregexp.sub("", redir_url)
 
             if redir_url.startswith('/'):
@@ -351,7 +354,7 @@ class PagesCrawler(Spider):
             except AttributeError:
                 url = link['url']
 
-            if ARCHIVES["ENABLED"]:
+            if self.webarchives:
                 # Rewrite archives urls and filter internal archives links
                 url = self.archiveregexp.sub("", url)
                 if url.startswith(self.archivehost) or \
@@ -364,7 +367,7 @@ class PagesCrawler(Spider):
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
 
-            if ARCHIVES["ENABLED"]:
+            if self.webarchives:
                 # Filter more links added within archives to other pieces of the archive
                 if lrulink.replace("s:https|", "s:http|").startswith(self.archivedomain_lru):
                     continue
@@ -383,7 +386,7 @@ class PagesCrawler(Spider):
         if STORE_HTML:
             p['body'] = Binary(response.body.encode('zip'))
         p['lrulinks'] = lrulinks
-        if ARCHIVES["ENABLED"] and archive_url:
+        if self.webarchives and archive_url:
             p['archive_url'] = archive_url
             p['archive_timestamp'] = archive_timestamp
         return p
@@ -391,7 +394,7 @@ class PagesCrawler(Spider):
     def _make_raw_page(self, response):
         p = Page()
         p['url'] = response.url
-        if ARCHIVES["ENABLED"]:
+        if self.webarchives:
             p['url'] = self.archiveregexp.sub("", response.url)
             p['archive_url'] = response.url
             p['archive_date_requested'] = self.archivedate
@@ -424,15 +427,15 @@ class PagesCrawler(Spider):
             kw['cookies'] = self.cookies
         if self.phantom:
             kw['method'] = 'HEAD'
-        if ARCHIVES["ENABLED"]:
-            if "archivesinternet.bnf.fr" in ARCHIVES["URL_PREFIX"]:
+        if self.webarchives:
+            if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 kw['headers'] = {
                     "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.job)
                 }
-                if url.startswith(ARCHIVES["URL_PREFIX"]) or redirection:
+                if url.startswith(self.webarchives["url_prefix"]) or redirection:
                     return Request(url, **kw)
-                return Request("%s/%s/%s" % (ARCHIVES["URL_PREFIX"].rstrip('/'), self.archivedate, url), **kw)
-            if url.startswith(ARCHIVES["URL_PREFIX"]):
+                return Request("%s/%s/%s" % (self.webarchives["url_prefix"].rstrip('/'), self.archivedate, url), **kw)
+            if url.startswith(self.webarchives["url_prefix"]):
                 kw["meta"]["archive_timestamp"] = self.archiveregexp.search(url).group(1)
                 return Request(url, **kw)
             else:

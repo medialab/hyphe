@@ -1,5 +1,4 @@
 import os, uuid
-from hcicrawler.webarchives import ARCHIVES_OPTIONS
 
 HYPHE_PROJECT = '{{db_name}}.{{project}}'
 BOT_NAME = 'hcicrawler'
@@ -15,15 +14,8 @@ ITEM_PIPELINES = {
     'hcicrawler.pipelines.OutputQueue': 500,
 }
 
-ARCHIVES = {
-  "ENABLED": '{{webarchives_option}}',
-  "DATE": '{{webarchives_date}}',
-  "DAYS_RANGE": {{webarchives_days_range}},
-  "URL_PREFIX": ARCHIVES_OPTIONS.get('{{webarchives_option}}', {}).get('url_prefix', None)
-}
-
-CONCURRENT_REQUESTS = {{max_simul_requests}} if not ARCHIVES["ENABLED"] else 3
-CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}} if not ARCHIVES["ENABLED"] else 1
+CONCURRENT_REQUESTS = {{max_simul_requests}}
+CONCURRENT_REQUESTS_PER_DOMAIN = {{max_simul_requests_per_host}}
 
 DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 
