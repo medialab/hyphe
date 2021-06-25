@@ -391,7 +391,7 @@ class PagesCrawler(Spider):
         p['lrulinks'] = lrulinks
         if self.webarchives and archive_url:
             p['archive_url'] = archive_url
-            p['archive_timestamp'] = archive_timestamp
+            p['archive_date_obtained'] = archive_timestamp
         return p
 
     def _make_raw_page(self, response, modified_body=None):
