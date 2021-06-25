@@ -185,6 +185,7 @@ class PagesCrawler(Spider):
             with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
                 get_bod_w_iframes = js.read()
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
+            # TODO use modifed_body instead od _set_body
             response._set_body(bod_w_iframes.encode('utf-8'))
 
           # Try to scroll and unfold page
@@ -212,6 +213,7 @@ class PagesCrawler(Spider):
                     self.errors += 1
                     return self._make_raw_page(response)
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
+            # TODO use modifed_body instead od _set_body
             response._set_body(bod_w_iframes.encode('utf-8'))
 
       # Cleanup pages with base64 images embedded that make scrapy consider them not htmlresponses
@@ -277,6 +279,7 @@ class PagesCrawler(Spider):
     def parse_html(self, response):
         archive_url = None
         archive_timestamp = None
+        clean_body = None
         orig_url = response.url
         if self.webarchives:
             orig_url = self.archiveregexp.sub("", orig_url)
@@ -305,7 +308,7 @@ class PagesCrawler(Spider):
                     self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
                     return
                 # Remove BNF banner
-                response.body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
+                clean_body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
 
             # Specific case of redirections from website returned by archives as JS redirections with code 200
             elif redir_url:
@@ -379,19 +382,19 @@ class PagesCrawler(Spider):
                 yield self._request(url)
 
         response.meta['depth'] = realdepth
-        yield self._make_html_page(response, lrulinks, archive_url=archive_url, archive_timestamp=archive_timestamp)
+        yield self._make_html_page(response, lrulinks, archive_url=archive_url, archive_timestamp=archive_timestamp, modified_body=clean_body)
 
-    def _make_html_page(self, response, lrulinks, archive_url=None, archive_timestamp=None):
-        p = self._make_raw_page(response)
+    def _make_html_page(self, response, lrulinks, archive_url=None, archive_timestamp=None, modified_body=None):
+        p = self._make_raw_page(response, modified_body=modified_body)
         if STORE_HTML:
-            p['body'] = Binary(response.body.encode('zip'))
+            p['body'] = Binary((modified_body or response.body).encode('zip'))
         p['lrulinks'] = lrulinks
         if self.webarchives and archive_url:
             p['archive_url'] = archive_url
             p['archive_timestamp'] = archive_timestamp
         return p
 
-    def _make_raw_page(self, response):
+    def _make_raw_page(self, response, modified_body=None):
         p = Page()
         p['url'] = response.url
         if self.webarchives:
@@ -404,7 +407,7 @@ class PagesCrawler(Spider):
         p['depth'] = 0
         p['timestamp'] = int(time.time()*1000)
         p['status'] = response.status
-        p['size'] = len(response.body)
+        p['size'] = len(modified_body or response.body)
         if isinstance(response, HtmlResponse):
             p['encoding'] = response.encoding
         if response.meta.get('depth'):
