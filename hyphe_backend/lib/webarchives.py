@@ -13,8 +13,8 @@ ARCHIVES_OPTIONS = {
     "bnf.fr": {
         "label": "ArchivesInternet.BNF.fr",
         "description": "crawl France's official web archives maintained by BNF",
-        "url_prefix": "http://pcfarchivesinternet.bnf.fr",
-        "proxy": "pcfarchivesinternet.bnf.fr:8888"
+        "url_prefix": "http://pfcarchivesinternet.bnf.fr",
+        "proxy": "pfcarchivesinternet.bnf.fr:9115"
     }
 }
 
@@ -48,5 +48,5 @@ def validateArchiveDate(dt):
 
 RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s/[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
 RE_BNF_ARCHIVES_PERMALINK = re.compile(r'<input id="permalink" class="BANNER_PERMALIEN_LINK_CUSTOMED" value="([^"]+)"')
-RE_BNF_ARCHIVES_BANNER = re.compile(r'<div id="MAIN_BANNER_BNF_CUSTOM".*$', re.DOTALL)
+RE_BNF_ARCHIVES_BANNER = re.compile(r'<!--\n\s+FILE ARCHIVED ON.*<!--\n\s+END.*?-->', re.DOTALL)
 
