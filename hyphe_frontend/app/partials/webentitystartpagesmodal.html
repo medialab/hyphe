@@ -101,14 +101,6 @@
                   {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:
                   <span ng-repeat="err in urlErrors track by $index">{{err}} </span>
                 </div>
-                <div
-                  class="hint"
-                  ng-show="urlsToAdd.length > 1 || urlErrors.length"
-                  md-colors="{'color':(urlErrors.length)?('default-warn'):('default-primary')}"
-                >
-                  {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:
-                  <span ng-repeat="err in urlErrors track by $index">{{err}} </span>
-                </div>
               </md-input-container>
               <div layout="column" layout-align="center center">
                 <md-button
