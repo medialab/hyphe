@@ -65,6 +65,15 @@ angular.module('hyphe.settingsController', [])
       return true;
     }
 
+    $scope.setArchivesMinMaxDate = function(date, days){
+        try {
+          var dat = new Date(date)
+          dat.setDate(dat.getDate() - days/2)
+          $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
+          dat.setDate(dat.getDate() + days)
+          $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
+        } catch(e) {}
+    }
 
     $scope.editSettings = function(save){
 
@@ -106,7 +115,10 @@ angular.module('hyphe.settingsController', [])
           "defaultCreationRule": $scope.ed_defaultCreationRule
         };
 
+        $scope.setArchivesMinMaxDate($scope.ed_webarchive_date, $scope.ed_webarchive_daysrange)
+        
         $scope.webarchives_chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === $scope.ed_webarchive_option})[0]
+
         $scope.status = {message: 'Saving new settings'};
 
         api.setCorpusOptions({
@@ -169,6 +181,7 @@ angular.module('hyphe.settingsController', [])
               ,https: rule.prefix.indexOf('s:https') === 0
             };
           })
+          $scope.setArchivesMinMaxDate($scope.options.webarchives_date, $scope.options.webarchives_days_range)
           $scope.webarchives_options = corpus_status.hyphe.available_archives
           $scope.webarchives_chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === corpus_status.corpus.options.webarchives_option})[0]
           $scope.loading = false

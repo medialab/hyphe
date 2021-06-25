@@ -200,16 +200,19 @@
                   <!-- TODO: DATE SELECTOR -->
                     <dt>Date to try to approach</dt>
                     <md-input-container style="width: 95%; margin: 0px; height: 28px">
-                      <input ng-model="ed_webarchive_date">
+                      <input ng-model="ed_webarchive_date" ng-change="setArchivesMinMaxDate(ed_webarchive_date, ed_webarchive_daysrange)">
                     </md-input-container>
 
                   <!-- TODO: use DATE SELECTOR to define the days range-->
                     <dt>Days to consider around the date</dt>
                     <md-input-container style="width: 95%; margin: 0px; height: 28px">
-                      <input type="number" min="1" ng-model="ed_webarchive_daysrange">
+                      <input type="number" min="1" ng-model="ed_webarchive_daysrange" ng-change="setArchivesMinMaxDate(ed_webarchive_date, ed_webarchive_daysrange)">
                     </md-input-container>
                   </div>
 
+                  <div style="text-align:center">
+                    <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                  </div>
                 </dl>
 
               </md-content>
@@ -344,10 +347,13 @@
                   <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
 
                   <dt>Date to try to approach</dt>
-                  <dd style="min-height: 22px">{{options.webarchives_date}}</dd>
+                  <dd style="min-height: 22px">{{ options.webarchives_date }}</dd>
 
                   <dt>Days to consider around the date</dt>
-                  <dd style="min-height: 22px">{{options.webarchives_days_range}}</dd>
+                  <dd style="min-height: 22px">{{ options.webarchives_days_range }}</dd>
+                </div>
+                <div style="text-align:center">
+                  <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
                 </div>
               </dl>
 
