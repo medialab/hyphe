@@ -84,7 +84,6 @@ class PagesCrawler(Spider):
         self.proxy = None
         if "proxy" in args and args["proxy"] and not args["proxy"].startswith(":"):
             self.proxy = args["proxy"]
-            self.log("Using proxy %s" % self.proxy, logging.INFO)
 
         self.webarchives = args.get("webarchives", {})
         if "option" not in self.webarchives or self.webarchives["option"] not in ARCHIVES_OPTIONS:
@@ -124,6 +123,8 @@ class PagesCrawler(Spider):
         self.log("ARGUMENTS : "+str(self.args), logging.INFO)
         if self.webarchives:
             self.log("Crawling on Web Archive using for prefix %s" % self.archiveprefix)
+        if self.proxy:
+            self.log("Using proxy %s" % self.proxy, logging.INFO)
 
         if self.phantom:
             self.init_phantom()
