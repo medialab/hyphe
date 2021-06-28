@@ -352,8 +352,9 @@
                             <div ng-show="job.nb_unindexed_pages">
                               ({{job.nb_unindexed_pages}} not indexed yet)
                             </div>
-                            <div ng-show="job.crawl_arguments.webarchives.option !== ''" class="subtitle">
-                              from web archives at {{job.crawl_arguments.webarchives.option}},<br/>{{job.crawl_arguments.webarchives.days_range}} days around {{job.crawl_arguments.webarchives.date}}
+                            <div ng-show="job.crawl_arguments.webarchives.option" class="subtitle">
+                              <md-tooltip md-direction="bottom">{{ job.crawl_arguments.webarchives.days_range }} days around {{ job.crawl_arguments.webarchives.date }}</md-tooltip>
+                              <md-icon>history</md-icon> using {{job.crawl_arguments.webarchives.option}}
                             </div>
                           </div>
                         </div>
@@ -490,9 +491,8 @@
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
                         </a>
-                        <br ng-if="page.archive_url" />
                         <a ng-if="page.archive_url" href="{{page.archive_url}}" target="_blank">
-                          <md-tooltip md-direction="left">Open archived page (from {{ page.archive_date_obtained}}) in a new tab</md-tooltip>
+                          <md-tooltip md-direction="left">Open in a new tab archived page from {{ page.archive_date_obtained }}</md-tooltip>
                           <md-icon>history</md-icon>
                         </a>
                       </div>
