@@ -248,7 +248,7 @@ class PagesCrawler(Spider):
                     # Check date obtained fits into a user defined timerange and return 404 otherwise
                     if not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
                         self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_url, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
-                        return
+                        return self._make_raw_page(response, archive_fail_url=redir_url)
                     if normalize(real_url) == normalize(orig_url):
                         if "depth" in response.meta:
                             response.meta['depth'] -= 1
@@ -307,6 +307,7 @@ class PagesCrawler(Spider):
                 archive_timestamp = archive_timestamp.group(1)
                 if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
                     self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    yield self._make_raw_page(response, archive_fail_url=archive_url)
                     return
                 # Remove BNF banner
                 clean_body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
@@ -321,6 +322,7 @@ class PagesCrawler(Spider):
                 match = self.archiveregexp.search(redir_location)
                 if match and not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
                     self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_location, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    yield self._make_raw_page(response, archive_fail_url=redir_location)
                     return
                 response.headers['Location'] = redir_location
 
@@ -381,6 +383,7 @@ class PagesCrawler(Spider):
             if self._should_follow(response.meta['depth'], lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
+                return
 
         response.meta['depth'] = realdepth
         yield self._make_html_page(response, lrulinks, archive_url=archive_url, archive_timestamp=archive_timestamp, modified_body=clean_body)
@@ -395,14 +398,14 @@ class PagesCrawler(Spider):
             p['archive_date_obtained'] = archive_timestamp
         return p
 
-    def _make_raw_page(self, response, modified_body=None):
+    def _make_raw_page(self, response, modified_body=None, archive_fail_url=None):
         p = Page()
         p['url'] = response.url
         if self.webarchives:
             p['url'] = self.archiveregexp.sub("", response.url)
-            p['archive_url'] = response.url
+            p['archive_url'] = archive_fail_url or response.url
             p['archive_date_requested'] = self.archivedate
-            if 'archive_timestamp' in response.meta:
+            if 'archive_timestamp' in response.meta and not archive_fail_url:
                 p['archive_date_obtained'] = response.meta['archive_timestamp']
         p['lru'] = url_to_lru_clean(p['url'], TLDS_TREE)
         p['depth'] = 0

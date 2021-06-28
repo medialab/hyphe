@@ -487,23 +487,27 @@
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
                     >
                       <div class="md-primary">
-                        <a href="{{page.url}}" target="_blank">
+                        <a href="{{ page.url }}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
                         </a>
-                        <a ng-if="page.archive_url && page.archive_date_obtained" href="{{page.archive_url}}" target="_blank">
+                        <a ng-if="page.archive_url && page.archive_date_obtained" href="{{ page.archive_url }}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab archived page from {{ page.archive_date_obtained }}</md-tooltip>
                           <md-icon>history</md-icon>
                         </a>
+                        <span ng-if="page.archive_date_requested && !page.archive_date_obtained">
+                          <md-tooltip md-direction="left">This page could not be found in web archives around {{ page.archive_date_requested }}</md-tooltip>
+                          <md-icon style="opacity: 0.2">history</md-icon>
+                        </a>
                       </div>
-                      <div ng-if="page.url===webentity.homepage">
+                      <div ng-if="page.url === webentity.homepage">
                         <md-tooltip md-direction="left">Homepage</md-tooltip>
                         &nbsp;<md-icon>home</md-icon>
                       </div>
                       <div md-truncate flex>
                         <span>
-                          <md-tooltip md-direction="bottom">{{page.url}}</md-tooltip>
-                          &nbsp;{{page.url}}
+                          <md-tooltip md-direction="bottom">{{ page.url }}</md-tooltip>
+                          &nbsp;{{ page.url }}
                         </span>
                       </div>
                       <div class="md-primary">

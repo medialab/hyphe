@@ -178,7 +178,10 @@ angular.module('hyphe.webentityController', [])
           var pagesBatch = []
           var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested"]
           result.pages.forEach(function(page){
-            if (page.archive_url && page.archive_date_obtained) {
+            if (page.archive_date_requested) {
+              page.archive_date_requested = page.archive_date_requested.replace(/^(....)(..)(..).*$/, "$1-$2-$3")
+            }
+            if (page.archive_date_obtained) {
               page.archive_date_obtained = page.archive_date_obtained.replace(/^(....)(..)(..).*$/, "$1-$2-$3")
             }
             if (!$scope.webentity.startpages_lrus.includes(page.lru)) {

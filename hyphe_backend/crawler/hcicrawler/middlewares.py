@@ -57,5 +57,5 @@ class CustomDupeFilter(BaseDupeFilter):
 
     def log(self, request, spider):
         if self.logdupes:
-            spider.log("Filtered duplicate request: %ss - no more duplicates will be shown (see DUPEFILTER_CLASS)" % request, logging.DEBUG)
+            spider.log("Filtered duplicate request: %s - no more duplicates will be shown (see DUPEFILTER_CLASS)" % request, logging.DEBUG)
             self.logdupes = False
