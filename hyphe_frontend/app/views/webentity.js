@@ -168,6 +168,7 @@ angular.module('hyphe.webentityController', [])
       } else if (!$scope.pagesToken) {
         $scope.status = {message: 'Loading pages 0 %', progress: 0}
       }
+      $scope.webentity.startpages_lrus = $scope.webentity.startpages.map(utils.URL_to_LRU)
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
           ,includePageMetas: true
@@ -175,16 +176,19 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(result){
           var pagesBatch = []
+          var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested"]
           result.pages.forEach(function(page){
             if (page.archive_url && page.archive_date_obtained) {
               page.archive_date_obtained = page.archive_date_obtained.replace(/^(....)(..)(..).*$/, "$1-$2-$3")
             }
-            if (!$scope.webentity.startpages.includes(page.url)) {
+            if (!$scope.webentity.startpages_lrus.includes(page.lru)) {
               pagesBatch.push(page)
             } else {
               for (var p in $scope.pages) {
-                if ($scope.pages[p].url === page.url) {
-                  $scope.pages[p].crawled = page.crawled
+                if ($scope.pages[p].lru === page.lru) {
+                  for (var field in required_fields) {
+                    $scope.pages[p][required_fields[field]] = page[required_fields[field]]
+                  }
                   break
                 }
               }

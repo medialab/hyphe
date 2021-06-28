@@ -366,7 +366,7 @@ class MongoDB(object):
         returnD(tot)
 
     @inlineCallbacks
-    def get_pages(self, corpus, urls, include_metas=False, include_body=False, include_links=False):
+    def get_pages(self, corpus, urls_or_lrus, include_metas=False, include_body=False, include_links=False):
         projection = {}
 
         if not include_links:
@@ -387,7 +387,10 @@ class MongoDB(object):
         if projection:
             kwargs["projection"] = projection
 
-        result = yield self.pages(corpus).find({"url": {"$in": urls}}, **kwargs)
+        if urls_or_lrus[0].startswith("s:"):
+            result = yield self.pages(corpus).find({"lru": {"$in": urls_or_lrus}}, **kwargs)
+        else:
+            result = yield self.pages(corpus).find({"url": {"$in": urls_or_lrus}}, **kwargs)
         returnD(result)
 
     @inlineCallbacks
