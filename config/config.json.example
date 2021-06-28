@@ -65,7 +65,7 @@
     ]
   },
   "webarchives": {
-    "options": ["archive.org"],
+    "options": ["web.archive.org"],
     "date": "2010-07-02",
     "days_range": 365
   },

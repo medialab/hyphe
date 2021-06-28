@@ -5,12 +5,12 @@ ARCHIVES_OPTIONS = {
         "label": "Disabled",
         "description": "crawl the live web, not any kind of web archive"
     },
-    "archive.org": {
+    "web.archive.org": {
         "label": "Web.Archive.org",
         "description": "crawl worldwide web archives maintained by Archive.org",
         "url_prefix": "https://web.archive.org/web/"
     },
-    "bnf.fr": {
+    "archivesinternet.bnf.fr": {
         "label": "ArchivesInternet.BNF.fr",
         "description": "crawl France's official web archives maintained by BNF",
         "url_prefix": "http://pfcarchivesinternet.bnf.fr",
