@@ -116,6 +116,10 @@
                         <p class="subtitle">
                           Depth {{job.crawl_arguments.max_depth}}
                         </p>
+                        <p class="subtitle" ng-show="job.crawl_arguments.cookies">
+                          <md-tooltip md-direction="bottom">A specific cookie was used for this crawl</md-tooltip>
+                          <span style="color:grey; filter: grayscale(100%);">🍪</span>
+                        </p>
                       </div>
                       <div layout="column" layout-align="center center" class="stats">
                         <div>
@@ -126,7 +130,7 @@
                         </div>
                         <div ng-show="job.crawl_arguments.webarchives.option" class="subtitle">
                           <md-tooltip md-direction="bottom">{{ job.crawl_arguments.webarchives.days_range }} days around {{ job.crawl_arguments.webarchives.date }}</md-tooltip>
-                          <md-icon>history</md-icon> from {{job.crawl_arguments.webarchives.option}}
+                          <md-icon class="material-icons" role="img" aria-label="history">history</md-icon> from {{ job.crawl_arguments.webarchives.option }}
                         </div>
                       </div>
                     </div>

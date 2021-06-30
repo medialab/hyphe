@@ -779,6 +779,7 @@ class Core(customJSONRPC):
               "nb_pages",
               "nb_links",
               "crawl_arguments.max_depth",
+              "crawl_arguments.cookies",
               "crawl_arguments.webarchives",
               "crawling_status",
               "indexing_status",
