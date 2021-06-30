@@ -86,7 +86,7 @@ class PagesCrawler(Spider):
             self.proxy = args["proxy"]
 
         self.webarchives = args.get("webarchives", {})
-        if "option" not in self.webarchives or self.webarchives["option"] not in ARCHIVES_OPTIONS:
+        if "option" not in self.webarchives or self.webarchives["option"] not in ARCHIVES_OPTIONS or not self.webarchives["option"]:
             self.webarchives = {}
         if self.webarchives:
             self.webarchives["url_prefix"] = ARCHIVES_OPTIONS[self.webarchives["option"]].get("url_prefix", None)
@@ -122,7 +122,7 @@ class PagesCrawler(Spider):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
         self.log("ARGUMENTS : "+str(self.args), logging.INFO)
         if self.webarchives:
-            self.log("Crawling on Web Archive using for prefix %s" % self.archiveprefix)
+            self.log("Crawling on Web Archive using for prefix %s between %s and %s" % (self.archiveprefix, self.archivemindate, self.archivemaxdate))
         if self.proxy:
             self.log("Using proxy %s" % self.proxy, logging.INFO)
 
