@@ -39,9 +39,31 @@ a {
   margin: 0;
 }
 
-.md-grid-tile-header-hack figcaption{
+.md-grid-tile-header-hack figcaption {
   width: 100%;
   height: 100%;
+}
+
+.md-grid-tile-footer-hack {
+  background: rgb(226, 221, 216);
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.md-grid-tile-footer-hack figcaption {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.crawl_advanced md-select {
+  margin: 0;
+  width: fit-content;
+}
+
+.crawl_advanced md-input-container {
+  margin: 0;
 }
 
 .pointable-grid-tile {

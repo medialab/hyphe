@@ -11,6 +11,8 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.crawlDepth = 1
     $scope.cautious = false
+    $scope.cookies = null
+    $scope.webarchives = {}
 
     $scope.scheduling = false
 
@@ -39,8 +41,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
     // Initialization
 
-    getSettingsFromCorpusOptions()
-    bootstrapList()
+    getSettings()
 
     // Lazy lookups
 
@@ -80,11 +81,11 @@ angular.module('hyphe.preparecrawlsController', [])
             api.crawl                             // Query call
             ,{                                    // Query settings
                 webentityId: obj.webentity.id
-                ,depth: $scope.crawlDepth
+                ,depth: obj.webentity.crawlDepth || $scope.crawlDepth
                 ,cautious: $scope.cautious
                 ,proxy: null
-                ,cookies_string: null
-                ,webarchives: {}
+                ,cookies_string: obj.webentity.cookiesString || null
+                ,webarchives: obj.webentity.webarchives || {}
               }
             ,function(data){                      // Success callback
                 obj_setStatus(obj, 'scheduled')
@@ -120,11 +121,18 @@ angular.module('hyphe.preparecrawlsController', [])
 
     // Functions
 
-    function getSettingsFromCorpusOptions(){
-      api.getCorpusOptions({
-        id: $scope.corpusId
-      }, function(options){
+    function getSettings(){
+      api.globalStatus({},
+        function(corpus_status){
+        var options = corpus_status.corpus.options
+        $scope.webarchives_options = corpus_status.hyphe.available_archives
+        $scope.webarchives = {
+            option: options.webarchives_option,
+            date: options.webarchives_date,
+            days_range: options.webarchives_days_range
+        }
         $scope.depthRange = Array.apply(0, Array(options.max_depth + 1)).map(function(a,i){return i})
+        bootstrapList()
       }, function(){
         $scope.status = {message: "Error while getting options", background: 'danger'}
       })
@@ -137,7 +145,9 @@ angular.module('hyphe.preparecrawlsController', [])
       // Reuse oldjob's settings if set from previous crawl
       if (oldjob){
         $scope.crawlDepth = oldjob.crawl_arguments.max_depth
+        $scope.cookies = oldjob.crawl_arguments.cookies
         $scope.cautious = oldjob.crawl_arguments.phantom
+        $scope.webarchives = oldjob.crawl_arguments.webarchives
       }
       store.remove('webentity_old_crawljob')
       store.remove('webentities_toCrawl')
@@ -201,6 +211,11 @@ angular.module('hyphe.preparecrawlsController', [])
                 if(we_list.length > 0){
                   obj_setStatus(obj, 'loaded')
                   obj.webentity = we_list[0]
+                  if ($scope.cookies) {
+                    obj.webentity.cookiesString = $scope.cookies
+                  }
+                  obj.webentity.webarchives = {}
+                  Object.assign(obj.webentity.webarchives, $scope.webarchives)
                   lazyLookups(obj.webentity.startpages, obj.webentity)
                 } else {
                   obj_setStatus(obj, 'error')
@@ -411,14 +426,18 @@ angular.module('hyphe.preparecrawlsController', [])
     /* Instanciate and open the Modal */
     function instanciateModal(obj, ev) {
 
+      obj.webentity.crawlDepth ||= $scope.crawlDepth+0
+
       $mdDialog.show({
         controller: webentityStartPagesDialogController,
         templateUrl: 'partials/webentitystartpagesmodal.html',
         parent: angular.element(document.body),
         targetEvent: ev,
-        clickOutsideToClose:true,
+        clickOutsideToClose: true,
         locals: {
           webentity: obj.webentity,
+          depthRange: $scope.depthRange,
+          webarchives_options: $scope.webarchives_options,
           lookups: $scope.lookups,
           lookupEngine: lookupEngine,
           // Updaters are used to propagate editions from modal to mother page
@@ -635,15 +654,28 @@ angular.module('hyphe.preparecrawlsController', [])
 
 
 
-
-
     /***
     ****  DIALOG CONTROLLER
     ***/
-    function webentityStartPagesDialogController($scope, $mdDialog, webentity, lookups, lookupEngine, updaters) {
+    function webentityStartPagesDialogController($scope, $mdDialog, webentity, depthRange, webarchives_options, lookups, lookupEngine, updaters) {
 
       $scope.lookups = lookups
       $scope.webentity = webentity
+      $scope.depthRange = depthRange
+      $scope.cookiesError = ""
+      $scope.webarchives_options = webarchives_options
+      $scope.setArchivesMinMaxDate = function() {
+        if ($scope.webentity.webarchives.option) {
+          try {
+            var dat = new Date($scope.webentity.webarchives.date)
+            dat.setDate(dat.getDate() - $scope.webentity.webarchives.days_range/2)
+            $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
+            dat.setDate(dat.getDate() + $scope.webentity.webarchives.days_range)
+            $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
+          } catch(e) {}
+        }
+      }
+      $scope.setArchivesMinMaxDate()
       $scope.startpagesSummary = {
           stage: 'loading'
         , percent: 0
@@ -922,6 +954,14 @@ angular.module('hyphe.preparecrawlsController', [])
           }
         } else {
           console.error('Check new start page resolution feedback is improper', feedback)
+        }
+      }
+
+      $scope.validateCookiesString = function(){
+        if (! /^(\s*\w+\s*=\s*[^;]+)(;\s*\w+\s*=\s*[^;]+)*;?$/.test($scope.webentity.cookiesString) ) {
+          $scope.cookiesError = "This is not a valid cookies string (key1=value1; key2=value2; ...)."
+        } else {
+          $scope.cookiesError = ""
         }
       }
 

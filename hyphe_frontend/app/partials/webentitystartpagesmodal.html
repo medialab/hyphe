@@ -183,12 +183,76 @@
 
           </div>
         </md-tab>
+        <md-tab label="Advanced crawl options" ng-disabled="newStartPagesStack.length>0">
+          <div layout="column" md-colors="{background: 'default-background-50'}" class="crawl_advanced">
+            <span style="margin: 8px"><md-icon class="material-icons" role="img" aria-label="history">ads_click</md-icon> Crawl depth</span>
+            <div md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Set a specific crawl <span hyphe-glossary="depth"></span> for this web entity</small></label>
+              <md-select ng-model="webentity.crawlDepth">
+                <md-option ng-repeat="depth in depthRange" value="{{depth}}">Depth: {{depth}} click{{depth | plural}}</md-option>
+              </md-select>
+            </div>
+
+            <span style="margin: 8px"><md-icon class="material-icons" role="img" aria-label="history">history</md-icon> Web archives</span>
+            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Crawl this web entity in the past using web archives</small></label>
+              <div flex layout="row" style="justify-content: space-around;">
+                <md-radio-group ng-model="webentity.webarchives.option" ng-change="setArchivesMinMaxDate()" class="md-primary">
+                  <div ng-repeat="option in webarchives_options">
+                    <small>{{option.description}}</small>
+                    <md-radio-button value="{{option.id}}" class="md-primary">{{option.label}}</md-radio-button>
+                  </div>
+                </md-radio-group>
+                <div layout="column" ng-style="{'opacity': webentity.webarchives.option ? 1 : 0}">
+                  <!-- TODO: DATE SELECTOR -->
+                  <label><small>Date to try to approach:</small></label>
+                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                    <input ng-model="webentity.webarchives.date" ng-change="setArchivesMinMaxDate()">
+                  </md-input-container>
+
+                  <!-- TODO: use DATE SELECTOR to define the days range-->
+                  <label><small>Days to consider around the date:</small></label>
+                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
+                    <input type="number" min="1" ng-model="webentity.webarchives.days_range" ng-change="setArchivesMinMaxDate()">
+                  </md-input-container>
+
+                  <div style="text-align:center; margin-top: 20px;">
+                    <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                  </div>
+
+                </div>
+              </div>
+
+            </div>
+
+            <span style="margin: 8px"><span style="color:grey; filter: grayscale(100%);">🍪</span> Cookies</span>
+            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Paste your browser's cookies for this web entity to grant the crawler your authenticated access</small></label>
+              <md-input-container flex class="md-block">
+                <textarea
+                  id="add-cookies-{{webentity.id}}"
+                  ng-model="webentity.cookiesString"
+                  ng-change="validateCookiesString()"
+                  rows="2"
+                  max-rows="8"
+                ></textarea>
+                <div
+                  ng-show="cookiesError"
+                  class="hint"
+                  md-colors="{'color': 'default-warn'}"
+                >
+                  WARNING: {{ cookiesError }}
+                </div>
+              </md-input-container>
+            </div>
+          </div>
+        </md-tab>
       </md-tabs>
     </md-dialog-content>
 
     <md-dialog-actions>
       <span flex></span>
-      <md-button ng-click="hide()" ng-if="checkStartpagesConflicts==0">
+      <md-button ng-click="hide()" ng-if="checkStartpagesConflicts==0 && !cookiesError">
         Ok
       </md-button>
       <md-button ng-click="hide()" ng-if="checkStartpagesConflicts>0">
