@@ -3,6 +3,7 @@ config/apache2.conf
 config/config.json*
 config/salt
 .env
+.python-version
 config-backend.env
 config-frontend.env
 hyphe-server.lock
