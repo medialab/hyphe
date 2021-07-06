@@ -217,7 +217,8 @@
                     </div>
 
                     <div style="text-align:center; margin-top: 10px">
-                      <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                      <small ng-show="ed_webarchive_daysrange_choice !== 'infinity'"<em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                      <b ng-show="ed_webarchive_daysrange_choice === 'infinity'"><em>&infin;</em></b>
                     </div>
                   </div>
                 </dl>
@@ -359,7 +360,8 @@
                   <dt>Delay to consider before and after the date</dt>
                   <dd style="min-height: 22px">{{ webarchives_days_range_display }}</dd>
                   <div style="text-align:center">
-                    <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                    <small ng-show="ed_webarchive_daysrange_choice !== 'infinity'"><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                    <b ng-show="ed_webarchive_daysrange_choice === 'infinity'"><em>&infin;</em></b>
                   </div>
                 </div>
               </dl>

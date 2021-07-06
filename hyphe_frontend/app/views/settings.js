@@ -74,16 +74,23 @@ angular.module('hyphe.settingsController', [])
       30: "a month",
       91: "3 months",
       182: "6 months",
-      "custom": "Custom"
+      "custom": "Custom",
+      "infinity": "Whatever"
     }
+    $scope.infinityRange = 50 * 365
 
     $scope.setArchivesMinMaxDate = function() {
       if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
-        $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.options.webarchives_days_range / 2);
-        if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.options.webarchives_days_range) == -1) {
-          $scope.ed_webarchive_daysrange_choice = 'custom'
+        if ($scope.options.webarchives_days_range === $scope.infinityRange) {
+          $scope.ed_webarchive_daysrange_choice = 'infinity'
+          $scope.ed_webarchive_daysrange_custom = $scope.infinityRange / 2;
         } else {
-          $scope.ed_webarchive_daysrange_choice = $scope.options.webarchives_days_range / 2
+          $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.options.webarchives_days_range / 2);
+          if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.options.webarchives_days_range) == -1) {
+            $scope.ed_webarchive_daysrange_choice = 'custom'
+          } else {
+            $scope.ed_webarchive_daysrange_choice = $scope.options.webarchives_days_range / 2
+          }
         }
       }
 
@@ -91,8 +98,12 @@ angular.module('hyphe.settingsController', [])
         $scope.ed_webarchive_daysrange = $scope.ed_webarchive_daysrange_custom + 0
         $scope.webarchives_days_range_display = $scope.ed_webarchive_daysrange + " days"
       } else {
-        $scope.ed_webarchive_daysrange = parseInt($scope.ed_webarchive_daysrange_choice)
-        $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.ed_webarchive_daysrange]
+        if ($scope.ed_webarchive_daysrange_choice === 'infinity') {
+          $scope.ed_webarchive_daysrange = $scope.infinityRange / 2
+        } else {
+          $scope.ed_webarchive_daysrange = parseInt($scope.ed_webarchive_daysrange_choice)
+        }
+        $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.ed_webarchive_daysrange_choice]
       }
 
       try {

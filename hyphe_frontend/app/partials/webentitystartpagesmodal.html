@@ -224,7 +224,8 @@
                   </div>
 
                   <div style="text-align:center; margin-top: 20px;">
-                    <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                    <small ng-show="ed_webarchive_daysrange_choice !== 'infinity'"><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                    <b ng-show="ed_webarchive_daysrange_choice === 'infinity'"><em>&infin;</em></b>
                   </div>
 
                 </div>

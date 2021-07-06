@@ -128,8 +128,8 @@ angular.module('hyphe.preparecrawlsController', [])
         $scope.webarchives_options = corpus_status.hyphe.available_archives
         $scope.webarchives = {
             option: options.webarchives_option,
-            date: options.webarchives_date,
-            days_range: options.webarchives_days_range
+            date: options.webarchives_option ? options.webarchives_date : (new Date()).toISOString().slice(0, 10),
+            days_range: options.webarchives_option ? options.webarchives_days_range : 'infinity'
         }
         $scope.depthRange = Array.apply(0, Array(options.max_depth + 1)).map(function(a,i){return i})
         bootstrapList()
@@ -674,8 +674,10 @@ angular.module('hyphe.preparecrawlsController', [])
         30: "a month",
         91: "3 months",
         182: "6 months",
-        "custom": "Custom"
+        "custom": "Custom",
+        "infinity": "Whatever"
       }
+      $scope.infinityRange = 50 * 365
   
       $scope.setArchivesMinMaxDate = function() {
         if (!$scope.webentity.webarchives.option) {
@@ -683,11 +685,16 @@ angular.module('hyphe.preparecrawlsController', [])
         }
 
         if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
-          $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.webentity.webarchives.days_range / 2);
-          if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.webentity.webarchives.days_range) == -1) {
-            $scope.ed_webarchive_daysrange_choice = 'custom'
+          if ($scope.webentity.webarchives.days_range === $scope.infinityRange) {
+            $scope.ed_webarchive_daysrange_choice = 'infinity'
+            $scope.ed_webarchive_daysrange_custom = $scope.infinityRange;
           } else {
-            $scope.ed_webarchive_daysrange_choice = $scope.webentity.webarchives.days_range / 2
+            $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.webentity.webarchives.days_range / 2);
+            if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.webentity.webarchives.days_range) == -1) {
+              $scope.ed_webarchive_daysrange_choice = 'custom'
+            } else {
+              $scope.ed_webarchive_daysrange_choice = $scope.webentity.webarchives.days_range / 2
+            }
           }
         }
   
@@ -695,8 +702,12 @@ angular.module('hyphe.preparecrawlsController', [])
           $scope.webentity.webarchives.days_range = 2 * $scope.ed_webarchive_daysrange_custom
           $scope.webarchives_days_range_display = $scope.webentity.webarchives.days_range + " days"
         } else {
-          $scope.webentity.webarchives.days_range = 2 * parseInt($scope.ed_webarchive_daysrange_choice)
-          $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.webentity.webarchives.days_range]
+          if ($scope.ed_webarchive_daysrange_choice === 'infinity') {
+            $scope.webentity.webarchives.days_range = $scope.infinityRange
+          } else {
+            $scope.webentity.webarchives.days_range = 2 * parseInt($scope.ed_webarchive_daysrange_choice)
+          }
+          $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.webentity.webarchives.days_range_choice]
         }
   
         try {
