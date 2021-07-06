@@ -664,18 +664,53 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.depthRange = depthRange
       $scope.cookiesError = ""
       $scope.webarchives_options = webarchives_options
+
+      $scope.webarchives_periods = {
+        0: "None",
+        1: "a day",
+        3: "3 days",
+        7: "a week",
+        14: "2 weeks",
+        30: "a month",
+        91: "3 months",
+        182: "6 months",
+        "custom": "Custom"
+      }
+  
       $scope.setArchivesMinMaxDate = function() {
-        if ($scope.webentity.webarchives.option) {
-          try {
-            var dat = new Date($scope.webentity.webarchives.date)
-            dat.setDate(dat.getDate() - $scope.webentity.webarchives.days_range/2)
-            $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
-            dat.setDate(dat.getDate() + $scope.webentity.webarchives.days_range)
-            $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
-          } catch(e) {}
+        if (!$scope.webentity.webarchives.option) {
+          return
+        }
+
+        if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
+          $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.webentity.webarchives.days_range / 2);
+          if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.webentity.webarchives.days_range) == -1) {
+            $scope.ed_webarchive_daysrange_choice = 'custom'
+          } else {
+            $scope.ed_webarchive_daysrange_choice = $scope.webentity.webarchives.days_range / 2
+          }
+        }
+  
+        if ($scope.ed_webarchive_daysrange_choice === 'custom') {
+          $scope.webentity.webarchives.days_range = 2 * $scope.ed_webarchive_daysrange_custom
+          $scope.webarchives_days_range_display = $scope.webentity.webarchives.days_range + " days"
+        } else {
+          $scope.webentity.webarchives.days_range = 2 * parseInt($scope.ed_webarchive_daysrange_choice)
+          $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.webentity.webarchives.days_range]
+        }
+  
+        try {
+          var dat = new Date($scope.webentity.webarchives.date)
+          dat.setDate(dat.getDate() - $scope.webentity.webarchives.days_range / 2)
+          $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
+          dat.setDate(dat.getDate() + $scope.webentity.webarchives.days_range)
+          $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
+        } catch(e) {
+          console.log(e)
         }
       }
       $scope.setArchivesMinMaxDate()
+
       $scope.startpagesSummary = {
           stage: 'loading'
         , percent: 0

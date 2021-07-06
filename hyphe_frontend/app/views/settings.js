@@ -66,19 +66,19 @@ angular.module('hyphe.settingsController', [])
     }
 
     $scope.webarchives_periods = {
-      "0": "None",
-      "1": "a day",
-      "3": "3 days",
-      "7": "a week",
-      "14": "2 weeks",
-      "30": "a month",
-      "91": "3 months",
-      "182": "6 months",
+      0: "None",
+      1: "a day",
+      3: "3 days",
+      7: "a week",
+      14: "2 weeks",
+      30: "a month",
+      91: "3 months",
+      182: "6 months",
       "custom": "Custom"
     }
 
     $scope.setArchivesMinMaxDate = function() {
-      if (!$scope.ed_webarchive_daysrange_custom || !$scope.ed_webarchive_daysrange_choice) {
+      if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
         $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.options.webarchives_days_range / 2);
         if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.options.webarchives_days_range) == -1) {
           $scope.ed_webarchive_daysrange_choice = 'custom'
