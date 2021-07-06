@@ -290,25 +290,25 @@ class PagesCrawler(Spider):
         # Handle redirects
         realdepth = response.meta['depth']
 
+        skip_page = False
         if self.webarchives:
             redir_url = self.archiveredirect.search(response.body)
             # Collect archive date from BNF archives from the added banner with the permalink
             if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 archive_url = RE_BNF_ARCHIVES_PERMALINK.search(response.body)
                 if not archive_url:
-                    self.log("Skipping archive page (%s) within which BNF banner could not be found." % response.url, logging.WARNING)
+                    self.log("Skipping archive page (%s) within which BNF banner could not be found." % response.url, logging.ERROR)
                     return
                 archive_url = archive_url.group(1)
                 # Check date obtained fits into a user defined timerange and return 404 otherwise
                 archive_timestamp = self.archiveregexp.search(archive_url)
                 if not archive_timestamp:
-                    self.log("Skipping archive page (%s) for which archive date could not be found within permalink (%s)." % (response.url, archive_url), logging.WARNING)
+                    self.log("Skipping archive page (%s) for which archive date could not be found within permalink (%s)." % (response.url, archive_url), logging.ERROR)
                     return
                 archive_timestamp = archive_timestamp.group(1)
                 if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
                     self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
-                    yield self._make_raw_page(response, archive_fail_url=archive_url)
-                    return
+                    skip_page = archive_url
                 # Remove BNF banner
                 clean_body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
 
@@ -322,11 +322,10 @@ class PagesCrawler(Spider):
                 match = self.archiveregexp.search(redir_location)
                 if match and not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
                     self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_location, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
-                    yield self._make_raw_page(response, archive_fail_url=redir_location)
-                    return
+                    skip_page = redir_location
                 response.headers['Location'] = redir_location
 
-        if 300 <= response.status < 400:
+        if not skip_page and 300 <= response.status < 400:
             redir_url = response.headers['Location']
 
             if self.webarchives and self.archiveregexp.match(redir_url):
@@ -346,7 +345,7 @@ class PagesCrawler(Spider):
             links = [{'url': redir_url}]
             response.meta['depth'] -= 1
 
-        else:
+        elif not skip_page:
             try:
                 links = self.link_extractor.extract_links(response)
             except Exception as e:
@@ -383,10 +382,12 @@ class PagesCrawler(Spider):
             if self._should_follow(response.meta['depth'], lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
                 yield self._request(url)
-                return
 
         response.meta['depth'] = realdepth
-        yield self._make_html_page(response, lrulinks, archive_url=archive_url, archive_timestamp=archive_timestamp, modified_body=clean_body)
+        if skip_page:
+            yield self._make_raw_page(response, archive_fail_url=skip_page)
+        else:
+            yield self._make_html_page(response, lrulinks, archive_url=archive_url, archive_timestamp=archive_timestamp, modified_body=clean_body)
 
     def _make_html_page(self, response, lrulinks, archive_url=None, archive_timestamp=None, modified_body=None):
         p = self._make_raw_page(response, modified_body=modified_body)
