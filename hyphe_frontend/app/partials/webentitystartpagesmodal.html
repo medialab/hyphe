@@ -206,19 +206,22 @@
                 <div layout="column" ng-style="{'opacity': webentity.webarchives.option ? 1 : 0, 'width': '257px'}">
                   <!-- TODO: DATE PICKER -->
                   <label><small>Date to try to approach:</small></label>
-                  <md-input-container style="width: 95%; margin: 0px; height: 28px">
-                    <input ng-model="webentity.webarchives.date" ng-change="setArchivesMinMaxDate()">
-                  </md-input-container>
+                  <div style="display: flex; justify-content: space-between; flex-wrap: nowrap">
+                    <md-input-container style="margin: 0px; height: 28px; width: 40%; padding-bottom: 22px">
+                      <input ng-model="webentity.webarchives.date" ng-change="setArchivesMinMaxDate()">
+                    </md-input-container>
+                    <small style="color: red; width: 55%" ng-show="date_error">{{ date_error }}</small>
+                  </div>
 
                   <label><small>Delay to consider before and after the date</small></label>
                   <div layout="row" style="display: flex; justify-content: flex-start">
-                    <md-input-container style="margin: 0px; height: 28px; width: 33%; text-align: center">
+                    <md-input-container style="margin: 0px; height: 28px; width: 40%; text-align: center">
                       <md-select ng-model="ed_webarchive_daysrange_choice" ng-change="setArchivesMinMaxDate()">
                         <md-option ng-repeat="(key, value) in webarchives_periods" value="{{ key }}">{{ value }}</md-option>
                       </md-select>
                     </md-input-container>
-                    <md-input-container ng-show="ed_webarchive_daysrange_choice === 'custom'" style="margin: 0px; height: 28px; width: 33%">
-                      <input type="number" min="1" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right">
+                    <md-input-container ng-show="ed_webarchive_daysrange_choice === 'custom'" style="margin: 0px; height: 28px; width: 25%">
+                      <input type="number" min="1" max="10000" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right">
                     </md-input-container>
                     <span ng-show="ed_webarchive_daysrange_choice === 'custom'" style="padding-top: 5px">days</span>
                   </div>
@@ -227,10 +230,8 @@
                     <small ng-show="ed_webarchive_daysrange_choice !== 'infinity'"><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
                     <b ng-show="ed_webarchive_daysrange_choice === 'infinity'"><em>&infin;</em></b>
                   </div>
-
                 </div>
               </div>
-
             </div>
 
             <span style="margin: 8px"><span style="color:grey; filter: grayscale(100%);">🍪</span> Cookies</span>
@@ -245,7 +246,7 @@
                   max-rows="8"
                 ></textarea>
                 <div
-                  ng-show="cookiesError"
+                  ng-show="cookies_error"
                   class="hint"
                   md-colors="{'color': 'default-warn'}"
                 >
@@ -260,7 +261,7 @@
 
     <md-dialog-actions>
       <span flex></span>
-      <md-button ng-click="hide()" ng-if="checkStartpagesConflicts==0 && !cookiesError">
+      <md-button ng-click="hide()" ng-disabled="checkStartpagesConflicts>0 || cookies_error || date_error">
         Ok
       </md-button>
       <md-button ng-click="hide()" ng-if="checkStartpagesConflicts>0">

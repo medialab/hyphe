@@ -15,6 +15,7 @@ angular.module('hyphe.settingsController', [])
     $scope.destroying = false
     $scope.resetting = false
     $scope.saving = false
+    $scope.date_error = ""
 
 
     $scope.destroy = function(){
@@ -79,6 +80,7 @@ angular.module('hyphe.settingsController', [])
     $scope.infinityRange = 50 * 365
 
     $scope.setArchivesMinMaxDate = function() {
+      $scope.date_error = ""
       if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
         $scope.ed_webarchive_option = $scope.options.webarchives_option || ""
         if ($scope.options.webarchives_days_range === $scope.infinityRange) {
@@ -94,6 +96,10 @@ angular.module('hyphe.settingsController', [])
         }
       }
 
+      $scope.webarchives_chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === $scope.ed_webarchive_option})[0]
+      $scope.min_allowed_webarchives_date = new Date($scope.webarchives_chosen_option.min_date || "1995-01-01")
+      $scope.max_allowed_webarchives_date = new Date()
+
       if ($scope.ed_webarchive_daysrange_choice === 'custom') {
         $scope.ed_webarchive_daysrange = $scope.ed_webarchive_daysrange_custom + 0
         $scope.webarchives_days_range_display = $scope.ed_webarchive_daysrange + " days"
@@ -107,20 +113,28 @@ angular.module('hyphe.settingsController', [])
       }
 
       try {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test($scope.ed_webarchive_date)) {
+          $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
+          return
+        }
         var dat = new Date($scope.ed_webarchive_date)
+        if (dat < $scope.min_allowed_webarchives_date || dat > $scope.max_allowed_webarchives_date) {
+          $scope.date_error = "This web archive only ranges from " + $scope.min_allowed_webarchives_date.toISOString().slice(0, 10) + " to " + $scope.max_allowed_webarchives_date.toISOString().slice(0, 10)
+          return
+        }
         dat.setDate(dat.getDate() - $scope.ed_webarchive_daysrange)
         $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
         dat.setDate(dat.getDate() + 2 * $scope.ed_webarchive_daysrange)
         $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
       } catch(e) {
-        console.log(e)
+        $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
       }
     }
 
     $scope.editSettings = function(save){
 
       $scope.saving = false
-      $scope.corpusSettingsEditMode   = !$scope.corpusSettingsEditMode
+      $scope.corpusSettingsEditMode = !$scope.corpusSettingsEditMode
       if (save) {
         //construction of the array of startpages mode
         $scope.ed_defaultStartpagesMode = []

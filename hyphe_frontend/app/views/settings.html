@@ -29,27 +29,28 @@
           <!-- Loaded: action -->
           <div ng-show="!loading">
             <md-button
-                    class="md-raised md-primary"
-                    ng-click="editSettings()"
-                    ng-show="!corpusNotEmpty && !corpusSettingsEditMode"
-                    ng-disabled="saving"
+                class="md-raised md-primary"
+                ng-click="editSettings()"
+                ng-show="!corpusNotEmpty && !corpusSettingsEditMode"
+                ng-disabled="saving"
             >
               <md-icon>settings_applications</md-icon>
               Edit settings
             </md-button>
 
             <md-button
-                    class="md-raised md-primary"
-                    ng-click="editSettings(true)"
-                    ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+                class="md-raised md-primary"
+                ng-click="editSettings(true)"
+                ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+                ng-disabled="date_error"
             >
               <md-icon>done</md-icon>
             Save Settings
             </md-button>
 
             <md-button
-                    ng-click="editSettings(false)"
-                    ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+                ng-click="editSettings(false)"
+                ng-show="!corpusNotEmpty && corpusSettingsEditMode"
             >
               <md-icon>clear</md-icon>
               Cancel
@@ -199,9 +200,12 @@
                   <div ng-hide="ed_webarchive_option === ''">
                   <!-- TODO: DATE PICKER -->
                     <dt>Date to try to approach</dt>
-                    <md-input-container style="width: 95%; margin: 0px; height: 28px; width: 33%">
-                      <input ng-model="ed_webarchive_date" ng-change="setArchivesMinMaxDate()" style="text-align: center">
-                    </md-input-container>
+                    <div style="display: flex; justify-content: space-between; flex-wrap: nowrap">
+                      <md-input-container style="margin: 0px; height: 28px; width: 33%">
+                        <input ng-model="ed_webarchive_date" ng-change="setArchivesMinMaxDate()" style="text-align: center">
+                      </md-input-container>
+                      <small style="color: red; width: 62%" ng-show="date_error">{{ date_error }}</small>
+                    </div>
 
                     <dt>Delay to consider before and after the date</dt>
                     <div layout="row" style="display: flex; justify-content: flex-start">
@@ -211,7 +215,7 @@
                         </md-select>
                       </md-input-container>
                       <md-input-container ng-show="ed_webarchive_daysrange_choice === 'custom'" style="margin: 0px; height: 28px; width: 33%">
-                        <input type="number" min="1" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right">
+                        <input type="number" min="1" max="10000" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right">
                       </md-input-container>
                       <span ng-show="ed_webarchive_daysrange_choice === 'custom'" style="padding-top: 5px">days</span>
                     </div>

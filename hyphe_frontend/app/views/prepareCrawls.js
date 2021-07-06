@@ -662,7 +662,8 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.lookups = lookups
       $scope.webentity = webentity
       $scope.depthRange = depthRange
-      $scope.cookiesError = ""
+      $scope.cookies_error = ""
+      $scope.date_error = ""
       $scope.webarchives_options = webarchives_options
 
       $scope.webarchives_periods = {
@@ -680,6 +681,7 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.infinityRange = 50 * 365
   
       $scope.setArchivesMinMaxDate = function() {
+        $scope.date_error = ""
         if (!$scope.webentity.webarchives.option) {
           return
         }
@@ -697,7 +699,11 @@ angular.module('hyphe.preparecrawlsController', [])
             }
           }
         }
-  
+
+        var chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === $scope.webentity.webarchives.option})[0]
+        $scope.min_allowed_webarchives_date = new Date(chosen_option.min_date || "1995-01-01")
+        $scope.max_allowed_webarchives_date = new Date()
+
         if ($scope.ed_webarchive_daysrange_choice === 'custom') {
           $scope.webentity.webarchives.days_range = 2 * $scope.ed_webarchive_daysrange_custom
           $scope.webarchives_days_range_display = $scope.webentity.webarchives.days_range + " days"
@@ -711,13 +717,21 @@ angular.module('hyphe.preparecrawlsController', [])
         }
   
         try {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test($scope.webentity.webarchives.date)) {
+            $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
+            return
+          }
           var dat = new Date($scope.webentity.webarchives.date)
+          if (dat < $scope.min_allowed_webarchives_date || dat > $scope.max_allowed_webarchives_date) {
+            $scope.date_error = "This web archive only ranges from " + $scope.min_allowed_webarchives_date.toISOString().slice(0, 10) + " to " + $scope.max_allowed_webarchives_date.toISOString().slice(0, 10)
+            return
+          }
           dat.setDate(dat.getDate() - $scope.webentity.webarchives.days_range / 2)
           $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
           dat.setDate(dat.getDate() + $scope.webentity.webarchives.days_range)
           $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
         } catch(e) {
-          console.log(e)
+          $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
         }
       }
       $scope.setArchivesMinMaxDate()
@@ -1005,9 +1019,9 @@ angular.module('hyphe.preparecrawlsController', [])
 
       $scope.validateCookiesString = function(){
         if (! /^(\s*\w+\s*=\s*[^;]+)(;\s*\w+\s*=\s*[^;]+)*;?$/.test($scope.webentity.cookiesString) ) {
-          $scope.cookiesError = "This is not a valid cookies string (key1=value1; key2=value2; ...)."
+          $scope.cookies_error = "This is not a valid cookies string (key1=value1; key2=value2; ...)."
         } else {
-          $scope.cookiesError = ""
+          $scope.cookies_error = ""
         }
       }
 
