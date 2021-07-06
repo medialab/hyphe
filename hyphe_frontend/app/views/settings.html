@@ -189,7 +189,7 @@
                 <dl class="key-value-pairs">
 
                   <dt style="margin-bottom:18px">Choose a source of web archives:</dt>
-                  <md-radio-group ng-model="ed_webarchive_option" class="md-primary">
+                  <md-radio-group ng-model="ed_webarchive_option" class="md-primary" ng-change="setArchivesMinMaxDate()">
                     <div ng-repeat="option in webarchives_options">
                       <small>{{option.description}}</small>
                       <md-radio-button value="{{option.id}}" class="md-primary">{{option.label}}</md-radio-button>
