@@ -438,7 +438,7 @@ class PagesCrawler(Spider):
         if self.webarchives:
             if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 kw['headers'] = {
-                    "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.job)
+                    "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.crawler.settings['JOBID'])
                 }
                 if url.startswith(self.webarchives["url_prefix"]) or redirection:
                     return Request(url, **kw)
