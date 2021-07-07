@@ -202,7 +202,7 @@
                     <dt>Date to try to approach</dt>
                     <div style="display: flex; justify-content: space-between; flex-wrap: nowrap">
                       <md-input-container style="margin: 0px; height: 28px; width: 33%">
-                        <input ng-model="ed_webarchive_date" ng-change="setArchivesMinMaxDate()" style="text-align: center">
+                        <input ng-model="ed_webarchive_date" ng-change="setArchivesMinMaxDate()" style="text-align: center" aria-label="date to approach">
                       </md-input-container>
                       <small style="color: red; width: 62%" ng-show="date_error">{{ date_error }}</small>
                     </div>
@@ -210,12 +210,12 @@
                     <dt>Delay to consider before and after the date</dt>
                     <div layout="row" style="display: flex; justify-content: flex-start">
                       <md-input-container style="margin: 0px; height: 28px; width: 33%; text-align: center">
-                        <md-select ng-model="ed_webarchive_daysrange_choice" ng-change="setArchivesMinMaxDate()">
+                        <md-select ng-model="ed_webarchive_daysrange_choice" ng-change="setArchivesMinMaxDate()" aria-label="authorized delay">
                           <md-option ng-repeat="(key, value) in webarchives_periods" value="{{ key }}">{{ value }}</md-option>
                         </md-select>
                       </md-input-container>
                       <md-input-container ng-show="ed_webarchive_daysrange_choice === 'custom'" style="margin: 0px; height: 28px; width: 33%">
-                        <input type="number" min="1" max="10000" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right">
+                        <input type="number" min="1" max="10000" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right" aria-label="number of days to accept before or after the date">
                       </md-input-container>
                       <span ng-show="ed_webarchive_daysrange_choice === 'custom'" style="padding-top: 5px">days</span>
                     </div>

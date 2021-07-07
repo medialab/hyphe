@@ -214,7 +214,6 @@ angular.module('hyphe.settingsController', [])
           $scope.ed_proxy_host            = $scope.options.proxy.host + ""
           $scope.ed_proxy_port            = $scope.options.proxy.port + 0
           $scope.ed_webarchive_option     = $scope.options.webarchives_option
-        // TODO VALIDATE DATE AND RANGE
           $scope.ed_webarchive_date       = $scope.options.webarchives_date
           $scope.setArchivesMinMaxDate()
           $scope.ed_timeout               = $scope.options.phantom.timeout + 0
