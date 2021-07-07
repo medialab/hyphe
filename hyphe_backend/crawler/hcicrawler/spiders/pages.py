@@ -93,8 +93,8 @@ class PagesCrawler(Spider):
             archivedate = re.sub(r"\D", "", str(self.webarchives["date"]))
             self.archivedate = str(archivedate) + "120000"
             archivedt = datetime.strptime(self.archivedate, "%Y%m%d%H%M%S")
-            self.archivemindate = datetime.strftime(archivedt - timedelta(self.webarchives["days_range"]/2.), "%Y%m%d%H%M%S")
-            self.archivemaxdate = datetime.strftime(archivedt + timedelta(self.webarchives["days_range"]/2.), "%Y%m%d%H%M%S")
+            self.archivemindate = datetime.strftime(archivedt - timedelta(days=self.webarchives["days_range"]/2., seconds=43200), "%Y%m%d%H%M%S")
+            self.archivemaxdate = datetime.strftime(archivedt + timedelta(days=self.webarchives["days_range"]/2., seconds=43199), "%Y%m%d%H%M%S")
 
             archiveprefix = self.webarchives["url_prefix"].rstrip('/')
             self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
