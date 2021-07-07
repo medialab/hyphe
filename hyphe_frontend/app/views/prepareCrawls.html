@@ -149,7 +149,7 @@
             layout="column"
           >
             <div layout="row" layout-align="center center">
-              <md-select ng-model="$parent.crawlDepth">
+              <md-select ng-model="$parent.crawlDepth" aria-label="number of clicks from the startpage">
                 <md-option ng-repeat="depth in depthRange" value="{{depth}}">Depth: {{depth}} click{{depth | plural}}</md-option>
               </md-select>
               <md-button class="md-raised" ng-class="{'md-primary':!statusesSummary.problems, 'md-warn':statusesSummary.problems}" ng-click="scheduleCrawls()">
