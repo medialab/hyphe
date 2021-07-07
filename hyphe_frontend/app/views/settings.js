@@ -197,6 +197,9 @@ angular.module('hyphe.settingsController', [])
       api.globalStatus({},
         function(corpus_status){
           $scope.corpus_status = corpus_status
+          if (!$scope.corpus_status.corpus.traph) {
+            $location.path('/login')
+          }
           $scope.corpusNotEmpty = !!$scope.corpus_status.corpus.traph.webentities.total
           $scope.options = corpus_status.corpus.options
           $scope.maxmax_depth = corpus_status.hyphe.max_depth
@@ -243,6 +246,8 @@ angular.module('hyphe.settingsController', [])
           $scope.status = {message: "Error while getting options", background:'danger'}
 
         })
+    }, function(){
+      $location.path('/login')
     })
 
   }])

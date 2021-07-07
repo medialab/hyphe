@@ -537,7 +537,7 @@ angular.module('hyphe.service_hyphe_api', [])
       )
 
     ns.list_tlds = undefined
-    ns.downloadCorpusTLDs = function(callback){
+    ns.downloadCorpusTLDs = function(callback, errback){
       if (ns.list_tlds) {
         callback(ns.list_tlds)
         return ns.list_tlds
@@ -559,6 +559,7 @@ angular.module('hyphe.service_hyphe_api', [])
           // called asynchronously if an error occurs
           // or server returns response with an error status.
           console.error('Impossible to retrieve TLDs', response)
+          if (errback) errback(response)
         })
     }
     ns.getCorpusTLDs = function(){
