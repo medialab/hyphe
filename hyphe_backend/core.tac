@@ -2940,7 +2940,7 @@ class Memory_Structure(customJSONRPC):
 
         page_data = None
 
-        if include_page_metas or include_page_body:
+        if pages['pages'] and include_page_metas or include_page_body:
             page_data = yield self.db.get_pages(corpus, [p['lru'] for p in pages['pages']], include_metas=include_page_metas, include_body=include_page_body)
 
         returnD(format_result({
