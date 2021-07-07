@@ -261,6 +261,9 @@ angular.module('hyphe.webentityController', [])
         })
       } else {
         $scope.webentity.startpages.push(url);
+        if(!$scope.webentity.tags['CORE-STARTPAGES']) {
+          $scope.webentity.tags['CORE-STARTPAGES'] = {};
+        }
         if(!$scope.webentity.tags['CORE-STARTPAGES']['user']) {
           $scope.webentity.tags['CORE-STARTPAGES'].user = [];
         }
