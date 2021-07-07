@@ -66,7 +66,7 @@ angular.module('hyphe.settingsController', [])
     }
 
     $scope.webarchives_periods = {
-      0: "None",
+      0: "Only that date",
       1: "a day",
       3: "3 days",
       7: "a week",
@@ -123,9 +123,9 @@ angular.module('hyphe.settingsController', [])
           return
         }
         dat.setDate(dat.getDate() - $scope.ed_webarchive_daysrange)
-        $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
+        $scope.webarchives_mindate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.min_allowed_webarchives_date : dat).toISOString().slice(0, 10)
         dat.setDate(dat.getDate() + 2 * $scope.ed_webarchive_daysrange)
-        $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
+        $scope.webarchives_maxdate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.max_allowed_webarchives_date : dat).toISOString().slice(0, 10)
       } catch(e) {
         $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
       }

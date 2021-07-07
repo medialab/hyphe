@@ -667,7 +667,7 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.webarchives_options = webarchives_options
 
       $scope.webarchives_periods = {
-        0: "None",
+        0: "Only that date",
         1: "a day",
         3: "3 days",
         7: "a week",
@@ -687,7 +687,7 @@ angular.module('hyphe.preparecrawlsController', [])
         }
 
         if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
-          if ($scope.webentity.webarchives.days_range === $scope.infinityRange) {
+          if ($scope.webentity.webarchives.days_range === $scope.infinityRange || $scope.webentity.webarchives.days_range === 'infinity') {
             $scope.ed_webarchive_daysrange_choice = 'infinity'
             $scope.ed_webarchive_daysrange_custom = $scope.infinityRange;
           } else {
@@ -727,9 +727,9 @@ angular.module('hyphe.preparecrawlsController', [])
             return
           }
           dat.setDate(dat.getDate() - $scope.webentity.webarchives.days_range / 2)
-          $scope.webarchives_mindate = dat.toISOString().slice(0, 10)
+          $scope.webarchives_mindate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.min_allowed_webarchives_date : dat).toISOString().slice(0, 10)
           dat.setDate(dat.getDate() + $scope.webentity.webarchives.days_range)
-          $scope.webarchives_maxdate = dat.toISOString().slice(0, 10)
+          $scope.webarchives_maxdate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.max_allowed_webarchives_date : dat).toISOString().slice(0, 10)
         } catch(e) {
           $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
         }

@@ -2,7 +2,7 @@ import re
 
 ARCHIVES_OPTIONS = {
     "": {
-        "label": "Disabled",
+        "label": "Live Web",
         "description": "crawl the live web, not any kind of web archive"
     },
     "web.archive.org": {
