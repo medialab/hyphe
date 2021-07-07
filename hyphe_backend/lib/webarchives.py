@@ -14,9 +14,11 @@ ARCHIVES_OPTIONS = {
     "archivesinternet.bnf.fr": {
         "label": "ArchivesInternet.BNF.fr",
         "description": "crawl France's official web archives maintained by BNF",
-        "url_prefix": "http://archivesinternet.bnf.fr",
-        "proxy": "archivesinternet.bnf.fr:9115",
-        "min_date": "2007-01-01"
+        "url_prefix": "http://pfcarchivesinternet.bnf.fr",
+        "url_prefix_prod": "http://archivesinternet.bnf.fr",
+        "proxy": "pfcarchivesinternet.bnf.fr:9115",
+        "proxy_prod": "archivesinternet.bnf.fr:8090",
+        "min_date": "1996-01-01"
     }
 }
 
