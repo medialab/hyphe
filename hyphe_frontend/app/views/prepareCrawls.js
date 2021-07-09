@@ -104,7 +104,7 @@ angular.module('hyphe.preparecrawlsController', [])
           )
       })
 
-      queriesBatcher.atEachFetch(function (list, pending, success, fail) {
+      queriesBatcher.atEachFetch(function(list, pending, success, fail) {
         $scope.status = {message: 'Scheduling...'}
       })
 
@@ -143,6 +143,7 @@ angular.module('hyphe.preparecrawlsController', [])
       , oldjob = store.get('webentity_old_crawljob')
 
       // Reuse oldjob's settings if set from previous crawl
+
       if (oldjob){
         $scope.crawlDepth = oldjob.crawl_arguments.max_depth
         $scope.cookies = oldjob.crawl_arguments.cookies
@@ -160,8 +161,9 @@ angular.module('hyphe.preparecrawlsController', [])
       // Clean and set exactly what we need
       list = list.map(function(obj, i){
         return {
-          id:i
+          id: i
           ,webentity: obj.webentity
+          ,webarchives: obj.webarchives
           ,status: 'loading'
         }
       })
@@ -216,6 +218,9 @@ angular.module('hyphe.preparecrawlsController', [])
                   }
                   obj.webentity.webarchives = {}
                   Object.assign(obj.webentity.webarchives, $scope.webarchives)
+                  if (obj.webarchives) {
+                    Object.assign(obj.webentity.webarchives, obj.webarchives)
+                  }
                   lazyLookups(obj.webentity.startpages, obj.webentity)
                 } else {
                   obj_setStatus(obj, 'error')
