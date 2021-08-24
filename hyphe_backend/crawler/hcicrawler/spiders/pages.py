@@ -24,6 +24,7 @@ from selenium.common.exceptions import WebDriverException, TimeoutException as S
 
 from ural import normalize_url, get_domain_name
 from ural.lru import LRUTrie
+from ural.lru.trie import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
 from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF_ARCHIVES_PERMALINK, RE_BNF_ARCHIVES_BANNER
