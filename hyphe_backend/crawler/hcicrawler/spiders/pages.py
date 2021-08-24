@@ -21,7 +21,7 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
-from ural.lru import LRUTrie
+from ural.lru.trie import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
