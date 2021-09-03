@@ -5,9 +5,9 @@ __Notes:__
 - MongoDB is limited to 2GB databases on 32bit systems, so we recommend to always install Hyphe on a 64bit machine.
 - Do __not__ add `sudo` to any of the following example commands. Every piece of shell written here should be ran from Hyphe's root directory and `sudo` should only be used when explicitly listed.
 
-The following installation instructions have been tested under Ubuntu 16.04.3 LTS. It should be possible to adapt these commands to older Ubuntu versions and diverse Debian and CentOS distributions (using `yum` instead of `apt` where necessary and so on).
+The following installation instructions have been tested under Ubuntu 16.04.3 LTS. It should be possible to adapt these commands to older or more recent Ubuntu versions and diverse Debian and CentOS distributions (using `yum` instead of `apt` where necessary and so on).
 
-[MongoDB](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
+[MongoDB Community Edition (v3)](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
 
 
 ## 0) Get global requirements
@@ -42,17 +42,17 @@ cd hyphe
 ```
 
 
-## 2) Install [MongoDB](http://www.mongodb.org/)
+## 2) Install [MongoDB v3](http://www.mongodb.org/)
 
 As they are usually very old, we recommend not to use the MongoDB packages shipped within distributions official repositories.
 
-Rather follow official installation instructions: [https://docs.mongodb.com/tutorials/](https://docs.mongodb.com/tutorials/). Search the link for "MongoDB Community Edition" for your distribution and follow the instructions.
+Rather follow official installation instructions: [https://docs.mongodb.com/v3.6/](https://docs.mongodb.com/v3.6/). Search the link for "MongoDB Community Edition" for your distribution, look for the documentation for version 3, and follow the instructions.
 
-For instance for Ubuntu 16.04:
+For instance for Ubuntu 18.04:
 
 ```bash
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
+echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
 sudo apt-get update
 sudo apt-get install -y mongodb-org
 sudo service mongod restart
@@ -242,15 +242,3 @@ By default the starter will display Hyphe's log in the console using `tail`. You
 
 You can always check all logs in the `log` directory.
 
-
-## Extra) Install [PhantomJS](http://phantomjs.org/) [Unrequired for now]
-
-__Important:__ Crawling with PhantomJS is currently only possible as an advanced option in Hyphe. Do not bother with this section except for advanced use or development.
-
-Hyphe ships with a compiled binary of PhantomJS-2.0 for Ubuntu, unfortunately it is not cross-compatible with other distributions: so when on CentOS or Debian, you should compile your own from sources.
-
-```bash
-./bin/install_phantom.sh
-```
-
-Note that PhantomJS 1.9.7 is easily downloadable as binary, altough it uses a very outdated version of WebKit and PhantomJS 2+ is required to handle modern websites such as Facebook.
