@@ -45,6 +45,6 @@ services:
       - ${DATA_PATH}scrapyd-eggs:/var/lib/scrapyd
   mongo:
     restart: ${RESTART_POLICY}
-    image: mongo:3.0
+    image: mongo:3.6
     volumes:
       - ${DATA_PATH}mongo-data:/data/db
