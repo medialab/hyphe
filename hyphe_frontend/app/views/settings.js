@@ -80,6 +80,7 @@ angular.module('hyphe.settingsController', [])
     $scope.infinityRange = 50 * 365
 
     $scope.setArchivesMinMaxDate = function() {
+      $scope.ed_webarchive_date = document.getElementById('datepicker').value
       $scope.date_error = ""
       if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
         $scope.ed_webarchive_option = $scope.options.webarchives_option || ""
@@ -112,22 +113,24 @@ angular.module('hyphe.settingsController', [])
         $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.ed_webarchive_daysrange_choice]
       }
 
-      try {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test($scope.ed_webarchive_date)) {
+      if ($scope.ed_webarchive_option !== '') {
+        try {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test($scope.ed_webarchive_date)) {
+            $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
+            return
+          }
+          var dat = new Date($scope.ed_webarchive_date)
+          if (dat < $scope.min_allowed_webarchives_date || dat > $scope.max_allowed_webarchives_date) {
+            $scope.date_error = "This web archive only ranges from " + $scope.min_allowed_webarchives_date.toISOString().slice(0, 10) + " to " + $scope.max_allowed_webarchives_date.toISOString().slice(0, 10)
+            return
+          }
+          dat.setDate(dat.getDate() - $scope.ed_webarchive_daysrange)
+          $scope.webarchives_mindate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.min_allowed_webarchives_date : dat).toISOString().slice(0, 10)
+          dat.setDate(dat.getDate() + 2 * $scope.ed_webarchive_daysrange)
+          $scope.webarchives_maxdate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.max_allowed_webarchives_date : dat).toISOString().slice(0, 10)
+        } catch(e) {
           $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
-          return
         }
-        var dat = new Date($scope.ed_webarchive_date)
-        if (dat < $scope.min_allowed_webarchives_date || dat > $scope.max_allowed_webarchives_date) {
-          $scope.date_error = "This web archive only ranges from " + $scope.min_allowed_webarchives_date.toISOString().slice(0, 10) + " to " + $scope.max_allowed_webarchives_date.toISOString().slice(0, 10)
-          return
-        }
-        dat.setDate(dat.getDate() - $scope.ed_webarchive_daysrange)
-        $scope.webarchives_mindate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.min_allowed_webarchives_date : dat).toISOString().slice(0, 10)
-        dat.setDate(dat.getDate() + 2 * $scope.ed_webarchive_daysrange)
-        $scope.webarchives_maxdate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.max_allowed_webarchives_date : dat).toISOString().slice(0, 10)
-      } catch(e) {
-        $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
       }
     }
 
@@ -187,9 +190,41 @@ angular.module('hyphe.settingsController', [])
           $scope.saving = false
           console.error("Settings could not be updated", data, status, headers, config)
         })
+      } else {
+        $scope.setEditableOptions()
       }
     }
 
+    $scope.setEditableOptions = function() {
+      $scope.ed_max_depth             = $scope.options.max_depth
+      $scope.ed_proxy_host            = $scope.options.proxy.host + ""
+      $scope.ed_proxy_port            = $scope.options.proxy.port + 0
+      $scope.ed_timeout               = $scope.options.phantom.timeout + 0
+      $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout + 0
+      $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout + 0
+      $scope.ed_whitelist             = $scope.options.phantom.whitelist_domains.slice()
+      $scope.ed_follow_redirects      = $scope.options.follow_redirects.slice()
+      $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule + ""
+      $scope.startpages_homepage      = $scope.options.defaultStartpagesMode.includes('homepage')
+      $scope.startpages_prefixes      = $scope.options.defaultStartpagesMode.includes('prefixes')
+      $scope.startpages_pages         = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
+      $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice()
+
+      //define the current number of most cited pages as start pages
+      for (var i=0; i<$scope.options.defaultStartpagesMode.length; i++){
+        if ($scope.ed_defaultStartpagesMode[i].startsWith('pages')){
+          $scope.nbOfPages = parseInt($scope.ed_defaultStartpagesMode[i].split(/-/)[1])
+          break;
+        }
+      }
+
+      $scope.webarchives_chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === $scope.options.webarchives_option})[0]
+      $scope.ed_webarchive_option     = $scope.webarchives_chosen_option.id
+      $scope.ed_webarchive_date       = $scope.options.webarchives_date
+      $scope.datepicker_date          = new Date($scope.options.webarchives_date)
+      document.getElementById('datepicker').value = $scope.options.webarchives_date
+      $scope.setArchivesMinMaxDate()
+    }
 
     // Init
     $scope.status = {message: "Loading"}
@@ -211,35 +246,10 @@ angular.module('hyphe.settingsController', [])
               ,https: rule.prefix.indexOf('s:https') === 0
             }
           })
-          $scope.webarchives_options      = corpus_status.hyphe.available_archives
-          $scope.ed_max_depth             = $scope.options.max_depth
-          $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice()
-          $scope.ed_proxy_host            = $scope.options.proxy.host + ""
-          $scope.ed_proxy_port            = $scope.options.proxy.port + 0
-          $scope.ed_webarchive_option     = $scope.options.webarchives_option
-          $scope.ed_webarchive_date       = $scope.options.webarchives_date
-          $scope.setArchivesMinMaxDate()
-          $scope.ed_timeout               = $scope.options.phantom.timeout + 0
-          $scope.ed_ajax_timeout          = $scope.options.phantom.ajax_timeout + 0
-          $scope.ed_idle_timeout          = $scope.options.phantom.idle_timeout + 0
-          $scope.ed_whitelist             = $scope.options.phantom.whitelist_domains.slice()
-          $scope.ed_follow_redirects      = $scope.options.follow_redirects.slice()
-          $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule + ""
-          $scope.startpages_homepage      = $scope.options.defaultStartpagesMode.includes('homepage')
-          $scope.startpages_prefixes      = $scope.options.defaultStartpagesMode.includes('prefixes')
-          $scope.startpages_pages         = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
-
-          //define the current number of most cited pages as start pages
-          for (var i=0; i<$scope.options.defaultStartpagesMode.length; i++){
-            if ($scope.ed_defaultStartpagesMode[i].startsWith('pages')){
-              $scope.nbOfPages = parseInt($scope.ed_defaultStartpagesMode[i].split(/-/)[1])
-              break;
-            }
-          }
-          $scope.setArchivesMinMaxDate()
+          $scope.webarchives_options = corpus_status.hyphe.available_archives
+          $scope.setEditableOptions()
           $scope.loading = false
           $scope.status = {}
-
 
         },function(data, status, headers, config){
           
