@@ -184,7 +184,7 @@
 
           </div>
         </md-tab>
-        <md-tab label="Advanced crawl options" ng-disabled="newStartPagesStack.length>0">
+        <md-tab label="Advanced crawl options" ng-disabled="newStartPagesStack.length>0" md-on-select="initDatePicker()">
           <div layout="column" md-colors="{background: 'default-background-50'}" class="crawl_advanced">
             <span style="margin: 8px"><md-icon class="material-icons" role="img" aria-label="history">ads_click</md-icon> Crawl depth</span>
             <div md-colors="{background: 'default-primary-50'}" style="padding: 8px">
@@ -205,18 +205,17 @@
                   </div>
                 </md-radio-group>
                 <div layout="column" ng-style="{'opacity': webentity.webarchives.option ? 1 : 0, 'width': '257px'}">
-                  <!-- TODO: DATE PICKER -->
                   <label><small>Date to try to approach:</small></label>
                   <div style="display: flex; justify-content: space-between; flex-wrap: nowrap">
-                    <md-input-container style="margin: 0px; height: 28px; width: 40%; padding-bottom: 22px">
-                      <input ng-model="webentity.webarchives.date" ng-change="setArchivesMinMaxDate()" aria-label="date to approach">
+                    <md-input-container style="margin: 0px; height: 28px; width: 60%; padding-bottom: 22px">
+                      <input id="datepicker" type="date" ng-model="datepicker_date" ng-change="setArchivesMinMaxDate()" aria-label="date to approach">
                     </md-input-container>
                     <small style="color: red; width: 55%" ng-show="date_error">{{ date_error }}</small>
                   </div>
 
                   <label><small>Delay to consider before and after the date</small></label>
                   <div layout="row" style="display: flex; justify-content: flex-start">
-                    <md-input-container style="margin: 0px; height: 28px; width: 40%; text-align: center">
+                    <md-input-container style="margin: 0px; height: 28px; width: 60%; text-align: center">
                       <md-select ng-model="ed_webarchive_daysrange_choice" ng-change="setArchivesMinMaxDate()" aria-label="days to consider before and after the date">
                         <md-option ng-repeat="(key, value) in webarchives_periods" value="{{ key }}">{{ value }}</md-option>
                       </md-select>

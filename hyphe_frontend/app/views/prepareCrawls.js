@@ -670,6 +670,15 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.cookies_error = ""
       $scope.date_error = ""
       $scope.webarchives_options = webarchives_options
+      $scope.datepicker_date = $scope.webentity.webarchives.date
+
+      $scope.initDatePicker = function() {
+        var dp = document.getElementById('datepicker')
+        if (dp && (!dp.value || dp.value === "")) {
+          dp.value = $scope.webentity.webarchives.date
+          dp.parentNode.classList.add("md-input-has-value")
+        }
+      }
 
       $scope.webarchives_periods = {
         0: "Only that date",
@@ -690,6 +699,7 @@ angular.module('hyphe.preparecrawlsController', [])
         if (!$scope.webentity.webarchives.option) {
           return
         }
+        $scope.initDatePicker()
 
         if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
           if ($scope.webentity.webarchives.days_range === $scope.infinityRange || $scope.webentity.webarchives.days_range === 'infinity') {
@@ -721,6 +731,9 @@ angular.module('hyphe.preparecrawlsController', [])
           $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.webentity.webarchives.days_range_choice]
         }
   
+        if (document.getElementById('datepicker')) {
+          $scope.webentity.webarchives.date = document.getElementById('datepicker').value
+        }
         try {
           if (!/^\d{4}-\d{2}-\d{2}$/.test($scope.webentity.webarchives.date)) {
             $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
