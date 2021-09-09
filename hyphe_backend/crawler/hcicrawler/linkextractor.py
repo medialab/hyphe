@@ -15,7 +15,7 @@ from scrapy.link import Link
 from scrapy.utils.response import get_base_url as get_root_url
 from scrapy.linkextractors import LinkExtractor
 
-linkre = re.compile(r"<a[^>]*href\s*=\s*(\"[^\">]+[\">]|'[^'>]+['>]|[^\s>]+[\s>])", re.DOTALL | re.IGNORECASE)
+linkre = re.compile(r"<a[^>]*href\s*=\s*(?:&quot;)?(\"[^\">]+[\">]|'[^'>]+['>]|[^\s>]+[\s>])(?:&quot;)?", re.DOTALL | re.IGNORECASE)
 re_clean_linkspaces = re.compile(r"^([a-z]+://)\s+")
 
 SCHEME_FILTERS = [
