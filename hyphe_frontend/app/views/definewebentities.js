@@ -446,7 +446,7 @@ angular.module('hyphe.definewebentitiesController', [])
           return obj.url && utils.URL_validate(obj.url)
         })
 
-        // Identify urls prefied from a web archive, rewrite them and set them as such
+        // Identify urls prefixed from a web archive, rewrite them and set them as such
         list = list.map(function(obj){
           for (var i in $scope.available_archives) {
             if ($scope.available_archives[i].url_prefix && obj.url.indexOf($scope.available_archives[i].url_prefix) == 0) {

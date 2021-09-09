@@ -127,9 +127,9 @@ angular.module('hyphe.preparecrawlsController', [])
         var options = corpus_status.corpus.options
         $scope.webarchives_options = corpus_status.hyphe.available_archives
         $scope.webarchives = {
-            option: options.webarchives_option,
-            date: options.webarchives_option ? options.webarchives_date : (new Date()).toISOString().slice(0, 10),
-            days_range: options.webarchives_option ? options.webarchives_days_range : 'infinity'
+          option: options.webarchives_option,
+          date: options.webarchives_option ? options.webarchives_date : (new Date()).toISOString().slice(0, 10),
+          days_range: options.webarchives_option ? options.webarchives_days_range : 'infinity'
         }
         $scope.depthRange = Array.apply(0, Array(options.max_depth + 1)).map(function(a,i){return i})
         bootstrapList()
@@ -670,7 +670,7 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.cookies_error = ""
       $scope.date_error = ""
       $scope.webarchives_options = webarchives_options
-      $scope.datepicker_date = $scope.webentity.webarchives.date
+      $scope.datepicker_date = new Date($scope.webentity.webarchives.date)
 
       $scope.initDatePicker = function() {
         var dp = document.getElementById('datepicker')

@@ -40,7 +40,7 @@ angular.module('hyphe.importurlsController', [])
       }, 10)
     })
 
-    api.globalStatus({},function(status){
+    api.globalStatus({}, function(status){
       $scope.available_archives = status.hyphe.available_archives
       store.set('available_archives', status.hyphe.available_archives)
     })
