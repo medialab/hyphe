@@ -77,10 +77,10 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.scheduling = true
       var queriesBatcher = new QueriesBatcher()
       $scope.list.forEach(function (obj) {
-        // Stack the query
-        if (obj.webentity.webarchives && obj.webentity.webarchives.days_range === 'infinity') {
+        if (obj.webentity.webarchives && (!obj.webentity.webarchives.days_range || obj.webentity.webarchives.days_range === 'infinity')) {
           obj.webentity.webarchives.days_range = $scope.infinityRange / 2
         }
+        // Stack the query
         queriesBatcher.addQuery(
             api.crawl                             // Query call
             ,{                                    // Query settings
