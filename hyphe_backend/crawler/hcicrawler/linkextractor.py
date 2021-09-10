@@ -17,6 +17,7 @@ from scrapy.linkextractors import LinkExtractor
 
 linkre = re.compile(r"<a[^>]*href\s*=\s*(?:&quot;)?(\"[^\">]+[\">]|'[^'>]+['>]|[^\s>]+[\s>])(?:&quot;)?", re.DOTALL | re.IGNORECASE)
 re_clean_linkspaces = re.compile(r"^([a-z]+://)\s+")
+re_clean_htmlquotes = re.compile(r"&quot;$")
 
 SCHEME_FILTERS = [
     "javascript",
@@ -30,6 +31,7 @@ SCHEME_FILTERS = [
 def clean_link(link_text):
     """Remove leading and trailing whitespace and punctuation"""
     link_text = link_text.strip("\t\r\n '\">\x0c")
+    link_text = re_clean_htmlquotes.sub("", link_text)
     return re_clean_linkspaces.sub(r"\1", link_text)
 
 class RegexpLinkExtractor(LinkExtractor):
