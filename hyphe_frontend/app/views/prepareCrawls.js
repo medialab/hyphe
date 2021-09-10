@@ -670,12 +670,12 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.cookies_error = ""
       $scope.date_error = ""
       $scope.webarchives_options = webarchives_options
-      $scope.datepicker_date = new Date($scope.webentity.webarchives.date)
+      $scope.datepicker_date = new Date(webentity.webarchives.date)
 
       $scope.initDatePicker = function() {
         var dp = document.getElementById('datepicker')
         if (dp && (!dp.value || dp.value === "")) {
-          dp.value = $scope.webentity.webarchives.date
+          dp.value = webentity.webarchives.date
           dp.parentNode.classList.add("md-input-has-value")
         }
       }
@@ -696,57 +696,57 @@ angular.module('hyphe.preparecrawlsController', [])
   
       $scope.setArchivesMinMaxDate = function() {
         $scope.date_error = ""
-        if (!$scope.webentity.webarchives.option) {
+        if (!webentity.webarchives.option) {
           return
         }
         $scope.initDatePicker()
 
         if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
-          if ($scope.webentity.webarchives.days_range === $scope.infinityRange || $scope.webentity.webarchives.days_range === 'infinity') {
+          if (webentity.webarchives.days_range === $scope.infinityRange || webentity.webarchives.days_range === 'infinity') {
             $scope.ed_webarchive_daysrange_choice = 'infinity'
             $scope.ed_webarchive_daysrange_custom = $scope.infinityRange;
           } else {
-            $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.webentity.webarchives.days_range / 2);
-            if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.webentity.webarchives.days_range) == -1) {
+            $scope.ed_webarchive_daysrange_custom = Math.trunc(webentity.webarchives.days_range / 2);
+            if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf(webentity.webarchives.days_range) == -1) {
               $scope.ed_webarchive_daysrange_choice = 'custom'
             } else {
-              $scope.ed_webarchive_daysrange_choice = $scope.webentity.webarchives.days_range / 2
+              $scope.ed_webarchive_daysrange_choice = webentity.webarchives.days_range / 2
             }
           }
         }
 
-        var chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === $scope.webentity.webarchives.option})[0]
+        var chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === webentity.webarchives.option})[0]
         $scope.min_allowed_webarchives_date = new Date(chosen_option.min_date || "1995-01-01")
         $scope.max_allowed_webarchives_date = new Date()
 
         if ($scope.ed_webarchive_daysrange_choice === 'custom') {
-          $scope.webentity.webarchives.days_range = 2 * $scope.ed_webarchive_daysrange_custom
-          $scope.webarchives_days_range_display = $scope.webentity.webarchives.days_range + " days"
+          webentity.webarchives.days_range = 2 * $scope.ed_webarchive_daysrange_custom
+          $scope.webarchives_days_range_display = webentity.webarchives.days_range + " days"
         } else {
           if ($scope.ed_webarchive_daysrange_choice === 'infinity') {
-            $scope.webentity.webarchives.days_range = $scope.infinityRange
+            webentity.webarchives.days_range = $scope.infinityRange
           } else {
-            $scope.webentity.webarchives.days_range = 2 * parseInt($scope.ed_webarchive_daysrange_choice)
+            webentity.webarchives.days_range = 2 * parseInt($scope.ed_webarchive_daysrange_choice)
           }
-          $scope.webarchives_days_range_display = $scope.webarchives_periods[$scope.webentity.webarchives.days_range_choice]
+          $scope.webarchives_days_range_display = $scope.webarchives_periods[webentity.webarchives.days_range_choice]
         }
   
         if (document.getElementById('datepicker')) {
-          $scope.webentity.webarchives.date = document.getElementById('datepicker').value
+          webentity.webarchives.date = document.getElementById('datepicker').value
         }
         try {
-          if (!/^\d{4}-\d{2}-\d{2}$/.test($scope.webentity.webarchives.date)) {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(webentity.webarchives.date)) {
             $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
             return
           }
-          var dat = new Date($scope.webentity.webarchives.date)
+          var dat = new Date(webentity.webarchives.date)
           if (dat < $scope.min_allowed_webarchives_date || dat > $scope.max_allowed_webarchives_date) {
             $scope.date_error = "This web archive only ranges from " + $scope.min_allowed_webarchives_date.toISOString().slice(0, 10) + " to " + $scope.max_allowed_webarchives_date.toISOString().slice(0, 10)
             return
           }
-          dat.setDate(dat.getDate() - $scope.webentity.webarchives.days_range / 2)
+          dat.setDate(dat.getDate() - webentity.webarchives.days_range / 2)
           $scope.webarchives_mindate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.min_allowed_webarchives_date : dat).toISOString().slice(0, 10)
-          dat.setDate(dat.getDate() + $scope.webentity.webarchives.days_range)
+          dat.setDate(dat.getDate() + webentity.webarchives.days_range)
           $scope.webarchives_maxdate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.max_allowed_webarchives_date : dat).toISOString().slice(0, 10)
         } catch(e) {
           $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
@@ -810,7 +810,7 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       $scope.removeStartPage = function (url) {
-        removeStartPageAndUpdate($scope.webentity, url)
+        removeStartPageAndUpdate(webentity, url)
       }
 
       $scope.resolveCase = resolveCase
@@ -824,7 +824,7 @@ angular.module('hyphe.preparecrawlsController', [])
       // Init
       var spIndex = {}
       $scope.startpages.forEach(function(url){
-        spIndex[url] = $scope.webentity
+        spIndex[url] = webentity
       })
       lookupEngine.doLookups($scope.lookups, spIndex)
 
