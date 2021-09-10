@@ -975,6 +975,18 @@ class Core(customJSONRPC):
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
             yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
+        if WE["crawled"]:
+            oldsources = WE.get("tags", {}).get("USER", {}).get("Crawl Source", [""])[0]
+            sources = set((oldsources or "Live Web").split(" + "))
+            sources.add(webarchives.get("option", "Live Web") or "Live Web")
+            sources = " + ".join(sources)
+            if not oldsources and sources != "Live Web":
+                yield self.store.jsonrpc_add_webentity_tag_value(webentity_id, "USER", "Crawl Source", sources, corpus=corpus, _automatic=True)
+            elif sources != oldsources:
+                yield self.store.jsonrpc_edit_webentity_tag_value(webentity_id, "USER", "Crawl Source", oldsources, sources, corpus=corpus, _automatic=True)
+        elif webarchives.get("option"):
+            yield self.store.jsonrpc_add_webentity_tag_value(webentity_id, "USER", "Crawl Source", webarchives["option"], corpus=corpus, _automatic=True)
+
         res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, proxy=proxy, cookies_string=cookies_string, webarchives=webarchives, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
