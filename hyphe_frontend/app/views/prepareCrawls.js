@@ -38,6 +38,7 @@ angular.module('hyphe.preparecrawlsController', [])
       }
     }
 
+    $scope.infinityRange = 50 * 365
 
     // Initialization
 
@@ -77,6 +78,9 @@ angular.module('hyphe.preparecrawlsController', [])
       var queriesBatcher = new QueriesBatcher()
       $scope.list.forEach(function (obj) {
         // Stack the query
+        if (obj.webentity.webarchives && obj.webentity.webarchives.days_range === 'infinity') {
+          obj.webentity.webarchives.days_range = $scope.infinityRange / 2
+        }
         queriesBatcher.addQuery(
             api.crawl                             // Query call
             ,{                                    // Query settings
@@ -693,7 +697,6 @@ angular.module('hyphe.preparecrawlsController', [])
         "custom": "Custom",
         "infinity": "Whatever"
       }
-      $scope.infinityRange = 50 * 365
   
       $scope.setArchivesMinMaxDate = function() {
         $scope.date_error = ""
