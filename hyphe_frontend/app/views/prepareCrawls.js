@@ -532,6 +532,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 ,function(httpStatus, extra){         // Success callback
                     
                     lookupEngine.notifySuccessful(lookups[urlObj.url], httpStatus, extra.location)
+                    urlObj.webentity.webarchives.option_used_for_startpages = urlObj.webentity.webarchives.option + ''
 
                   }
                 ,function(data, status, headers){     // Fail callback
@@ -774,6 +775,21 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.hide = function() {
         $mdDialog.hide();
       }
+
+      // Unused for now but could be used by calling recheckStartPages via on-md-select on the Start pages md-tab
+      /*
+      $scope.recheckStartPages = function(){
+        if ($scope.startpagesSummary.stage === 'loading' || webentity.webarchives.option_used_for_startpages === webentity.webarchives.option) {
+          return
+        }
+        var sp_index = {}
+        for (var idx in $scope.startpages) {
+          lookups[$scope.startpages[idx]] = undefined
+          sp_index[$scope.startpages[idx]] = webentity
+        }
+        lookupEngine.doLookups(lookups, sp_index)
+      }
+      */
 
       $scope.validateNewStartPages = function(){
         $scope.urlsToAdd = []
