@@ -92,7 +92,7 @@ class ResolveLinks(object):
                         lru = url_to_lru_clean(rurl, TLDS_TREE)
                         spider.resolved_links[url] = lru
                     except Exception, e:
-                        spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), logging.INFO)
+                        spider.log("Error resolving redirects for URL %s (found into %s): %s %s" % (url, item['url'], type(e), e), logging.WARNING)
             lrulinks.append(lru)
         item["lrulinks"] = lrulinks
         returnValue(item)
