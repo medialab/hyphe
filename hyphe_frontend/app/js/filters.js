@@ -113,6 +113,14 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('filterBoolFieldWhenActive', [function(){
+    return function(list, active, field) {
+      return list.filter(function(item){
+        return !active || item[field]
+      })
+    }
+  }])
+
   .filter('tagFilter', [function(){
     return function(webentities, filters, tagCategories) {
       var list = webentities

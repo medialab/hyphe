@@ -35,6 +35,7 @@ angular.module('hyphe.webentityController', [])
     $scope.pagesLoading = true
     $scope.pagesToken = null
     $scope.loadAllPages = false
+    $scope.pagesOnlyCrawled = false
 
     $scope.ego = {
       loading: false,

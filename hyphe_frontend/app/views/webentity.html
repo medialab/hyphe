@@ -474,6 +474,11 @@
                     ng-model="urlSearchQuery"
                   >
                 </md-input-container>
+
+                <md-button class="md-raised md-mini md-fab md-secondary" style="position: absolute; right: 16px; top: 225px; background-color: lightgrey" ng-click="pagesOnlyCrawled = !pagesOnlyCrawled">
+                  <md-tooltip md-direction="left">Display only crawled pages</md-tooltip>
+                  <md-icon ng-style="{'opacity': pagesOnlyCrawled ? 0.2 : 1}">opacity</md-icon>
+                </md-button>
               </div>
 
               
@@ -485,7 +490,7 @@
                 <md-virtual-repeat-container layout-fill>
                   <md-list>
                     <md-list-item
-                      md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url"
+                      md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url | filterBoolFieldWhenActive:pagesOnlyCrawled:'crawled'"
                     >
                       <div class="md-primary">
                         <a href="{{ page.url }}" target="_blank">
