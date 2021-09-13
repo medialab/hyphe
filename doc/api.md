@@ -291,7 +291,7 @@ The API will always answer as such:
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
  Optionally add a HTTP `proxy` specified as "domain_or_IP:port".
  Also optionally add known `cookies_string` with auth rights to a protected website.
- Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"archive.org"/"bnf.fr".
+ Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".
  Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic, see details in `propose_webentity_startpages`).
 
 
@@ -313,7 +313,7 @@ The API will always answer as such:
  Optionally add a HTTP `proxy` specified as "domain_or_IP:port".
  Also optionally add known `cookies_string` with auth rights to a protected website.
  Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
- Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"archive.org"/"bnf.fr".
+ Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".
 
 
 - __`get_webentity_jobs`:__
@@ -401,7 +401,7 @@ The API will always answer as such:
   * a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.
   * an HTTP `proxy` specified as "domain_or_IP:port"
   * a known `cookies_string` with auth rights to a protected website.
- Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"archive.org"/"bnf.fr".
+ Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".
 
 
 - __`cancel`:__
@@ -875,9 +875,10 @@ The API will always answer as such:
   + _`onlyCrawled`_ (optional, default: `false`)
   + _`include_page_metas`_ (optional, default: `false`)
   + _`include_page_body`_ (optional, default: `false`)
+  + _`body_as_plain_text`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status, body size, content_type, encoding, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true").
+ Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status, body size, content_type, encoding, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true"); setting body_as_plain_text to "true" decodes and unzip these to return them as plain text.
 
 
 - __`get_webentity_mostlinked_pages`:__
