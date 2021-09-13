@@ -48,6 +48,15 @@ angular.module('hyphe.monitorcrawlsController', [])
       ,max_depth: {
         type: 'number'
       }
+      ,webarchives_used: {
+        type: 'string'
+      }
+      ,webarchives_date: {
+        type: 'string'
+      }
+      ,webarchives_days_range: {
+        type: 'number'
+      }
       ,start_urls: {
         type: 'array of string'
       }
