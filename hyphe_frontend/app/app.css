@@ -671,7 +671,7 @@ textarea.over-error {
   font-weight: 300;
 }
 
-.crawljobs-col-dept {
+.crawljobs-col-dept, .crawljobs-col-arch {
   padding: 0px 8px 0px 8px;
   font-size: 0.8em;
   width: 20px;

@@ -314,6 +314,7 @@
                                 <md-icon>find_in_page</md-icon> Cautious crawl
                               </p>
                               <p class="subtitle">
+                                <md-icon style="display: revert; font-size: 1em" class="material-icons" role="img" aria-label="history">ads_click</md-icon>
                                 Depth {{job.crawl_arguments.max_depth}}
                               </p>
                             </div>
@@ -354,7 +355,7 @@
                             </div>
                             <div ng-show="job.crawl_arguments.webarchives.option" class="subtitle">
                               <md-tooltip md-direction="bottom">{{ job.crawl_arguments.webarchives.days_range / 2 }} days before &amp; after{{ job.crawl_arguments.webarchives.date }}</md-tooltip>
-                              <md-icon>history</md-icon> from {{job.crawl_arguments.webarchives.option}}
+                              <md-icon style="font-size: 1.5em">history</md-icon> from {{job.crawl_arguments.webarchives.option}}
                             </div>
                           </div>
                         </div>

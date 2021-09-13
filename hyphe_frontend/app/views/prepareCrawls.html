@@ -149,6 +149,7 @@
             layout="column"
           >
             <div layout="row" layout-align="center center">
+              <span><md-icon style="margin: 2px" class="material-icons" role="img" aria-label="history">ads_click</md-icon></span>
               <md-select ng-model="$parent.crawlDepth" aria-label="number of clicks from the startpage">
                 <md-option ng-repeat="depth in depthRange" value="{{depth}}">Depth: {{depth}} click{{depth | plural}}</md-option>
               </md-select>
