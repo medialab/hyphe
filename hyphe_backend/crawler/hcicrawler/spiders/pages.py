@@ -23,7 +23,6 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
 from ural import normalize_url, get_domain_name
-from ural.lru import LRUTrie
 from ural.lru.trie import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
