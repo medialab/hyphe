@@ -57,7 +57,7 @@ if "HYPHE_FOLLOW_REDIRECTS"         in environ: setConfig("discoverPrefixes", li
 
 # TODO: Phantom config
 
-if "HYPHE_WEBARCHIVES_OPTIONS"   in environ: setConfig("option", literal_eval(environ["HYPHE_WEBARCHIVES_OPTIONS"] or '[]'),configdata, "webarchives")
+if "HYPHE_WEBARCHIVES_OPTIONS"   in environ: setConfig("options", literal_eval(environ["HYPHE_WEBARCHIVES_OPTIONS"] or '[]'),configdata, "webarchives")
 if "HYPHE_WEBARCHIVES_DATE"      in environ: setConfig("date", environ["HYPHE_WEBARCHIVES_DATE"],configdata or "", "webarchives")
 if "HYPHE_WEBARCHIVES_DAYSRANGE" in environ: setConfig("days_range", int(environ["HYPHE_WEBARCHIVES_DAYSRANGE"] or 0),configdata, "webarchives")
 
