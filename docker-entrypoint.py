@@ -11,6 +11,8 @@ def loadConfig(filename):
 
 def setConfig(setting, value, configdata, section=None):
     if section is not None:
+        if section not in configdata:
+            configdata[section] = {}
         configdata[section][setting] = value
     else:
         configdata[setting] = value
