@@ -303,6 +303,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,settings.crawledOnly || false
               ,settings.includePageMetas || false
               ,settings.includePageBody || false
+              ,settings.bodyAsPlainText || false
               ,corpus.getId()
             ]}
       )
