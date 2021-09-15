@@ -84,7 +84,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
-            if (!container) return
+            if (!container || !$scope.network.size) return
 
             renderer = new Sigma.WebGLRenderer($scope.network, container)
 

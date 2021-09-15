@@ -113,6 +113,14 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('filterBoolFieldWhenActive', [function(){
+    return function(list, active, field) {
+      return list.filter(function(item){
+        return !active || item[field]
+      })
+    }
+  }])
+
   .filter('tagFilter', [function(){
     return function(webentities, filters, tagCategories) {
       var list = webentities
@@ -450,6 +458,17 @@ angular.module('hyphe.filters', [])
         return list.filter(function (elem) {
           return ~autocompletion.searchable(elem.name).indexOf(searchableQuery)
         })
+      }
+    }])
+
+    .filter('cleanArchivesPrefix', [function(){
+      return function(url, available_archives) {
+        for (var i in available_archives) {
+          if (available_archives[i].url_prefix && url.indexOf(available_archives[i].url_prefix) == 0) {
+            return url.replace(available_archives[i].url_prefix, "").replace(/^\/?\d+\/http/, "http")
+          }
+        }
+        return url
       }
     }])
 ;

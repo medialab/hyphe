@@ -64,6 +64,11 @@
     "whitelist_domains": [
     ]
   },
+  "webarchives": {
+    "options": ["web.archive.org"],
+    "date": "2012-07-01",
+    "days_range": 28
+  },
   "ADMIN_PASSWORD": null,
   "OPEN_CORS_API": false,
   "DEBUG": 0

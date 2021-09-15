@@ -9,6 +9,7 @@ TEST_CORPUS = "--test-corpus--"
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
 from hyphe_backend.lib import creationrules
+from hyphe_backend.lib import webarchives
 try:
     from pymongo import MongoClient
 except:
@@ -125,6 +126,13 @@ GLOBAL_CONF_SCHEMA = {
       "whitelist_domains": list,
       "autoretry": bool
     }
+  }, "webarchives": {
+    "type": dict,
+    "int_fields": ["days_range"],
+    "extra_fields": {
+      "options": webarchives.validateOptions,
+      "date": webarchives.validateArchiveDate
+    }
   }, "DEBUG": {
     "type": int
   }
@@ -166,6 +174,18 @@ CORPUS_CONF_SCHEMA = {
       "autoretry": bool
     },
     "default": "global/phantom"
+  },
+  "webarchives_option": {
+    "type": webarchives.validateOption,
+    "default": ""
+  },
+  "webarchives_date": {
+    "type": webarchives.validateArchiveDate,
+    "default": "global/webarchives/date"
+  },
+  "webarchives_days_range": {
+    "type": int,
+    "default": "global/webarchives/days_range"
   }
 }
 

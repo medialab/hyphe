@@ -57,7 +57,7 @@
                     </h3>
                     <p>
                       <span
-                        ng-if=" lookups[url].status == 'issue'"
+                        ng-if="lookups[url].status == 'issue'"
                         md-colors="{'color': 'default-warn'}"
                       >
                         <md-tooltip md-direction="left">HTTP code: {{lookups[url].httpStatus}}</md-tooltip>
@@ -92,15 +92,8 @@
                   ng-model="newStartPagesURLs"
                   ng-change="validateNewStartPages()"
                   ng-press-enter="addStartPages()"
+                  aria-label="new startpages"
                 >
-                <div
-                  class="hint"
-                  ng-show="urlsToAdd.length > 1 || urlErrors.length"
-                  md-colors="{'color':(urlErrors.length)?('default-warn'):('default-primary')}"
-                >
-                  {{urlsToAdd.length}} unique new URL{{urlsToAdd.length | plural}} found<span ng-show="urlErrors.length"> and {{urlErrors.length}} error{{urlErrors.length | plural}}:
-                  <span ng-repeat="err in urlErrors track by $index">{{err}} </span>
-                </div>
                 <div
                   class="hint"
                   ng-show="urlsToAdd.length > 1 || urlErrors.length"
@@ -122,41 +115,54 @@
             </div>
 
             <!-- Diagnostic -->
-            <div ng-show="startpagesSummary.diagnostic.ready" style="padding: 8px">
-              <h3 class="md-title" md-colors="{'color':'default-primary'}">
-                <md-icon class="md-primary">done</md-icon>
-                READY TO CRAWL
-              </h3>
-              <p class="md-body-1" ng-show="startpagesSummary.diagnostic.issues">
-                <span md-colors="{'color':'default-primary'}">
-                  At least one page is valid, allowing the crawl to start successfully.
-                </span>
-                <br>
-                <span md-colors="{'color':'default-warn'}">
-                  A little warning, though.
-                </span>
-                <span>
-                  Some start pages have issues and cannot be crawled.
-                  It will not block the crawl but you may want to fix it.
-                </span>
-              </p>
+            <div style="padding: 8px">
+              <div ng-show="startpagesSummary.diagnostic.ready">
+                <h3 class="md-title" md-colors="{'color':'default-primary'}">
+                  <md-icon class="md-primary">done</md-icon>
+                  READY TO CRAWL
+                </h3>
+                <p class="md-body-1" ng-show="startpagesSummary.diagnostic.issues">
+                  <span md-colors="{'color':'default-primary'}">
+                    At least one page is valid, allowing the crawl to start successfully.
+                  </span>
+                  <br>
+                  <span md-colors="{'color':'default-warn'}">
+                    A little warning, though.
+                  </span>
+                  <span>
+                    Some start pages have issues and cannot be crawled.
+                    It will not block the crawl but you may want to fix it.
+                  </span>
+                </p>
+              </div>
+              <div ng-show="startpagesSummary.diagnostic.doomed">
+                <h3 class="md-title" md-colors="{'color':'default-warn'}">
+                  <md-icon class="md-warn">warning</md-icon>
+                  DOOMED CRAWL
+                </h3>
+                <p class="md-body-1">
+                  <span md-colors="{'color':'default-warn'}">
+                    This web entity has no valid start page. Hyphe should not be able to start crawling it.
+                  </span>
+                  <br/>
+                  <span>
+                    You can still try to launch it, though. Miracles happen.
+                  </span>
+                  <br/><br/>
+                  <span ng-show="!webentity.webarchives.option">
+                    If the page{{ startpages.length | plural }} did exist but disappeared from the web, you can enable "Web archives" in the "Advanced Crawl Options" tab to try and browse this specific entity in the past.
+                  </span>
+                </p>
+              </div>
+              <div ng-show="webentity.webarchives.option">
+                <p class="md-body-1">
+                  <span md-colors="{'color':'default-warn'}">
+                    Note that this crawl is planned to use "Web archives" but the startpage{{ startpages.length > 1 ? 's were' : ' was' }} checked on the live web, so the crawl might actually {{ startpagesSummary.diagnostic.ready ? 'fail' : 'work' }} depending on the webentity's changes over the past.</span>
+                  <br/><br/>
+                  <span>You can disable "Web archives" in the "Advanced Crawl Options" tab if you rather want to crawl this webentity on the live web.</span>
+                </p>
+              </div>
             </div>
-            <div ng-show="startpagesSummary.diagnostic.doomed" style="padding: 8px">
-              <h3 class="md-title" md-colors="{'color':'default-warn'}">
-                <md-icon class="md-warn">warning</md-icon>
-                DOOMED CRAWL
-              </h3>
-              <p class="md-body-1">
-                <span md-colors="{'color':'default-warn'}">
-                  This web entity has no valid start page. Hyphe will not be able to start crawling it.
-                </span>
-                <br>
-                <span>
-                  You can still try to launch it, though. Miracles happen.
-                </span>
-              </p>
-            </div>
-
           </div>
         </md-tab>
         <md-tab label="Check new start pages" ng-if="newStartPagesStack.length>0">
@@ -191,12 +197,84 @@
 
           </div>
         </md-tab>
+        <md-tab label="Advanced crawl options" ng-disabled="newStartPagesStack.length>0" md-on-select="initDatePicker()">
+          <div layout="column" md-colors="{background: 'default-background-50'}" class="crawl_advanced">
+            <span style="margin: 8px"><md-icon class="material-icons" role="img" aria-label="history">ads_click</md-icon> Crawl depth</span>
+            <div md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Set a specific crawl <span hyphe-glossary="depth"></span> for this web entity</small></label>
+              <md-select ng-model="webentity.crawlDepth" aria-label="number of clicks from the startpage">
+                <md-option ng-repeat="depth in depthRange" value="{{depth}}">Depth: {{depth}} click{{depth | plural}}</md-option>
+              </md-select>
+            </div>
+
+            <span style="margin: 8px"><md-icon class="material-icons" role="img" aria-label="history">history</md-icon> Web archives</span>
+            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Crawl this web entity in the past using web archives</small></label>
+              <div flex layout="row" style="justify-content: space-around;">
+                <md-radio-group ng-model="webentity.webarchives.option" ng-change="setArchivesMinMaxDate()" class="md-primary" aria-label="choice of web archive">
+                  <div ng-repeat="option in webarchives_options">
+                    <small>{{option.description}}</small>
+                    <md-radio-button value="{{option.id}}" class="md-primary">{{option.label}}</md-radio-button>
+                  </div>
+                </md-radio-group>
+                <div layout="column" ng-style="{'opacity': webentity.webarchives.option ? 1 : 0, 'width': '257px'}">
+                  <label><small>Date to try to approach:</small></label>
+                  <div style="display: flex; justify-content: space-between; flex-wrap: nowrap">
+                    <md-input-container style="margin: 0px; height: 28px; width: 60%; padding-bottom: 22px">
+                      <input id="datepicker" type="date" ng-model="datepicker_date" ng-change="setArchivesMinMaxDate()" aria-label="date to approach">
+                    </md-input-container>
+                    <small style="color: red; width: 55%" ng-show="date_error">{{ date_error }}</small>
+                  </div>
+
+                  <label><small>Delay to consider before and after the date</small></label>
+                  <div layout="row" style="display: flex; justify-content: flex-start">
+                    <md-input-container style="margin: 0px; height: 28px; width: 60%; text-align: center">
+                      <md-select ng-model="ed_webarchive_daysrange_choice" ng-change="setArchivesMinMaxDate()" aria-label="days to consider before and after the date">
+                        <md-option ng-repeat="(key, value) in webarchives_periods" value="{{ key }}">{{ value }}</md-option>
+                      </md-select>
+                    </md-input-container>
+                    <md-input-container ng-show="ed_webarchive_daysrange_choice === 'custom'" style="margin: 0px; height: 28px; width: 25%">
+                      <input type="number" min="1" max="10000" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right" aria-label="number of days before and after the date">
+                    </md-input-container>
+                    <span ng-show="ed_webarchive_daysrange_choice === 'custom'" style="padding-top: 5px">days</span>
+                  </div>
+
+                  <div style="text-align:center; margin-top: 20px;">
+                    <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <span style="margin: 8px"><span style="color:grey; filter: grayscale(100%);">🍪</span> Cookies</span>
+            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Paste your browser's cookies for this web entity to grant the crawler your authenticated access</small></label>
+              <md-input-container flex class="md-block">
+                <textarea
+                  id="add-cookies-{{webentity.id}}"
+                  ng-model="webentity.cookiesString"
+                  ng-change="validateCookiesString()"
+                  rows="2"
+                  max-rows="8"
+                  aria-label="cookies"
+                ></textarea>
+                <div
+                  ng-show="cookies_error"
+                  class="hint"
+                  md-colors="{'color': 'default-warn'}"
+                >
+                  WARNING: {{ cookiesError }}
+                </div>
+              </md-input-container>
+            </div>
+          </div>
+        </md-tab>
       </md-tabs>
     </md-dialog-content>
 
     <md-dialog-actions>
       <span flex></span>
-      <md-button ng-click="hide()" ng-if="checkStartpagesConflicts==0">
+      <md-button ng-click="hide()" ng-disabled="checkStartpagesConflicts>0 || cookies_error || date_error">
         Ok
       </md-button>
       <md-button ng-click="hide()" ng-if="checkStartpagesConflicts>0">

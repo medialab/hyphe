@@ -26,6 +26,8 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.crawlExisting = false
     $scope.retryConflicted = true
 
+    $scope.available_archives = store.get('available_archives')
+
     // Build the basic list of web entities
     var list
     api.downloadCorpusTLDs(function(){
@@ -394,9 +396,10 @@ angular.module('hyphe.definewebentitiesController', [])
 
       function cleanObj(obj){
         return {
-            webentity: obj.webentity
-            // ,meta: obj.meta
-          }
+           webentity: obj.webentity
+          ,webarchives: obj.webarchives
+          // ,meta: obj.meta
+        }
       }
       var list = $scope.createdList
         .map(cleanObj)
@@ -443,6 +446,21 @@ angular.module('hyphe.definewebentitiesController', [])
           return obj.url && utils.URL_validate(obj.url)
         })
 
+        // Identify urls prefixed from a web archive, rewrite them and set them as such
+        list = list.map(function(obj){
+          for (var i in $scope.available_archives) {
+            if ($scope.available_archives[i].url_prefix && obj.url.indexOf($scope.available_archives[i].url_prefix) == 0) {
+              obj.webarchives = {
+                option: $scope.available_archives[i].id,
+                date: obj.url.replace(/^http.*\/(\d{4})(\d\d)(\d\d)\d+\/http.*$/, "$1-$2-$3")
+              }
+              obj.url = obj.url.replace($scope.available_archives[i].url_prefix, "").replace(/^\/?\d+\/http/, "http")
+              break
+            }
+          }
+          return obj
+        })
+
         $scope.status = {message: 'Simulating Web Entities Creation Rules'}
         $scope.simulatingCreationRules = true
         api.getCreationRulesResult({
@@ -451,7 +469,7 @@ angular.module('hyphe.definewebentitiesController', [])
           $scope.simulatedPrefixIndex = simulatedPrefixIndex
           // Bootstrap the object and record in model
           $scope.list = list.map(bootstrapPrefixObject)
-          console.log(list, $scope.list)
+
           // Building an index of these objects to find them by id
           $scope.list.forEach(function(obj){
             $scope.list_byId[obj.id] = obj

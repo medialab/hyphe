@@ -5,8 +5,6 @@ from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.web.client import Agent, ProxyAgent, RedirectAgent, _HTTP11ClientFactory
 _HTTP11ClientFactory.noisy = False
 
-from scrapy.core.downloader.contextfactory import ScrapyClientContextFactory
-
 class ResolverAgent(RedirectAgent):
 
     def __init__(self, redirectLimit=5, connectTimeout=30, proxy=None):
@@ -18,7 +16,7 @@ class ResolverAgent(RedirectAgent):
                 raise TypeError("ResolverAgent's proxy argument need to be a dict with fields host and port")
             agent = ProxyAgent(endpoint)
         else:
-            agent = Agent(reactor, connectTimeout=connectTimeout, contextFactory=ScrapyClientContextFactory)
+            agent = Agent(reactor, connectTimeout=connectTimeout)
         RedirectAgent.__init__(self, agent, redirectLimit=redirectLimit)
 
     @defer.inlineCallbacks

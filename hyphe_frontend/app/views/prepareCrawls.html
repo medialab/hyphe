@@ -43,6 +43,7 @@
                       )
                     )
                 }"
+                layout="column"
                 class="pointable-grid-tile"
               >
                 <md-grid-tile-header class="md-grid-tile-header-hack">
@@ -122,6 +123,22 @@
                   <webentity-link ng-if="obj.webentity.id" corpus-id="corpusId" webentity-id="obj.webentity.id">
                 </div>
 
+                <!-- Advanced crawling settings -->
+                <md-grid-tile-footer class="md-grid-tile-footer-hack" layout="row" ng-hide="obj.status == 'error' || obj.status == 'scheduled'">
+                  <div ng-show="obj.webentity.crawlDepth && obj.webentity.crawlDepth !== crawlDepth">
+                    <md-tooltip md-direction="bottom">A specific depth of {{ obj.webentity.crawlDepth }} will be used for this crawl</md-tooltip>
+                    <md-icon class="material-icons" role="img" aria-label="history">ads_click</md-icon> 
+                    {{ obj.webentity.crawlDepth }}
+                  </div>
+                  <div ng-show="obj.webentity.webarchives && obj.webentity.webarchives.option">
+                    <md-tooltip md-direction="bottom">The crawl will browse the past using {{ obj.webentity.webarchives.option }} {{ obj.webentity.webarchives.days_range / 2 }} days before &amp; after {{ obj.webentity.webarchives.date }}</md-tooltip>
+                    <md-icon class="material-icons" role="img" aria-label="history">history</md-icon> 
+                  </div>
+                  <div ng-show="obj.webentity.cookiesString">
+                    <md-tooltip md-direction="bottom">A specific cookie will be used for this crawl</md-tooltip>
+                    <span style="color:grey; filter: grayscale(100%);">🍪</span>
+                  </div>
+                </md-grid-tile-footer>
               </md-grid-tile>
             </md-grid-list>
           </div>
@@ -132,7 +149,8 @@
             layout="column"
           >
             <div layout="row" layout-align="center center">
-              <md-select ng-model="$parent.crawlDepth">
+              <span><md-icon style="margin: 2px" class="material-icons" role="img" aria-label="history">ads_click</md-icon></span>
+              <md-select ng-model="$parent.crawlDepth" aria-label="number of clicks from the startpage">
                 <md-option ng-repeat="depth in depthRange" value="{{depth}}">Depth: {{depth}} click{{depth | plural}}</md-option>
               </md-select>
               <md-button class="md-raised" ng-class="{'md-primary':!statusesSummary.problems, 'md-warn':statusesSummary.problems}" ng-click="scheduleCrawls()">

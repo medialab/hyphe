@@ -21,8 +21,6 @@ DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 
 REDIRECT_ENABLED = False
 
-PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
-
 DOWNLOADER_MIDDLEWARES = {
     'hcicrawler.middlewares.ProxyMiddleware': 100,
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,

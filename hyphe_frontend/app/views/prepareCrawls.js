@@ -11,6 +11,8 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.crawlDepth = 1
     $scope.cautious = false
+    $scope.cookies = null
+    $scope.webarchives = {}
 
     $scope.scheduling = false
 
@@ -36,11 +38,11 @@ angular.module('hyphe.preparecrawlsController', [])
       }
     }
 
+    $scope.infinityRange = 50 * 365
 
     // Initialization
 
-    getSettingsFromCorpusOptions()
-    bootstrapList()
+    getSettings()
 
     // Lazy lookups
 
@@ -75,13 +77,19 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.scheduling = true
       var queriesBatcher = new QueriesBatcher()
       $scope.list.forEach(function (obj) {
+        if (obj.webentity.webarchives && (!obj.webentity.webarchives.days_range || obj.webentity.webarchives.days_range === 'infinity')) {
+          obj.webentity.webarchives.days_range = $scope.infinityRange / 2
+        }
         // Stack the query
         queriesBatcher.addQuery(
             api.crawl                             // Query call
             ,{                                    // Query settings
                 webentityId: obj.webentity.id
-                ,depth: $scope.crawlDepth
+                ,depth: obj.webentity.crawlDepth || $scope.crawlDepth
                 ,cautious: $scope.cautious
+                ,proxy: null
+                ,cookies_string: obj.webentity.cookiesString || null
+                ,webarchives: obj.webentity.webarchives || {}
               }
             ,function(data){                      // Success callback
                 obj_setStatus(obj, 'scheduled')
@@ -100,7 +108,7 @@ angular.module('hyphe.preparecrawlsController', [])
           )
       })
 
-      queriesBatcher.atEachFetch(function (list, pending, success, fail) {
+      queriesBatcher.atEachFetch(function(list, pending, success, fail) {
         $scope.status = {message: 'Scheduling...'}
       })
 
@@ -117,11 +125,18 @@ angular.module('hyphe.preparecrawlsController', [])
 
     // Functions
 
-    function getSettingsFromCorpusOptions(){
-      api.getCorpusOptions({
-        id: $scope.corpusId
-      }, function(options){
+    function getSettings(){
+      api.globalStatus({},
+        function(corpus_status){
+        var options = corpus_status.corpus.options
+        $scope.webarchives_options = corpus_status.hyphe.available_archives
+        $scope.webarchives = {
+          option: options.webarchives_option,
+          date: options.webarchives_option ? options.webarchives_date : (new Date()).toISOString().slice(0, 10),
+          days_range: options.webarchives_option ? options.webarchives_days_range : 'infinity'
+        }
         $scope.depthRange = Array.apply(0, Array(options.max_depth + 1)).map(function(a,i){return i})
+        bootstrapList()
       }, function(){
         $scope.status = {message: "Error while getting options", background: 'danger'}
       })
@@ -132,9 +147,12 @@ angular.module('hyphe.preparecrawlsController', [])
       , oldjob = store.get('webentity_old_crawljob')
 
       // Reuse oldjob's settings if set from previous crawl
+
       if (oldjob){
         $scope.crawlDepth = oldjob.crawl_arguments.max_depth
+        $scope.cookies = oldjob.crawl_arguments.cookies
         $scope.cautious = oldjob.crawl_arguments.phantom
+        $scope.webarchives = oldjob.crawl_arguments.webarchives
       }
       store.remove('webentity_old_crawljob')
       store.remove('webentities_toCrawl')
@@ -147,8 +165,9 @@ angular.module('hyphe.preparecrawlsController', [])
       // Clean and set exactly what we need
       list = list.map(function(obj, i){
         return {
-          id:i
+          id: i
           ,webentity: obj.webentity
+          ,webarchives: obj.webarchives
           ,status: 'loading'
         }
       })
@@ -198,6 +217,14 @@ angular.module('hyphe.preparecrawlsController', [])
                 if(we_list.length > 0){
                   obj_setStatus(obj, 'loaded')
                   obj.webentity = we_list[0]
+                  if ($scope.cookies) {
+                    obj.webentity.cookiesString = $scope.cookies
+                  }
+                  obj.webentity.webarchives = {}
+                  Object.assign(obj.webentity.webarchives, $scope.webarchives)
+                  if (obj.webarchives) {
+                    Object.assign(obj.webentity.webarchives, obj.webarchives)
+                  }
                   lazyLookups(obj.webentity.startpages, obj.webentity)
                 } else {
                   obj_setStatus(obj, 'error')
@@ -408,14 +435,18 @@ angular.module('hyphe.preparecrawlsController', [])
     /* Instanciate and open the Modal */
     function instanciateModal(obj, ev) {
 
+      obj.webentity.crawlDepth ||= $scope.crawlDepth+0
+
       $mdDialog.show({
         controller: webentityStartPagesDialogController,
         templateUrl: 'partials/webentitystartpagesmodal.html',
         parent: angular.element(document.body),
         targetEvent: ev,
-        clickOutsideToClose:true,
+        clickOutsideToClose: true,
         locals: {
           webentity: obj.webentity,
+          depthRange: $scope.depthRange,
+          webarchives_options: $scope.webarchives_options,
           lookups: $scope.lookups,
           lookupEngine: lookupEngine,
           // Updaters are used to propagate editions from modal to mother page
@@ -505,6 +536,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 ,function(httpStatus, extra){         // Success callback
                     
                     lookupEngine.notifySuccessful(lookups[urlObj.url], httpStatus, extra.location)
+                    urlObj.webentity.webarchives.option_used_for_startpages = urlObj.webentity.webarchives.option + ''
 
                   }
                 ,function(data, status, headers){     // Fail callback
@@ -632,15 +664,100 @@ angular.module('hyphe.preparecrawlsController', [])
 
 
 
-
-
     /***
     ****  DIALOG CONTROLLER
     ***/
-    function webentityStartPagesDialogController($scope, $mdDialog, webentity, lookups, lookupEngine, updaters) {
+    function webentityStartPagesDialogController($scope, $mdDialog, webentity, depthRange, webarchives_options, lookups, lookupEngine, updaters) {
 
       $scope.lookups = lookups
       $scope.webentity = webentity
+      $scope.depthRange = depthRange
+      $scope.cookies_error = ""
+      $scope.date_error = ""
+      $scope.webarchives_options = webarchives_options
+      $scope.datepicker_date = new Date(webentity.webarchives.date)
+
+      $scope.initDatePicker = function() {
+        var dp = document.getElementById('datepicker')
+        if (dp && (!dp.value || dp.value === "")) {
+          dp.value = webentity.webarchives.date
+          dp.parentNode.classList.add("md-input-has-value")
+        }
+      }
+
+      $scope.webarchives_periods = {
+        0: "Only that date",
+        1: "a day",
+        3: "3 days",
+        7: "a week",
+        14: "2 weeks",
+        30: "a month",
+        91: "3 months",
+        182: "6 months",
+        "custom": "Custom",
+        "infinity": "Whatever"
+      }
+  
+      $scope.setArchivesMinMaxDate = function() {
+        $scope.date_error = ""
+        if (!webentity.webarchives.option) {
+          return
+        }
+        $scope.initDatePicker()
+
+        if ($scope.ed_webarchive_daysrange_custom === undefined || $scope.ed_webarchive_daysrange_choice === undefined) {
+          if (webentity.webarchives.days_range === $scope.infinityRange || webentity.webarchives.days_range === 'infinity') {
+            $scope.ed_webarchive_daysrange_choice = 'infinity'
+            $scope.ed_webarchive_daysrange_custom = $scope.infinityRange;
+          } else {
+            $scope.ed_webarchive_daysrange_custom = Math.trunc(webentity.webarchives.days_range / 2);
+            if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf(webentity.webarchives.days_range) == -1) {
+              $scope.ed_webarchive_daysrange_choice = 'custom'
+            } else {
+              $scope.ed_webarchive_daysrange_choice = webentity.webarchives.days_range / 2
+            }
+          }
+        }
+
+        var chosen_option = $scope.webarchives_options.filter(function(o) { return o.id === webentity.webarchives.option})[0]
+        $scope.min_allowed_webarchives_date = new Date(chosen_option.min_date || "1995-01-01")
+        $scope.max_allowed_webarchives_date = new Date()
+
+        if ($scope.ed_webarchive_daysrange_choice === 'custom') {
+          webentity.webarchives.days_range = 2 * $scope.ed_webarchive_daysrange_custom
+          $scope.webarchives_days_range_display = webentity.webarchives.days_range + " days"
+        } else {
+          if ($scope.ed_webarchive_daysrange_choice === 'infinity') {
+            webentity.webarchives.days_range = $scope.infinityRange
+          } else {
+            webentity.webarchives.days_range = 2 * parseInt($scope.ed_webarchive_daysrange_choice)
+          }
+          $scope.webarchives_days_range_display = $scope.webarchives_periods[webentity.webarchives.days_range_choice]
+        }
+  
+        if (document.getElementById('datepicker')) {
+          webentity.webarchives.date = document.getElementById('datepicker').value
+        }
+        try {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(webentity.webarchives.date)) {
+            $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
+            return
+          }
+          var dat = new Date(webentity.webarchives.date)
+          if (dat < $scope.min_allowed_webarchives_date || dat > $scope.max_allowed_webarchives_date) {
+            $scope.date_error = "This web archive only ranges from " + $scope.min_allowed_webarchives_date.toISOString().slice(0, 10) + " to " + $scope.max_allowed_webarchives_date.toISOString().slice(0, 10)
+            return
+          }
+          dat.setDate(dat.getDate() - webentity.webarchives.days_range / 2)
+          $scope.webarchives_mindate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.min_allowed_webarchives_date : dat).toISOString().slice(0, 10)
+          dat.setDate(dat.getDate() + webentity.webarchives.days_range)
+          $scope.webarchives_maxdate = ($scope.ed_webarchive_daysrange_choice === 'infinity' ? $scope.max_allowed_webarchives_date : dat).toISOString().slice(0, 10)
+        } catch(e) {
+          $scope.date_error = "This is not a valid date, the format should be YYYY-MM-DD."
+        }
+      }
+      $scope.setArchivesMinMaxDate()
+
       $scope.startpagesSummary = {
           stage: 'loading'
         , percent: 0
@@ -661,6 +778,21 @@ angular.module('hyphe.preparecrawlsController', [])
       $scope.hide = function() {
         $mdDialog.hide();
       }
+
+      // Unused for now but could be used by calling recheckStartPages via on-md-select on the Start pages md-tab
+      /*
+      $scope.recheckStartPages = function(){
+        if ($scope.startpagesSummary.stage === 'loading' || webentity.webarchives.option_used_for_startpages === webentity.webarchives.option) {
+          return
+        }
+        var sp_index = {}
+        for (var idx in $scope.startpages) {
+          lookups[$scope.startpages[idx]] = undefined
+          sp_index[$scope.startpages[idx]] = webentity
+        }
+        lookupEngine.doLookups(lookups, sp_index)
+      }
+      */
 
       $scope.validateNewStartPages = function(){
         $scope.urlsToAdd = []
@@ -697,7 +829,7 @@ angular.module('hyphe.preparecrawlsController', [])
       }
 
       $scope.removeStartPage = function (url) {
-        removeStartPageAndUpdate($scope.webentity, url)
+        removeStartPageAndUpdate(webentity, url)
       }
 
       $scope.resolveCase = resolveCase
@@ -711,7 +843,7 @@ angular.module('hyphe.preparecrawlsController', [])
       // Init
       var spIndex = {}
       $scope.startpages.forEach(function(url){
-        spIndex[url] = $scope.webentity
+        spIndex[url] = webentity
       })
       lookupEngine.doLookups($scope.lookups, spIndex)
 
@@ -919,6 +1051,14 @@ angular.module('hyphe.preparecrawlsController', [])
           }
         } else {
           console.error('Check new start page resolution feedback is improper', feedback)
+        }
+      }
+
+      $scope.validateCookiesString = function(){
+        if (! /^(\s*\w+\s*=\s*[^;]+)(;\s*\w+\s*=\s*[^;]+)*;?$/.test($scope.webentity.cookiesString) ) {
+          $scope.cookies_error = "This is not a valid cookies string (key1=value1; key2=value2; ...)."
+        } else {
+          $scope.cookies_error = ""
         }
       }
 

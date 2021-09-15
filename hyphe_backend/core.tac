@@ -31,6 +31,7 @@ from hyphe_backend.lib import urllru
 from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.config_hci import test_and_make_dir, check_conf_sanity, clean_missing_corpus_options, CORPUS_CONF_SCHEMA, DEFAULT_CORPUS, TEST_CORPUS
 from hyphe_backend.lib.creationrules import getPreset as getWECR
+from hyphe_backend.lib.webarchives import ARCHIVES_OPTIONS
 from hyphe_backend.lib.user_agents import get_random_user_agent
 from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jobsqueue import JobsQueue
@@ -171,6 +172,12 @@ class Core(customJSONRPC):
         if 'phantom' in options and options['phantom'] != self.corpora[corpus]['options']['phantom']:
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
+      # TODO? Restrict setting archives only at start?
+        for k in ["option", "date", "days_range"]:
+            key = "webarchives_" + k
+            if key in options and options[key] != self.corpora[corpus]['options'][key]:
+                redeploy = True
+                self.corpora[corpus]["options"][key] = options.pop(key)
         oldkeep = self.corpora[corpus]["options"]["keepalive"]
         self.corpora[corpus]["options"].update(options)
         yield self.update_corpus(corpus)
@@ -665,12 +672,14 @@ class Core(customJSONRPC):
 
     def jsonrpc_get_status(self, corpus=DEFAULT_CORPUS):
         """Returns global metadata on Hyphe's status and specific information on a `corpus`."""
+        available_archives = [dict(v, id=k) for k, v in ARCHIVES_OPTIONS.items() if not k or k.lower() in [x.lower() for x in config["webarchives"]["options"]]]
         status = {
           'hyphe': {
             'corpus_running': self.traphs.total_running(),
             'crawls_running': sum([c['crawls_running'] for c in self.corpora.values() if "crawls_running" in c]),
             'crawls_pending': sum([c['crawls_pending'] for c in self.corpora.values() if "crawls_pending" in c]),
-            'max_depth': config["mongo-scrapy"]["max_depth"]
+            'max_depth': config["mongo-scrapy"]["max_depth"],
+            'available_archives': available_archives
           },
           'corpus': {
           }
@@ -770,6 +779,8 @@ class Core(customJSONRPC):
               "nb_pages",
               "nb_links",
               "crawl_arguments.max_depth",
+              "crawl_arguments.cookies",
+              "crawl_arguments.webarchives",
               "crawling_status",
               "indexing_status",
               "created_at",
@@ -891,8 +902,8 @@ class Core(customJSONRPC):
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status="IN", phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status="IN", proxy=None, cookies_string=None, phantom_timeouts={}, webarchives={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
@@ -905,12 +916,12 @@ class Core(customJSONRPC):
         startmode = "startpages"
         if not WE["startpages"]:
             startmode = "default"
-        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, phantom_timeouts=phantom_timeouts, corpus=corpus)
+        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, proxy=proxy, cookies_string=cookies_string, phantom_timeouts=phantom_timeouts, webarchives=webarchives, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", cookies_string=None, phantom_timeouts={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", proxy=None, cookies_string=None, phantom_timeouts={}, webarchives={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -964,7 +975,19 @@ class Core(customJSONRPC):
 
         if "CORE" in WE["tags"] and "recrawlNeeded" in WE["tags"]["CORE"]:
             yield self.store.jsonrpc_rm_webentity_tag_value(webentity_id, "CORE", "recrawlNeeded", "true", corpus=corpus)
-        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, cookies_string=cookies_string, corpus=corpus, _autostarts=autostarts)
+        if WE["crawled"]:
+            oldsources = WE.get("tags", {}).get("USER", {}).get("Crawl Source", [""])[0]
+            sources = set((oldsources or "Live Web").split(" + "))
+            sources.add(webarchives.get("option", "Live Web") or "Live Web")
+            sources = " + ".join(sources)
+            if not oldsources and sources != "Live Web":
+                yield self.store.jsonrpc_add_webentity_tag_value(webentity_id, "USER", "Crawl Source", sources, corpus=corpus, _automatic=True)
+            elif sources != oldsources:
+                yield self.store.jsonrpc_edit_webentity_tag_value(webentity_id, "USER", "Crawl Source", oldsources, sources, corpus=corpus, _automatic=True)
+        elif webarchives.get("option"):
+            yield self.store.jsonrpc_add_webentity_tag_value(webentity_id, "USER", "Crawl Source", webarchives["option"], corpus=corpus, _automatic=True)
+
+        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, proxy=proxy, cookies_string=cookies_string, webarchives=webarchives, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
     @inlineCallbacks
@@ -1056,7 +1079,9 @@ class Core(customJSONRPC):
             response.code = 200
         elif url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders.get('server', [""])[0]:
             response.code = 301
-        elif not (deadline and deadline < time.time()) and \
+        # BNF Archives return 301 when using HEAD queries so do not consider it as error
+        elif use_proxy and not ("archivesinternet.bnf.fr" in proxy_host and 300 <= response.code < 400) and \
+          not (deadline and deadline < time.time()) and \
           not (url.startswith("https") and response.code/100 == 4) and \
           (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
           response.code not in [400, 404, 502]:
@@ -1162,8 +1187,8 @@ class Crawler(customJSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], cookies_string=None, corpus=DEFAULT_CORPUS, _autostarts=[]):
-        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- a known `cookies_string` with auth rights to a protected website."""
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], proxy=None, cookies_string=None, webarchives={}, corpus=DEFAULT_CORPUS, _autostarts=[]):
+        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- an HTTP `proxy` specified as "domain_or_IP:port"\n- a known `cookies_string` with auth rights to a protected website.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not phantom_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['phantom']['whitelist_domains']):
@@ -1178,6 +1203,18 @@ class Crawler(customJSONRPC):
             returnD(format_error('No crawl with a bigger depth than %d is allowed on this Hyphe instance.' % self.corpora[corpus]["options"]['max_depth']))
         if not starts:
             returnD(format_error('No startpage defined for crawling WebEntity %s.' % webentity_id))
+
+        if not proxy and self.corpora[corpus]["options"]["proxy"]["host"]:
+            proxy = "%s:%s" % (self.corpora[corpus]["options"]["proxy"]["host"], self.corpora[corpus]["options"]["proxy"]["port"])
+
+        if not webarchives and self.corpora[corpus]["options"]["webarchives_option"]:
+            for key in ["option", "date", "days_range"]:
+                webarchives[key] = self.corpora[corpus]["options"]["webarchives_%s" % key]
+
+        # lighten queries on web archives since all crawls rely on the same server
+        if "option" in webarchives and webarchives["option"]:
+            download_delay = 2
+
         # preparation of the request to scrapyd
         args = {
           'project': corpus_project(corpus),
@@ -1190,9 +1227,12 @@ class Crawler(customJSONRPC):
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
+          'proxy': proxy,
           'user_agent': get_random_user_agent(),
-          'cookies': cookies_string
+          'cookies': cookies_string,
+          'webarchives': webarchives
         }
+
         if phantom_crawl:
             phantom_timeouts.update(self.corpora[corpus]["options"]["phantom"])
             for t in ["", "ajax_", "idle_"]:
@@ -2789,7 +2829,7 @@ class Memory_Structure(customJSONRPC):
   # PAGES\, LINKS AND NETWORKS
 
     # TODO HANDLE PAGES EXTRA FIELDS
-    def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False):
+    def format_page(self, page, linked=False, data=None, include_metas=False, include_body=False, body_as_plain_text=False):
         res = {
             'lru': page['lru'],
             'crawled': page.get('crawled', None)
@@ -2812,13 +2852,23 @@ class Memory_Structure(customJSONRPC):
             res['size'] = data['size']
             res['encoding'] = data.get('encoding')
             res['error'] = data.get('error')
+            res['archive_url'] = data.get('archive_url')
+            res['archive_date_requested'] = data.get('archive_date_requested')
+            res['archive_date_obtained'] = data.get('archive_date_obtained')
 
         if include_body and 'body' in data:
-            res['body'] = unicode(base64.b64encode(data['body']))
+            try:
+                if body_as_plain_text:
+                    res['body'] = data['body'].decode('zip')
+                else:
+                    res['body'] = unicode(base64.b64encode(data['body']))
+            except:
+                logger.msg("Could not decode/encode zipped body of page %s from mongo: %s" % (res['url'], data['body']), system="WARNING - %s" % corpus)
+                res['body'] = ""
 
         return res
 
-    def format_pages(self, pages, linked=False, data=None, include_metas=False, include_body=False):
+    def format_pages(self, pages, linked=False, data=None, include_metas=False, include_body=False, body_as_plain_text=False):
         index = None
         if data is not None:
             index = {}
@@ -2828,7 +2878,7 @@ class Memory_Structure(customJSONRPC):
         if is_error(pages):
             return pages
 
-        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body) for page in pages]
+        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body, body_as_plain_text=body_as_plain_text) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -2858,8 +2908,8 @@ class Memory_Structure(customJSONRPC):
         returnD(format_result(self.format_pages(pages["result"])))
 
     @inlineCallbacks
-    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_metas=False, include_page_body=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true")."""
+    def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_metas=False, include_page_body=False, body_as_plain_text=False, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true"); setting body_as_plain_text to "true" decodes and unzip these to return them as plain text."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if include_page_body and not config["mongo-scrapy"]["store_crawled_html_content"]:
@@ -2909,12 +2959,12 @@ class Memory_Structure(customJSONRPC):
 
         page_data = None
 
-        if include_page_metas or include_page_body:
-            page_data = yield self.db.get_pages(corpus, [urllru.lru_to_url(p['lru']) for p in pages['pages']], include_metas=include_page_metas, include_body=include_page_body)
+        if pages['pages'] and include_page_metas or include_page_body:
+            page_data = yield self.db.get_pages(corpus, [p['lru'] for p in pages['pages']], include_metas=include_page_metas, include_body=include_page_body)
 
         returnD(format_result({
             'token': token,
-            'pages': self.format_pages(pages['pages'], data=page_data, include_metas=include_page_metas, include_body=include_page_body)
+            'pages': self.format_pages(pages['pages'], data=page_data, include_metas=include_page_metas, include_body=include_page_body, body_as_plain_text=body_as_plain_text)
         }))
 
     @inlineCallbacks

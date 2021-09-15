@@ -2,8 +2,8 @@
 
 angular.module('hyphe.importurlsController', [])
 
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus', '$timeout'
-  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus, $timeout) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus', '$timeout', 'api'
+  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus, $timeout, api) {
     $scope.currentPage = 'importurls'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
@@ -38,6 +38,11 @@ angular.module('hyphe.importurlsController', [])
         // Make the text area droppable
         droppableTextArea(document.getElementById("droppable-text-area"), $scope, $scope.readFile)
       }, 10)
+    })
+
+    api.globalStatus({}, function(status){
+      $scope.available_archives = status.hyphe.available_archives
+      store.set('available_archives', status.hyphe.available_archives)
     })
 
     function updatePreview() {
