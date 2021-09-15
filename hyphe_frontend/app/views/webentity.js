@@ -169,7 +169,7 @@ angular.module('hyphe.webentityController', [])
       } else if (!$scope.pagesToken) {
         $scope.status = {message: 'Loading pages 0 %', progress: 0}
       }
-      $scope.webentity.startpages_lrus = $scope.webentity.startpages.map(utils.URL_to_LRU)
+      $scope.webentity.startpages_lrus = ($scope.webentity.startpages || []).map(utils.URL_to_LRU)
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
           ,includePageMetas: true
@@ -452,7 +452,7 @@ angular.module('hyphe.webentityController', [])
             $scope.tagCategories[tagCat] = $scope.webentity.tags.USER[tagCat].slice(0)
           }
 
-          $scope.pages = $scope.webentity.startpages.sort(function(a, b){
+          $scope.pages = ($scope.webentity.startpages || []).sort(function(a, b){
             return a.localeCompare(b)
           }).map(function(p){
             return {

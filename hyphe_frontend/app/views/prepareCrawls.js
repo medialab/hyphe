@@ -403,7 +403,7 @@ angular.module('hyphe.preparecrawlsController', [])
     // Web entity modal
     function openWebentityModal(obj, ev){
 
-      if (obj.webentity.startpages.length == 0) {
+      if ((obj.webentity.startpages || []).length == 0) {
 
         getStartPagesSuggestions(obj.webentity, ev)
 
