@@ -31,6 +31,8 @@ MAX_RESPONSE_SIZE = 5242880 # 5Mb
 
 DUPEFILTER_CLASS = 'hcicrawler.middlewares.CustomDupeFilter'
 
+ROBOTSTXT_OBEY = {{obey_robots}}
+
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}
 MONGO_DB = '{{db_name}}_{{project}}'

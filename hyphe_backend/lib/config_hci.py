@@ -43,6 +43,9 @@ def load_config():
         if 'store_crawled_html_content' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['store_crawled_html_content'] = True
 
+        if 'obey_robots' not in conf['mongo-scrapy']:
+            conf['mongo-scrapy']['obey_robots'] = True
+
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
         conf["defaultCreationRule"] = "domain"
@@ -99,7 +102,8 @@ GLOBAL_CONF_SCHEMA = {
     "str_fields": ["host", "proxy_host", "db_name"],
     "extra_fields": {
       "download_delay": float,
-      "store_crawled_html_content": bool
+      "store_crawled_html_content": bool,
+      "obey_robots": bool
     }
   }, "traph": {
     "type": dict,
