@@ -152,6 +152,10 @@ CORPUS_CONF_SCHEMA = {
     "default": "global/mongo-scrapy/max_depth",
     "max": "global/mongo-scrapy/max_depth"
   },
+  "obey_robots": {
+    "type": bool,
+    "default": "global/mongo-scrapy/obey_robots"
+  },
   "defaultStartpagesMode": {
     "type": validateStartpagesMode,
     "default": "global/defaultStartpagesMode"

@@ -44,6 +44,8 @@ if corpus_conf:
     if "webarchives" in corpus_conf and corpus_conf["webarchives"].get("option", None):
         config["mongo-scrapy"]["max_simul_requests"] = 3
         config["mongo-scrapy"]["max_simul_requests_per_host"] = 1
+    if "obey_robots" in corpus_conf:
+        config["mongo-scrapy"]["obey_robots"] = corpus_conf["obey_robots"]
 else:
     print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
 # Copy Hyphe libraries from HCI lib/
