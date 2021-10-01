@@ -41,7 +41,7 @@ def load_config():
           'port': conf['mongo-scrapy']['proxy_port']
         }
         if 'store_crawled_html_content' not in conf['mongo-scrapy']:
-            conf['mongo-scrapy']['store_crawled_html_content'] = True
+            conf['mongo-scrapy']['store_crawled_html_content'] = False
 
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
