@@ -44,7 +44,7 @@ def load_config():
             conf['mongo-scrapy']['store_crawled_html_content'] = False
 
         if 'obey_robots' not in conf['mongo-scrapy']:
-            conf['mongo-scrapy']['obey_robots'] = True
+            conf['mongo-scrapy']['obey_robots'] = False
 
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:

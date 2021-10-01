@@ -11,7 +11,7 @@
     "store_crawled_html_content": false,
     "max_simul_requests": 12,
     "max_simul_requests_per_host": 1,
-    "obey_robots": true
+    "obey_robots": false
   },
   "traph": {
     "keepalive": 1800,
