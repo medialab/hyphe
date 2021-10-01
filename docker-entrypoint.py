@@ -45,7 +45,7 @@ if "HYPHE_DOWNLOAD_DELAY"       in environ: setConfig("download_delay", float(en
 if "HYPHE_STORE_CRAWLED_HTML"   in environ: setConfig("store_crawled_html_content", strToBool(environ["HYPHE_STORE_CRAWLED_HTML"]),configdata,"mongo-scrapy")
 if "HYPHE_MAX_SIM_REQ"          in environ: setConfig("max_simul_requests", int(environ["HYPHE_MAX_SIM_REQ"]),configdata,"mongo-scrapy")
 if "HYPHE_HOST_MAX_SIM_REQ"     in environ: setConfig("max_simul_requests_per_host", int(environ["HYPHE_HOST_MAX_SIM_REQ"]),configdata,"mongo-scrapy")
-if "OBEY_ROBOTS"                in environ: setConfig("obey_robots", strToBool(environ["OBEY_ROBOTS"]),configdata,"mongo-scrapy")
+if "HYPHE_OBEY_ROBOTS"          in environ: setConfig("obey_robots", strToBool(environ["HYPHE_OBEY_ROBOTS"]),configdata,"mongo-scrapy")
 
 if "HYPHE_TRAPH_KEEPALIVE"      in environ: setConfig("keepalive", int(environ["HYPHE_TRAPH_KEEPALIVE"]),configdata,"traph")
 if "HYPHE_TRAPH_DATAPATH"       in environ: setConfig("data_path", environ["HYPHE_TRAPH_DATAPATH"],configdata,"traph")
