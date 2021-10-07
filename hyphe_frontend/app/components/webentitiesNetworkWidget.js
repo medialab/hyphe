@@ -633,6 +633,11 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           // Make the graph global for console tinkering
           window.g = g
 
+          if (g.size < 100) $scope.nodeSizeBaseRatio = 4
+          else if (g.size < 500) $scope.nodeSizeBaseRatio = 3
+          else if (g.size < 1000) $scope.nodeSizeBaseRatio = 2
+          else $scope.nodeSizeBaseRatio = 1
+
           $scope.network = g
 
           updateNetworkAppearance()

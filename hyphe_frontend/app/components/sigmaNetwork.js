@@ -86,7 +86,11 @@ angular.module('hyphe.sigmaNetworkComponent', [])
             var container = document.getElementById('sigma-div')
             if (!container || !$scope.network.size) return
 
-            renderer = new Sigma.WebGLRenderer($scope.network, container)
+            renderer = new Sigma.Sigma($scope.network, container, {
+              labelRenderedSizeThreshold: 5,
+              labelDensity: 0.1,
+              labelGridCellSize: 150
+            })
 
             $scope.zoomIn = function(){
               var camera = renderer.getCamera()
