@@ -1661,12 +1661,12 @@ class Memory_Structure(customJSONRPC):
         try:
             if array_behavior:
                 if array_key:
-                    tmparr = WE.get(field_name, {})
+                    tmparr = WE.get(field_name, {}) or {}
                     if array_namespace:
                         tmparr = tmparr[array_namespace] if array_namespace in tmparr else {}
                     arr = tmparr[array_key] if array_key in tmparr else []
                 else:
-                    arr = WE.get(field_name, [])
+                    arr = WE.get(field_name, []) or []
                 values = value if isinstance(value, list) else [value]
                 if array_behavior == "push":
                     for v in arr:
@@ -1686,7 +1686,7 @@ class Memory_Structure(customJSONRPC):
                     else:
                         tmparr[array_key] = arr
                     if array_namespace:
-                        tmparr2 = WE.get(field_name, {})
+                        tmparr2 = WE.get(field_name, {}) or {}
                         if not tmparr and array_namespace in tmparr2:
                             del(tmparr2[array_namespace])
                         else:
@@ -2104,7 +2104,9 @@ class Memory_Structure(customJSONRPC):
                 elif 300 <= p["status"] < 400 and links:
                     goodautostarts.add(urllru.lru_to_url(links[0]))
         if job['webentity_id']:
-            yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], list(goodautostarts), corpus=corpus, _automatic=True)
+            res = yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], list(goodautostarts), corpus=corpus, _automatic=True)
+            if is_error(res):
+                print(res)
         logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
 

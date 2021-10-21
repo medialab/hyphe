@@ -212,6 +212,8 @@ class MongoDB(object):
                     pass
             else:
                 name = prefixes[0]
+        if not startpages:
+            startpages = []
         return {
           "_id": weid,
           "prefixes": prefixes,

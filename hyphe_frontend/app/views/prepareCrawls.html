@@ -73,7 +73,7 @@
 
                 <!-- Loaded : No start page -->
                 <div
-                  ng-if="obj.status == 'loaded' && obj.webentity.startpages.length == 0"
+                  ng-if="obj.status == 'loaded' && (!obj.webentity.startpages || obj.webentity.startpages.length == 0)"
                   layout="column"
                   layout-align="center center"
                 >
