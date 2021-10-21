@@ -886,6 +886,8 @@ class Core(customJSONRPC):
         uncategorized = list(set(s for st in starts.values() for s in st if s))
         if save_startpages:
             res = yield self.store.jsonrpc_add_webentity_startpages(WE["_id"], uncategorized, corpus=corpus)
+            if is_error(res):
+                logger.msg("WARNING: %s" % res['message'])
         if not categories:
             returnD(uncategorized)
         returnD(starts)
@@ -2106,7 +2108,7 @@ class Memory_Structure(customJSONRPC):
         if job['webentity_id']:
             res = yield self.jsonrpc_add_webentity_startpages(job['webentity_id'], list(goodautostarts), corpus=corpus, _automatic=True)
             if is_error(res):
-                print(res)
+                logger.msg("WARNING: %s" % res['message'])
         logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
 
