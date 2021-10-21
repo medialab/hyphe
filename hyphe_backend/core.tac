@@ -860,7 +860,7 @@ class Core(customJSONRPC):
 
     re_linkedpages = re.compile(r'pages-(\d+)$')
     @inlineCallbacks
-    def _get_suggested_startpages(self, WE, startmode, corpus, categories=False):
+    def _get_suggested_startpages(self, WE, startmode, corpus, categories=False, save_startpages=False):
         if type(startmode) != list and startmode.lower() == "default":
             startmode = self.corpora[corpus]["options"]["defaultStartpagesMode"]
         if type(startmode) != list:
@@ -883,9 +883,12 @@ class Core(customJSONRPC):
                 starts[startrule] = [WE["homepage"]]
             else:
                 returnD(format_error('ERROR: startmode argument must be either "default" or one or many of "startpages", "pages-<N>" with <N> an int or "prefixes"'))
-        if categories:
-            returnD(starts)
-        returnD(list(set(s for st in starts.values() for s in st if s)))
+        uncategorized = list(set(s for st in starts.values() for s in st if s))
+        if save_startpages:
+            res = yield self.store.jsonrpc_add_webentity_startpages(WE["_id"], uncategorized, corpus=corpus)
+        if not categories:
+            returnD(uncategorized)
+        returnD(starts)
 
     @inlineCallbacks
     def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, save_startpages=False, corpus=DEFAULT_CORPUS):
@@ -895,10 +898,7 @@ class Core(customJSONRPC):
         WE = yield self.db.get_WE(corpus, webentity_id)
         if not WE:
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
-        startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories)
-        if save_startpages:
-            sp_todo = list(set(s for st in startpages.values() for s in st)) if categories else startpages
-            yield self.store.jsonrpc_add_webentity_startpages(webentity_id, sp_todo, corpus=corpus)
+        startpages = yield self._get_suggested_startpages(WE, startmode, corpus, categories=categories, save_startpages=save_startpages)
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
@@ -914,13 +914,15 @@ class Core(customJSONRPC):
         if not WE:
             returnD(format_error("No WebEntity with id %s found" % webentity_id))
         startmode = "startpages"
+        save_startpages = False
         if not WE["startpages"]:
             startmode = "default"
-        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, proxy=proxy, cookies_string=cookies_string, phantom_timeouts=phantom_timeouts, webarchives=webarchives, corpus=corpus)
+            save_startpages = True
+        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, proxy=proxy, cookies_string=cookies_string, phantom_timeouts=phantom_timeouts, webarchives=webarchives, save_startpages=save_startpages, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", proxy=None, cookies_string=None, phantom_timeouts={}, webarchives={}, corpus=DEFAULT_CORPUS):
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", proxy=None, cookies_string=None, phantom_timeouts={}, webarchives={}, save_startpages=False, corpus=DEFAULT_CORPUS):
         """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
@@ -948,7 +950,7 @@ class Core(customJSONRPC):
                 returnD(format_error("No WebEntity with id %s found" % webentity_id))
 
         # Handle different startpages strategies
-        starts = yield self._get_suggested_startpages(WE, startmode, corpus)
+        starts = yield self._get_suggested_startpages(WE, startmode, corpus, save_startpages=save_startpages)
         if is_error(starts):
             returnD(starts)
         if not starts:

@@ -305,6 +305,7 @@ The API will always answer as such:
   + _`cookies_string`_ (optional, default: `null`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
   + _`webarchives`_ (optional, default: `{}`)
+  + _`save_startpages`_ (optional, default: `false`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.

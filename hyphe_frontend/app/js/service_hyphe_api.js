@@ -478,8 +478,10 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.status || 'IN'
             ,settings.startmode || 'default'
             ,settings.proxy || null
+            ,settings.cookies || null
             ,{}                                 // phantom timeouts
             ,settings.webarchives || {}
+            ,settings.saveStartpages || false
             ,corpus.getId()
           ]}
       )
