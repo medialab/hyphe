@@ -60,7 +60,8 @@ class OutputStore(MongoOutput):
 
 class ResolveLinks(object):
 
-    def __init__(self, proxy=None):
+    def __init__(self, proxy=None, user_agent=None):
+        self.user_agent = user_agent
         self.proxy = None
         if proxy:
             proxy_host, proxy_port = proxy.split(":", 1)
@@ -71,10 +72,9 @@ class ResolveLinks(object):
 
     @classmethod
     def from_crawler(cls, crawler):
-        proxy = crawler.spider.proxy
-        if proxy:
-            return cls(proxy)
-        return cls()
+        user_agent = crawler.spider.user_agent or None
+        proxy = crawler.spider.proxy or None
+        return cls(proxy=proxy, user_agent=user_agent)
 
     @inlineCallbacks
     def process_item(self, item, spider):
@@ -85,7 +85,7 @@ class ResolveLinks(object):
                     lru = spider.resolved_links[url]
                 else:
                     try:
-                        agent = ResolverAgent(proxy=self.proxy)
+                        agent = ResolverAgent(proxy=self.proxy, user_agent=self.user_agent)
                         rurl = yield agent.resolve(url)
                         if rurl == url and has_prefix(lru, spider.discover_prefixes):
                             rurl = yield agent.resolve(url)

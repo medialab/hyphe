@@ -3,12 +3,14 @@
 from twisted.internet import reactor, defer
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from twisted.web.client import Agent, ProxyAgent, RedirectAgent, _HTTP11ClientFactory
+from twisted.web.http_headers import Headers
 _HTTP11ClientFactory.noisy = False
 
 class ResolverAgent(RedirectAgent):
 
-    def __init__(self, redirectLimit=5, connectTimeout=30, proxy=None):
+    def __init__(self, redirectLimit=5, connectTimeout=30, proxy=None, user_agent=None):
         self.lastURI = None
+        self.user_agent = user_agent
         if proxy:
             try:
                 endpoint = TCP4ClientEndpoint(reactor, proxy["host"], proxy["port"], timeout=connectTimeout)
@@ -26,6 +28,12 @@ class ResolverAgent(RedirectAgent):
         defer.returnValue(self.lastURI)
 
     def _handleRedirect(self, response, method, uri, headers, redirectCount):
+        if not headers:
+            headers = Headers({'user-agent': [self.user_agent]})
+        else:
+            if headers.hasHeader('user-agent'):
+                headers.removeHeader('user-agent')
+            headers.addRawHeader('user-agent', self.user_agent)
 
         if redirectCount >= self._redirectLimit:
             # Infinite redirection detected, keep lastURI
