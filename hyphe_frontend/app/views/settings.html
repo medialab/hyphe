@@ -89,6 +89,12 @@
                     <input type="number" min="0" max="{{maxmax_depth}}" ng-model="ed_max_depth" aria-label="editMaxDepth">
                   </md-input-container>
 
+                  <dt>Should the crawler respect robots.txt rules if any?</dt>
+                  <md-radio-group ng-model="ed_obey_robots" class="md-primary">
+                    <md-radio-button value="1" class="md-primary">yes</md-radio-button>
+                    <md-radio-button value="0" class="md-primary">no</md-radio-button>
+                  </md-radio-group>
+
                   <div layout = "column">
                     <dt style="margin-bottom: 18px">What StartPages to use by default when crawling a new Web Entity?</dt>
                     <div flex="50">
@@ -111,6 +117,7 @@
                       </md-input-container> most cited known pages
                     </div>
                   </div>
+
                 </dl>
               </md-content>
             </div>
@@ -276,6 +283,9 @@
 
                 <dt>Maximum Depth</dt>
                 <dd>{{options.max_depth}}</dd>
+
+                <dt>Should the crawler respect robots.txt rules if any?</dt>
+                <dd>{{options.obey_robots ? 'yes' : 'no'}}</dd>
 
                 <dt>What Startpages to use by default when crawling a new Web Entity?</dt>
                 <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>

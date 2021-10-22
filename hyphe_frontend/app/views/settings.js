@@ -157,6 +157,7 @@ angular.module('hyphe.settingsController', [])
 
         var modifiedOptions = {
           "max_depth": $scope.ed_max_depth,
+          "obey_robots": !!(parseInt($scope.ed_obey_robots)),
           "defaultStartpagesMode": $scope.ed_defaultStartpagesMode,
           "proxy": {
             "port": $scope.ed_proxy_port,
@@ -197,6 +198,7 @@ angular.module('hyphe.settingsController', [])
 
     $scope.setEditableOptions = function() {
       $scope.ed_max_depth             = $scope.options.max_depth
+      $scope.ed_obey_robots           = !!$scope.options.obey_robots
       $scope.ed_proxy_host            = $scope.options.proxy.host + ""
       $scope.ed_proxy_port            = $scope.options.proxy.port + 0
       $scope.ed_timeout               = $scope.options.phantom.timeout + 0

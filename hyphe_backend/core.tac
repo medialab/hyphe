@@ -171,7 +171,7 @@ class Core(customJSONRPC):
             self.corpora[corpus]['options']['proxy'].update(options.pop("proxy"))
         if "obey_robots" in options and options["obey_robots"] != self.corpora[corpus]["options"]["obey_robots"]:
             redeploy = True
-            self.corpora[corpus]['options']['obey_robots'].update(options.pop("obey_robots"))
+            self.corpora[corpus]['options']['obey_robots'] = options.pop("obey_robots")
         if 'phantom' in options and options['phantom'] != self.corpora[corpus]['options']['phantom']:
             redeploy = True
             self.corpora[corpus]["options"]["phantom"].update(options.pop("phantom"))
