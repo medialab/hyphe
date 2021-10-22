@@ -70,6 +70,7 @@ try:
     config['mongo-scrapy']['project'] = project.lower()
     config['mongo-scrapy']['log_level'] = 'DEBUG' if config['DEBUG'] > 1 else 'INFO'
     config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"])
+    config["mongo-scrapy"]["obey_robots"] = os.environ.get('HYPHE_OBEY_ROBOTS', config["mongo-scrapy"].get("obey_robots", False))
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
