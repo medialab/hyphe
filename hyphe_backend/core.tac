@@ -1129,8 +1129,8 @@ class Crawler(customJSONRPC):
     @inlineCallbacks
     def jsonrpc_deploy_crawler(self, corpus=DEFAULT_CORPUS, _quiet=False, _tlds=None):
         """Prepares and deploys on the ScrapyD server a spider (crawler) for a `corpus`."""
-        if not self.parent.corpus_ready(corpus):
-            returnD(self.parent.corpus_error(corpus))
+        if corpus not in self.corpora:
+            returnD(format_result("Please start or create this corpus first"))
         # Write corpus TLDs for use in scrapyd egg
         with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
             print >> tlds_file, "TLDS_TREE =", self.corpora[corpus].get("tlds", _tlds)
