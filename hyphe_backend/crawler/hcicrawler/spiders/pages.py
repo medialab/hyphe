@@ -22,7 +22,7 @@ from selenium.webdriver import PhantomJS
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import WebDriverException, TimeoutException as SeleniumTimeout
 
-from ural import normalize_url, get_domain_name
+from ural import normalize_url, get_domain_name, infer_redirection
 from ural.lru.trie import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
@@ -365,6 +365,11 @@ class PagesCrawler(Spider):
                 if url.startswith(self.archivehost) or \
                   url.split(":")[0].lower() in SCHEME_FILTERS:
                     continue
+
+            try:
+                url = infer_redirection(url)
+            except Exception as e:
+                self.log("ural.infer_redirection crashed on url %s: %s (%s)" % (url, e, type(e)), logging.WARNING)
 
             try:
                 lrulink = url_to_lru_clean(url, TLDS_TREE)
