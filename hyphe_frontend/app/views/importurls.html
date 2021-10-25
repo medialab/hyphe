@@ -110,7 +110,7 @@
 
                 <div class="preview-container">
                       <ul>
-                        <li ng-repeat="url in textPreview|limitTo:previewMaxRow">{{url}}</li>
+                        <li ng-repeat="url in textPreview|limitTo:previewMaxRow">{{url | cleanArchivesPrefix:available_archives}}</li>
                         <li class="text-muted" ng-if="textPreview.length > previewMaxRow">({{textPreview.length - previewMaxRow}} more)</li>
                       </ul>
                     </div>

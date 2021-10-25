@@ -188,6 +188,7 @@ angular.module('hyphe.webentityExplorerController', [])
     function loadPages(){
       api.getPaginatedPages({
           webentityId: $scope.webentity.id
+          ,includePageMetas: true
           ,token: $scope.pagesToken || null
         }
         ,function(result){
@@ -492,6 +493,7 @@ angular.module('hyphe.webentityExplorerController', [])
           ,url: url
           ,lru: lru
           ,data: data
+          ,archive_date_obtained: (data.archive_date_obtained || '').replace(/^(....)(..)(..).*$/, "$1-$2-$3")
           ,isPrefix: isPrefix
           ,crawled: data.crawled
           ,subtype: subtype

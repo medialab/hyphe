@@ -10,7 +10,8 @@
     "download_delay": 1,
     "store_crawled_html_content": false,
     "max_simul_requests": 12,
-    "max_simul_requests_per_host": 1
+    "max_simul_requests_per_host": 1,
+    "obey_robots": false
   },
   "traph": {
     "keepalive": 1800,
@@ -63,6 +64,11 @@
     "ajax_timeout": 15,
     "whitelist_domains": [
     ]
+  },
+  "webarchives": {
+    "options": ["web.archive.org"],
+    "date": "2012-07-01",
+    "days_range": 28
   },
   "ADMIN_PASSWORD": null,
   "OPEN_CORS_API": false,

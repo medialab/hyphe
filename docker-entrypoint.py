@@ -11,6 +11,8 @@ def loadConfig(filename):
 
 def setConfig(setting, value, configdata, section=None):
     if section is not None:
+        if section not in configdata:
+            configdata[section] = {}
         configdata[section][setting] = value
     else:
         configdata[setting] = value
@@ -43,6 +45,7 @@ if "HYPHE_DOWNLOAD_DELAY"       in environ: setConfig("download_delay", float(en
 if "HYPHE_STORE_CRAWLED_HTML"   in environ: setConfig("store_crawled_html_content", strToBool(environ["HYPHE_STORE_CRAWLED_HTML"]),configdata,"mongo-scrapy")
 if "HYPHE_MAX_SIM_REQ"          in environ: setConfig("max_simul_requests", int(environ["HYPHE_MAX_SIM_REQ"]),configdata,"mongo-scrapy")
 if "HYPHE_HOST_MAX_SIM_REQ"     in environ: setConfig("max_simul_requests_per_host", int(environ["HYPHE_HOST_MAX_SIM_REQ"]),configdata,"mongo-scrapy")
+if "HYPHE_OBEY_ROBOTS"          in environ: setConfig("obey_robots", strToBool(environ["HYPHE_OBEY_ROBOTS"]),configdata,"mongo-scrapy")
 
 if "HYPHE_TRAPH_KEEPALIVE"      in environ: setConfig("keepalive", int(environ["HYPHE_TRAPH_KEEPALIVE"]),configdata,"traph")
 if "HYPHE_TRAPH_DATAPATH"       in environ: setConfig("data_path", environ["HYPHE_TRAPH_DATAPATH"],configdata,"traph")
@@ -54,6 +57,10 @@ if "HYPHE_CREATION_RULES"           in environ: setConfig("creationRules", liter
 if "HYPHE_FOLLOW_REDIRECTS"         in environ: setConfig("discoverPrefixes", literal_eval(environ["HYPHE_FOLLOW_REDIRECTS"]),configdata)
 
 # TODO: Phantom config
+
+if "HYPHE_WEBARCHIVES_OPTIONS"   in environ: setConfig("options", literal_eval(environ["HYPHE_WEBARCHIVES_OPTIONS"] or '[]'),configdata, "webarchives")
+if "HYPHE_WEBARCHIVES_DATE"      in environ: setConfig("date", environ["HYPHE_WEBARCHIVES_DATE"],configdata or "", "webarchives")
+if "HYPHE_WEBARCHIVES_DAYSRANGE" in environ: setConfig("days_range", int(environ["HYPHE_WEBARCHIVES_DAYSRANGE"] or 0),configdata, "webarchives")
 
 if "HYPHE_ADMIN_PASSWORD"  in environ: setConfig("ADMIN_PASSWORD", environ["HYPHE_ADMIN_PASSWORD"] or None,configdata)
 if "HYPHE_OPEN_CORS_API"   in environ: setConfig("OPEN_CORS_API", strToBool(environ["HYPHE_OPEN_CORS_API"]),configdata)

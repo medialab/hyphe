@@ -12,4 +12,7 @@ class Page(Item):
     redirects_to = Field()
     body = Field()
     lrulinks = Field()
+    archive_url = Field()
+    archive_date_requested = Field()
+    archive_date_obtained = Field()
     error = Field()

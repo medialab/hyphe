@@ -41,32 +41,24 @@ corpus_conf = MongoClient(os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scr
 if corpus_conf:
     corpus_conf = corpus_conf["options"]
     config["phantom"].update(corpus_conf["phantom"])
-    if corpus_conf["proxy"]["host"]:
-        config["mongo-scrapy"]["proxy_host"] = corpus_conf["proxy"]["host"]
-    if corpus_conf["proxy"]["port"]:
-        config["mongo-scrapy"]["proxy_port"] = corpus_conf["proxy"]["port"]
+    if "webarchives" in corpus_conf and corpus_conf["webarchives"].get("option", None):
+        config["mongo-scrapy"]["max_simul_requests"] = 3
+        config["mongo-scrapy"]["max_simul_requests_per_host"] = 1
+    if "obey_robots" in corpus_conf:
+        config["mongo-scrapy"]["obey_robots"] = corpus_conf["obey_robots"]
 else:
     print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
-
-# Copy LRUs + TLDs libraries from HCI lib/
-if verbose:
-    print "Importing urllru.py library from HCI hyphe_backend/lib to hcicrawler..."
-try:
-    copyfile("../lib/urllru.py", "hcicrawler/urllru.py")
-except IOError as e:
-    print "Could not open either source or destination urllru.py file"
-    print "lib/urllru.py", "crawler/hcicrawler/urllru.py"
-    print e
-    exit()
-if verbose:
-    print "Importing tlds.py library from HCI hyphe_backend/lib to hcicrawler..."
-try:
-    copyfile("../lib/tlds.py", "hcicrawler/tlds.py")
-except IOError as e:
-    print "Could not open either source or destination tlds.py file"
-    print "lib/tlds.py", "crawler/hcicrawler/tlds.py"
-    print e
-    exit()
+# Copy Hyphe libraries from HCI lib/
+for f in ["urllru", "webarchives", "tlds"]:
+    if verbose:
+        print "Importing %s.py library from HCI hyphe_backend/lib to hcicrawler..." % f
+    try:
+        copyfile("../lib/%s.py" % f, "hcicrawler/%s.py" % f)
+    except IOError as e:
+        print "Could not open either source or destination %s.py file" % f
+        print "lib/%s.py", "crawler/hcicrawler/%s.py" % f
+        print e
+        exit()
 
 # Render the settings py from template with mongo/scrapy config from config.json
 if verbose:
@@ -78,6 +70,7 @@ try:
     config['mongo-scrapy']['project'] = project.lower()
     config['mongo-scrapy']['log_level'] = 'DEBUG' if config['DEBUG'] > 1 else 'INFO'
     config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"])
+    config["mongo-scrapy"]["obey_robots"] = os.environ.get('HYPHE_OBEY_ROBOTS', config["mongo-scrapy"].get("obey_robots", False))
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):

@@ -21,8 +21,6 @@ DOWNLOADER_HTTPCLIENTFACTORY = 'hcicrawler.webclient.LimitSizeHTTPClientFactory'
 
 REDIRECT_ENABLED = False
 
-PROXY = '{{proxy_host}}:%s' % {{proxy_port}}
-
 DOWNLOADER_MIDDLEWARES = {
     'hcicrawler.middlewares.ProxyMiddleware': 100,
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
@@ -32,6 +30,8 @@ DOWNLOADER_MIDDLEWARES = {
 MAX_RESPONSE_SIZE = 5242880 # 5Mb
 
 DUPEFILTER_CLASS = 'hcicrawler.middlewares.CustomDupeFilter'
+
+ROBOTSTXT_OBEY = {{obey_robots}}
 
 MONGO_HOST = '{{host}}'
 MONGO_PORT = {{mongo_port}}

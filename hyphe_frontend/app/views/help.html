@@ -17,11 +17,24 @@
             <h1>
               HELP
             </h1>
-            <span class="md-subhead" ng-bind-html="hyphePresentation">
+            <span class="md-subhead" ng-bind-html="hyphePresentation"></span>
+          </div>
+
+          <div class="help-item">
+            <h2>
+              REFERENCES
+            </h2>
+            <span class="md-subhead">Hyphe is a free open source software developed by the <a href="https://medialab.sciencespo.fr/en/" target="_blank">médialab team at Sciences Po</a> and released on <a href="https://github.com/medialab/hyphe" target="_blank">GitHub</a> under <a href="https://github.com/medialab/hyphe/blob/master/LICENSE" target="_blank">AGPL 3.0 license</a>. Its development was initially financed thanks to the DIME-Web project, part of <a href="http://www.sciencespo.fr/dime-shs/" target="_blank">DIME-SHS research equipment</a> financed by the EQUIPEX program (ANR-10-EQPX-19-01).<br/><br/>
+
+            Hyphe's objectives and methodology are described in two academic papers that can be used as reference whenever publishing scientific results which involved building web corpora using Hyphe:
+              <ul>
+                <li>JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "Hyphe, a curation-oriented approach to web crawling for the social sciences.", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016. <a href="https://spire.sciencespo.fr/hdl:/2441/6obemb2hsj9pboj9bbvc7sftne/resources/jacomy-all-hyphe-icwsm-2016.pdf" target="_blank">https://spire.sciencespo.fr/hdl:/2441/6obemb2hsj9pboj9bbvc7sftne/resources/jacomy-all-hyphe-icwsm-2016.pdf</a></li>
+                <li>OOGHE-TABANOU, Benjamin, JACOMY, Mathieu, GIRARD, Paul & PLIQUE, Guillaume, "Hyperlink is not dead!" (<a href="http://hyphe.medialab.sciences-po.fr/docs/20181004-ACM-WebStudies-HyperlinkIsNotDead.pdf" target="_blank">Proceeding</a> / <a href="http://hyphe.medialab.sciences-po.fr/docs/20181004-DigitalTools-HyperlinkIsNotDead.pdf" target="_blank">Slides</a>), In Proceedings of the 2nd International Conference on Web Studies (WS.2 2018), Everardo Reyes, Mark Bernstein, Giancarlo Ruffo, and Imad Saleh (Eds.). ACM, New York, NY, USA, 12-18. DOI: <a href="https://doi.org/10.1145/3240431.3240434" target="_blank">https://doi.org/10.1145/3240431.3240434</a></li>
+              </ul>
             </span>
           </div>
 
-          <div style="padding: 8px" ng-if="hyBro">
+          <div class="help-item" ng-if="hyBro">
             <h2>
               HYPHE BROWSER
             </h2>
@@ -35,6 +48,7 @@
                   class="md-raised md-primary"
                   ng-href="{{hyBro}}"
                   target="_blank"
+                  style="width: fit-content"
                 >
                   <md-icon style="transform: rotateY(180deg)">
                     web
@@ -45,7 +59,7 @@
             </div>
           </div>
 
-          <div style="padding: 8px">
+          <div class="help-item">
             <h2>
               GLOSSARY
             </h2>

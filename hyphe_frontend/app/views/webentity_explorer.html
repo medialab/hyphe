@@ -201,6 +201,10 @@
                             <md-tooltip md-direction="left">Open URL in a new tab</md-tooltip>
                             <md-icon>link</md-icon>
                           </a>
+                          <a ng-if="item.data.archive_url" href="{{item.data.archive_url}}" target="_blank">
+                            <md-tooltip md-direction="left">Open archived page (from {{ item.archive_date_obtained}}) in a new tab</md-tooltip>
+                            <md-icon>history</md-icon>
+                          </a>
                           {{ item.label }}
                         </h3>
                         <p>Page ({{ item.subtype_explicit }})</p>

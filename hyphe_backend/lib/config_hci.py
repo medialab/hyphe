@@ -9,6 +9,7 @@ TEST_CORPUS = "--test-corpus--"
 DEFAULT_CORPUS = "--hyphe--"
 CONFIG_FILE = os.path.join('config', 'config.json')
 from hyphe_backend.lib import creationrules
+from hyphe_backend.lib import webarchives
 try:
     from pymongo import MongoClient
 except:
@@ -40,7 +41,10 @@ def load_config():
           'port': conf['mongo-scrapy']['proxy_port']
         }
         if 'store_crawled_html_content' not in conf['mongo-scrapy']:
-            conf['mongo-scrapy']['store_crawled_html_content'] = True
+            conf['mongo-scrapy']['store_crawled_html_content'] = False
+
+        if 'obey_robots' not in conf['mongo-scrapy']:
+            conf['mongo-scrapy']['obey_robots'] = False
 
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
@@ -98,7 +102,8 @@ GLOBAL_CONF_SCHEMA = {
     "str_fields": ["host", "proxy_host", "db_name"],
     "extra_fields": {
       "download_delay": float,
-      "store_crawled_html_content": bool
+      "store_crawled_html_content": bool,
+      "obey_robots": bool
     }
   }, "traph": {
     "type": dict,
@@ -125,6 +130,13 @@ GLOBAL_CONF_SCHEMA = {
       "whitelist_domains": list,
       "autoretry": bool
     }
+  }, "webarchives": {
+    "type": dict,
+    "int_fields": ["days_range"],
+    "extra_fields": {
+      "options": webarchives.validateOptions,
+      "date": webarchives.validateArchiveDate
+    }
   }, "DEBUG": {
     "type": int
   }
@@ -139,6 +151,10 @@ CORPUS_CONF_SCHEMA = {
     "type": int,
     "default": "global/mongo-scrapy/max_depth",
     "max": "global/mongo-scrapy/max_depth"
+  },
+  "obey_robots": {
+    "type": bool,
+    "default": "global/mongo-scrapy/obey_robots"
   },
   "defaultStartpagesMode": {
     "type": validateStartpagesMode,
@@ -166,6 +182,18 @@ CORPUS_CONF_SCHEMA = {
       "autoretry": bool
     },
     "default": "global/phantom"
+  },
+  "webarchives_option": {
+    "type": webarchives.validateOption,
+    "default": ""
+  },
+  "webarchives_date": {
+    "type": webarchives.validateArchiveDate,
+    "default": "global/webarchives/date"
+  },
+  "webarchives_days_range": {
+    "type": int,
+    "default": "global/webarchives/days_range"
   }
 }
 

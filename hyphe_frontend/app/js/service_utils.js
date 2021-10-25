@@ -683,6 +683,9 @@ angular.module('hyphe.service_utils', [])
         richJob.max_depth = job.crawl_arguments.max_depth
         richJob.cookies = job.crawl_arguments.cookies
         richJob.phantom = job.crawl_arguments.phantom
+        richJob.webarchives_used = job.crawl_arguments.webarchives.option
+        richJob.webarchives_date = job.crawl_arguments.webarchives.option && job.crawl_arguments.webarchives.date
+        richJob.webarchives_days_range = job.crawl_arguments.webarchives.option && job.crawl_arguments.webarchives.days_range
         richJob.discover_prefixes = job.crawl_arguments.discover_prefixes
         richJob.follow_prefixes = job.crawl_arguments.follow_prefixes
         richJob.nofollow_prefixes = job.crawl_arguments.nofollow_prefixes

@@ -60,9 +60,11 @@ class OutputStore(MongoOutput):
 
 class ResolveLinks(object):
 
-    def __init__(self, proxy_host=None, proxy_port=None):
+    def __init__(self, proxy=None, user_agent=None):
+        self.user_agent = user_agent
         self.proxy = None
-        if proxy_host and proxy_port:
+        if proxy:
+            proxy_host, proxy_port = proxy.split(":", 1)
             self.proxy = {
               "host": proxy_host,
               "port": int(proxy_port)
@@ -70,10 +72,9 @@ class ResolveLinks(object):
 
     @classmethod
     def from_crawler(cls, crawler):
-        proxy = crawler.settings['PROXY']
-        if proxy != "" and not proxy.startswith(':'):
-            return cls(*proxy.split(":"))
-        return cls()
+        user_agent = crawler.spider.user_agent or None
+        proxy = crawler.spider.proxy or None
+        return cls(proxy=proxy, user_agent=user_agent)
 
     @inlineCallbacks
     def process_item(self, item, spider):
@@ -84,14 +85,14 @@ class ResolveLinks(object):
                     lru = spider.resolved_links[url]
                 else:
                     try:
-                        agent = ResolverAgent(proxy=self.proxy)
+                        agent = ResolverAgent(proxy=self.proxy, user_agent=self.user_agent)
                         rurl = yield agent.resolve(url)
                         if rurl == url and has_prefix(lru, spider.discover_prefixes):
                             rurl = yield agent.resolve(url)
                         lru = url_to_lru_clean(rurl, TLDS_TREE)
                         spider.resolved_links[url] = lru
                     except Exception, e:
-                        spider.log("Error resolving redirects from URL %s: %s %s" % (url, type(e), e), logging.INFO)
+                        spider.log("Error resolving redirects for URL %s (found into %s): %s %s" % (url, item['url'], type(e), e), logging.WARNING)
             lrulinks.append(lru)
         item["lrulinks"] = lrulinks
         returnValue(item)

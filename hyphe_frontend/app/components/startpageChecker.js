@@ -68,7 +68,7 @@ angular.module('hyphe.startpageCheckerComponent', [])
 
         $scope.ok = function () {
           $scope.resolve({
-            task:$scope.obj.task,
+            task: $scope.obj.task,
             prefix: utils.LRU_truncate($scope.obj.lru, $scope.obj.truePrefixLength),
             wwwVariations: $scope.wwwVariations,
             httpsVariations: $scope.httpsVariations,

@@ -29,27 +29,28 @@
           <!-- Loaded: action -->
           <div ng-show="!loading">
             <md-button
-                    class="md-raised md-primary"
-                    ng-click="editSettings()"
-                    ng-show="!corpusNotEmpty && !corpusSettingsEditMode"
-                    ng-disabled="saving"
+                class="md-raised md-primary"
+                ng-click="editSettings()"
+                ng-show="!corpusNotEmpty && !corpusSettingsEditMode"
+                ng-disabled="saving"
             >
               <md-icon>settings_applications</md-icon>
               Edit settings
             </md-button>
 
             <md-button
-                    class="md-raised md-primary"
-                    ng-click="editSettings(true)"
-                    ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+                class="md-raised md-primary"
+                ng-click="editSettings(true)"
+                ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+                ng-disabled="date_error"
             >
               <md-icon>done</md-icon>
             Save Settings
             </md-button>
 
             <md-button
-                    ng-click="editSettings(false)"
-                    ng-show="!corpusNotEmpty && corpusSettingsEditMode"
+                ng-click="editSettings(false)"
+                ng-show="!corpusNotEmpty && corpusSettingsEditMode"
             >
               <md-icon>clear</md-icon>
               Cancel
@@ -88,6 +89,12 @@
                     <input type="number" min="0" max="{{maxmax_depth}}" ng-model="ed_max_depth" aria-label="editMaxDepth">
                   </md-input-container>
 
+                  <dt>Should the crawler respect robots.txt rules if any?</dt>
+                  <md-radio-group ng-model="ed_obey_robots" class="md-primary">
+                    <md-radio-button value="1" class="md-primary">yes</md-radio-button>
+                    <md-radio-button value="0" class="md-primary">no</md-radio-button>
+                  </md-radio-group>
+
                   <div layout = "column">
                     <dt style="margin-bottom: 18px">What StartPages to use by default when crawling a new Web Entity?</dt>
                     <div flex="50">
@@ -110,6 +117,7 @@
                       </md-input-container> most cited known pages
                     </div>
                   </div>
+
                 </dl>
               </md-content>
             </div>
@@ -177,6 +185,56 @@
               </md-content>
             </div>
 
+            <!-- Web Archives -->
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+                <h3 style="margin:0px">CRAWL WEB ARCHIVES (experimental)</h3>
+                <div class="disclaimer">
+                  <div class="disclaimer-header">/!\ EXPERIMENTAL /!\</div>
+                  <div class="text">This is an experimental feature: you should understand that crawling web archives is necessarily much slower since all crawls will query only one same server.</div>
+                </div>
+
+                <dl class="key-value-pairs">
+
+                  <dt style="margin-bottom:18px">Choose a source of web archives:</dt>
+                  <md-radio-group ng-model="ed_webarchive_option" class="md-primary" ng-change="setArchivesMinMaxDate()">
+                    <div ng-repeat="option in webarchives_options">
+                      <small>{{option.description}}</small>
+                      <md-radio-button value="{{option.id}}" class="md-primary">{{option.label}}</md-radio-button>
+                    </div>
+                  </md-radio-group>
+
+                  <div ng-hide="ed_webarchive_option === ''">
+                    <dt>Date to try to approach</dt>
+                    <div style="display: flex; justify-content: space-between; flex-wrap: nowrap">
+                      <md-input-container style="margin: 0px; height: 28px; width: 50%">
+                        <input id="datepicker" type="date" ng-model="datepicker_date" ng-change="setArchivesMinMaxDate()" style="text-align: center" aria-label="date to approach">
+                      </md-input-container>
+                      <small style="color: red; width: 62%" ng-show="date_error">{{ date_error }}</small>
+                    </div>
+
+                    <dt>Delay to consider before and after the date</dt>
+                    <div layout="row" style="display: flex; justify-content: flex-start">
+                      <md-input-container style="margin: 0px; height: 28px; width: 50%; text-align: center">
+                        <md-select ng-model="ed_webarchive_daysrange_choice" ng-change="setArchivesMinMaxDate()" aria-label="authorized delay">
+                          <md-option ng-repeat="(key, value) in webarchives_periods" value="{{ key }}">{{ value }}</md-option>
+                        </md-select>
+                      </md-input-container>
+                      <md-input-container ng-show="ed_webarchive_daysrange_choice === 'custom'" style="margin: 0px; height: 28px; width: 33%">
+                        <input type="number" min="1" max="10000" ng-model="ed_webarchive_daysrange_custom" ng-change="setArchivesMinMaxDate()" style="text-align: right" aria-label="number of days to accept before or after the date">
+                      </md-input-container>
+                      <span ng-show="ed_webarchive_daysrange_choice === 'custom'" style="padding-top: 5px">days</span>
+                    </div>
+
+                    <div style="text-align:center; margin-top: 10px">
+                      <small><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                    </div>
+                  </div>
+                </dl>
+
+              </md-content>
+            </div>
+
             <!-- REDIRECTION DOMAINS -->
             <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
@@ -225,6 +283,9 @@
 
                 <dt>Maximum Depth</dt>
                 <dd>{{options.max_depth}}</dd>
+
+                <dt>Should the crawler respect robots.txt rules if any?</dt>
+                <dd>{{options.obey_robots ? 'yes' : 'no'}}</dd>
 
                 <dt>What Startpages to use by default when crawling a new Web Entity?</dt>
                 <dd>{{options.defaultStartpagesMode | arrayToString}}</dd>
@@ -282,6 +343,39 @@
 
               <dl class="key-value-pairs" ng-if="!options.phantom.whitelist_domains.length>0">
                 <dd><em>None</em></dd>
+              </dl>
+
+            </md-content>
+          </div>
+
+          <!-- Web Archives -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">CRAWL WEB ARCHIVES</h3>
+
+              <div class="disclaimer">
+                <div class="disclaimer-header">/!\ EXPERIMENTAL /!\</div>
+                <div class="text">This is an experimental feature: you should understand that crawling web archives is necessarily much slower since all crawls will query only one same server.</div>
+              </div>
+
+              <dl class="key-value-pairs">
+                <div ng-hide="options.webarchives_option !== ''">
+                  <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
+                </div>
+                <div ng-hide="options.webarchives_option === ''">
+                  <dt>Source</dt>
+                  <dd style="min-height: 22px">{{ webarchives_chosen_option.label }}</dd>
+
+                  <dt>Date to try to approach</dt>
+                  <dd style="min-height: 22px">{{ options.webarchives_date }}</dd>
+
+                  <dt>Delay to consider before and after the date</dt>
+                  <dd style="min-height: 22px">{{ webarchives_days_range_display }}</dd>
+                  <div style="text-align:center">
+                    <small ng-show="ed_webarchive_daysrange_choice !== 'infinity'"><em>{{ webarchives_mindate }} &#x2794; {{ webarchives_maxdate }}</em></small>
+                    <b ng-show="ed_webarchive_daysrange_choice === 'infinity'"><em>&infin;</em></b>
+                  </div>
+                </div>
               </dl>
 
             </md-content>
