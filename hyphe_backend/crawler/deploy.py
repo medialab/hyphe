@@ -7,6 +7,12 @@ import subprocess, json, pystache
 from shutil import copyfile
 from contextlib import nested
 
+def strToBool(string):
+    if string in ["true", "True", "yes", "y", "1"]:
+        return True
+    else:
+        return False
+
 verbose = False
 for arg in [a for a in sys.argv[1:] if a.strip()]:
     if len(sys.argv) > 2 and (arg == "-v" or arg == "--verbose"):
@@ -70,7 +76,7 @@ try:
     config['mongo-scrapy']['project'] = project.lower()
     config['mongo-scrapy']['log_level'] = 'DEBUG' if config['DEBUG'] > 1 else 'INFO'
     config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_MONGODB_HOST', config["mongo-scrapy"]["host"])
-    config["mongo-scrapy"]["obey_robots"] = os.environ.get('HYPHE_OBEY_ROBOTS', config["mongo-scrapy"].get("obey_robots", False))
+    config["mongo-scrapy"]["obey_robots"] = strToBool(os.environ.get('HYPHE_OBEY_ROBOTS', config["mongo-scrapy"].get("obey_robots", False)))
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
     with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
