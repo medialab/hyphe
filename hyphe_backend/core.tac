@@ -1477,7 +1477,11 @@ class Memory_Structure(customJSONRPC):
     def clear_traph(self, corpus=DEFAULT_CORPUS):
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
-        default_WECR = [cr["regexp"] for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] == "DEFAULT_WEBENTITY_CREATION_RULE"][0]
+        default_WECR = [cr["regexp"] for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] == "DEFAULT_WEBENTITY_CREATION_RULE"]
+        if default_WECR:
+            default_WECR = default_WECR[0]
+        else:
+            default_WECR = getWECR(config["defaultCreationRule"])
         WECRs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
         res = yield self.traphs.call(corpus, "clear", default_WECR, WECRs)
         returnD(res)
