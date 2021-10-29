@@ -231,7 +231,8 @@ class PagesCrawler(Spider):
 
         if self.webarchives:
             # Handle transparently redirections from archives to another available timestamp
-            if response.status == 302:
+            if response.status == 302 or \
+              ("archivesinternet.bnf.fr" in self.webarchives["url_prefix"] and 300 <= response.status < 400 and not response.body):
                 redir_url = response.headers['Location']
                 if redir_url.startswith("/"):
                     redir_url = "%s%s" % (self.archivehost, redir_url)
