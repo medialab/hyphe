@@ -241,7 +241,7 @@ class PagesCrawler(Spider):
                         response.meta['depth'] -= 1
                     else:
                         response.meta['depth'] = -1
-                    return self._request(redir_url, redirection=True)
+                    return self._request(redir_url, redirection=True, dont_filter=(not response.status))
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
                 match = self.archiveregexp.search(redir_url)
