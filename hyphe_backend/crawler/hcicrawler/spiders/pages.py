@@ -241,7 +241,10 @@ class PagesCrawler(Spider):
                         response.meta['depth'] -= 1
                     else:
                         response.meta['depth'] = -1
-                    return self._request(redir_url, redirection=True, dont_filter=(not response.status))
+                    redir = response.meta.get('redirections', 0) + 1
+                    if not response.body and redir > 10:
+                        return self.parse_html(response)
+                    return self._request(redir_url, redirection=redir, dont_filter=(not response.body))
                 real_url = self.archiveregexp.sub("", redir_url)
                 orig_url = self.archiveregexp.sub("", response.url)
                 match = self.archiveregexp.search(redir_url)
@@ -433,8 +436,8 @@ class PagesCrawler(Spider):
         c2 = self.prefixes_trie.match_lru(tolru)
         return c1 and c2
 
-    def _request(self, url, noproxy=False, redirection=False, **kw):
-        kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy}
+    def _request(self, url, noproxy=False, redirection=0, **kw):
+        kw['meta'] = {'handle_httpstatus_all': True, 'noproxy': noproxy, 'redirections': redirection}
         kw['callback'] = self.handle_response
         kw['errback'] = self.handle_error
         if self.cookies:
