@@ -644,9 +644,9 @@ The API will always answer as such:
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
  Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids`.
- Results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` `_ (optional, default: `= -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.`)
- Other possible options include:
-  * order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree", "name"]` will order by maximum indegree first then by alphabetic order of names
+ Results will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` is -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.
+ Other possible options include\:
+  * order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree", "name"]` will order by maximum indegree first then by alphabetic order of names;
   * set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields.
 
 
