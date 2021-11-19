@@ -8,5 +8,5 @@ selenium==2.42.1
 pymongo==3.8
 queuelib==1.4.2
 txmongo==19.2.0
-ural==0.30.5
+ural==0.32.0
 tld==0.12.1
