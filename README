@@ -1,6 +1,8 @@
-[![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/medialab/hyphe/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/medialab/hyphe)
-
 # Hyphe: web corpus curation tool & links crawler
+
+[![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/medialab/hyphe/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/medialab/hyphe)
+[![SWH](https://archive.softwareheritage.org/badge/swh:1:dir:fd7d09aedcef215682ea25b3f86e21e8dc6dfc09/)](https://archive.softwareheritage.org/swh:1:dir:fd7d09aedcef215682ea25b3f86e21e8dc6dfc09;origin=https://github.com/medialab/hyphe;visit=swh:1:snp:c56e38194ff07b8e86a63533fa3a45b2a8981b51;anchor=swh:1:rev:c4d97afb0ea7d3a43be76724cfd20738da28db24)
+
 
 Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web crawler developped at the [Sciences Po médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (ANR-10-EQPX-19-01)](http://www.sciencespo.fr/dime-shs/).
 
