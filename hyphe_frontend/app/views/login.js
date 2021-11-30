@@ -2,8 +2,8 @@
 
 angular.module('hyphe.loginController', [])
 
-  .controller('Login', ['$scope', 'api', 'utils', '$location', 'corpus'
-  ,function($scope, api, utils, $location, corpus) {
+  .controller('Login', ['$scope', 'api', 'utils', '$location', 'corpus', 'config'
+  ,function($scope, api, utils, $location, corpus, config) {
     $scope.currentPage = 'login'
 
     $scope.corpusList
@@ -28,6 +28,8 @@ angular.module('hyphe.loginController', [])
 
     $scope.starting = false
     $scope.search_query = ''
+
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.createCorpus = function(){
       var isValid = true
@@ -113,7 +115,7 @@ angular.module('hyphe.loginController', [])
 
         openCorpus($scope.corpus.corpus_id, $scope.corpus.name)
 
-      },function(data, status, headers, config){
+      },function(data, status, headers, conf){
         
         $scope.starting = false
         if(data && data[0] && data[0].message.match(/^Wrong auth.*/)){
@@ -133,7 +135,7 @@ angular.module('hyphe.loginController', [])
         
         openCorpus(data.corpus_id, $scope.new_project_name)
 
-      },function(data, status, headers, config){
+      },function(data, status, headers, conf){
         $scope.starting = false
 
         $scope.new_project_message = 'Error creating corpus'
@@ -165,7 +167,7 @@ angular.module('hyphe.loginController', [])
           return 0;
         })
 
-      },function(data, status, headers, config){
+      },function(data, status, headers, conf){
         $scope.loadingList = false
         $scope.corpusList = ''
         $scope.disconnected = true

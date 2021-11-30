@@ -2,12 +2,13 @@
 
 angular.module('hyphe.preparecrawlsController', [])
 
-  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', 'corpus', '$timeout', '$interval', '$mdDialog'
-  ,function($scope, api, store, utils, $location, QueriesBatcher, corpus, $timeout, $interval, $mdDialog) {
+  .controller('PrepareCrawls', ['$scope', 'api', 'store', 'utils', '$location', 'QueriesBatcher', 'corpus', '$timeout', '$interval', '$mdDialog', 'config'
+  ,function($scope, api, store, utils, $location, QueriesBatcher, corpus, $timeout, $interval, $mdDialog, config) {
     
     $scope.currentPage = 'prepareCrawls'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.crawlDepth = 1
     $scope.cautious = false

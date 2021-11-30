@@ -17,6 +17,7 @@ angular.module('hyphe.helpController', ['ngSanitize'])
     $scope.currentPage = 'help'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
     $scope.hyBro = config.get('hyBroURL')
 
     // Build index

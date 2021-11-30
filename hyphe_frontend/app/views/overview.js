@@ -2,11 +2,12 @@
 
 angular.module('hyphe.overviewController', [])
 
-  .controller('Overview', ['$scope', 'api', 'utils', 'corpus'
-  ,function($scope, api, utils, corpus) {
+  .controller('Overview', ['$scope', 'api', 'utils', 'corpus', 'config'
+  ,function($scope, api, utils, corpus, config) {
     $scope.currentPage = 'overview'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.corpusStatus
     $scope.corpusStatistics

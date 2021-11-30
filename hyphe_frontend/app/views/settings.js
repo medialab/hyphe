@@ -2,12 +2,13 @@
 
 angular.module('hyphe.settingsController', [])
 
-  .controller('settings', ['$scope', 'api', 'utils', '$location', 'corpus'
-  ,function($scope, api, utils, $location, corpus) {
+  .controller('settings', ['$scope', 'api', 'utils', '$location', 'corpus', 'config'
+  ,function($scope, api, utils, $location, corpus, config) {
     $scope.MAXPAGES = 50
     $scope.currentPage = 'settings'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
     $scope.corpusNotEmpty
     $scope.corpusSettingsEditMode = false
     $scope.options = {}

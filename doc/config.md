@@ -157,3 +157,9 @@ A few adjustments can be set to the frontend by editing the file `hyphe_frontend
 - `hyBroURL` (in Docker: `HYPHE_BROWSER_URL`):
     
   A direct link URL to a web directory hosting build installs of Hyphe Browser
+
+- `headerCustomColor` (in Docker: `HYPHE_CUSTOM_COLOR`):
+    
+  An hexadecimal color code (i.e. #328dc7) that will be used as the background of the login menu as well as of the top left corpus title zone in the web interface.
+
+

@@ -2,11 +2,12 @@
 
 angular.module('hyphe.definewebentitiesController', [])
 
-  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex', 'corpus'
-  ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex, corpus) {
+  .controller('DefineWebEntities', ['$scope', 'store', 'utils', 'api', 'QueriesBatcher', '$location', 'PrefixConflictsIndex', 'corpus', 'config'
+  ,function($scope, store, utils, api, QueriesBatcher, $location, PrefixConflictsIndex, corpus, config) {
     $scope.currentPage = 'definewebentities'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.list = []
     $scope.list_byId = {}

@@ -9,9 +9,11 @@ angular.module('hyphe.networkController', ['angular-md5'])
     utils,
     md5,
     corpus,
-    $window
+    config,
+    $window,
   ) {
     $scope.currentPage = 'network'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
   })

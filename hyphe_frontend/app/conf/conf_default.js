@@ -10,7 +10,7 @@ angular.module('hyphe.conf', [])
   .constant('googleAnalyticsId', '')
   .constant('disclaimer', '')
   .constant('hyBroURL', 'https://github.com/medialab/hyphe-browser/releases/')
-  
+  .constant('headerCustomColor', '')
 
 
 ;

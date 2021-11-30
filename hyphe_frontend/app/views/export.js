@@ -2,11 +2,12 @@
 
 angular.module('hyphe.exportController', [])
 
-  .controller('export', ['$scope', 'api', 'utils', 'corpus'
-  ,function($scope, api, utils, corpus) {
+  .controller('export', ['$scope', 'api', 'utils', 'corpus', 'config'
+  ,function($scope, api, utils, corpus, config) {
     $scope.currentPage = 'export'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.dataVolume = 'compact'
     $scope.compactFields = ['id', 'name', 'prefixes', 'indegree', 'pages_total', 'pages_crawled', 'status', 'last_modification_date', 'user_tags']

@@ -10,11 +10,13 @@ angular.module('hyphe.prospectController', [])
     corpus,
     store,
     $location,
-    $window
+    $window,
+    config
   ) {
     $scope.currentPage = 'prospect'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.loading = false  // This flag prevents multiple simultaneous queries
 

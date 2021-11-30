@@ -2,11 +2,12 @@
 
 angular.module('hyphe.importurlsController', [])
 
-  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus', '$timeout', 'api'
-  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus, $timeout, api) {
+  .controller('ImportUrls', ['$scope', 'FileLoader', 'Parser', 'extractURLs', 'droppableTextArea', 'store', 'corpus', '$timeout', 'api', 'config'
+  ,function($scope, FileLoader, Parser, extractURLs, droppableTextArea, store, corpus, $timeout, api, config) {
     $scope.currentPage = 'importurls'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
     
     var parser = new Parser()
 

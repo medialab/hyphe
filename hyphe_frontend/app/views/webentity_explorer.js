@@ -10,10 +10,12 @@ angular.module('hyphe.webentityExplorerController', [])
     corpus,
     $location,
     $timeout,
-    $rootScope
+    $rootScope,
+    config
   ) {
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.explorerActive = false
     

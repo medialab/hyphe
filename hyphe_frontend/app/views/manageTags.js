@@ -11,13 +11,15 @@ angular.module('hyphe.manageTagsController', [])
     $location,
     $timeout,
     $filter,
-    $mdColors
+    $mdColors,
+    config
   ) {
     var pageSize = 1000
 
     $scope.currentPage = 'manageTags'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.data = {
       in: {

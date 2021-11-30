@@ -9,10 +9,12 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     corpus,
     $timeout,
     $window,
-    $mdSidenav
+    $mdSidenav,
+    config
   ) {
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
     $scope.pages = []

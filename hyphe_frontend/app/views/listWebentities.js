@@ -12,11 +12,13 @@ angular.module('hyphe.listwebentitiesController', [])
     $timeout,
     $route,
     $window,
-    corpus
+    corpus,
+    config
   ) {
     $scope.currentPage = 'listWebentities'
     $scope.corpusName = corpus.getName()
     $scope.corpusId = corpus.getId()
+    $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.dynamicWebentities
 

@@ -18,6 +18,9 @@ sed --in-place "s|'serverURL'\s*,.*|'serverURL', window.location.pathname === '/
 [[ ! -z "${HYPHE_BROWSER_URL}" ]] &&
   sed --in-place "s|'hyBroURL'\s*,.*|'hyBroURL', '${HYPHE_BROWSER_URL}')|" $CONFIGFILE
 
+[[ ! -z "${HYPHE_CUSTOM_COLOR}" ]] &&
+  sed --in-place "s|'headerCustomColor'\s*,.*|'headerCustomColor', '${HYPHE_CUSTOM_COLOR}')|" $CONFIGFILE
+
 chmod -R 550 /frontend/app && chown -R nginx:nginx /frontend/app
 
 envsubst '\$NS \$BACKEND_HOST \$BACKEND_PORT' < /etc/nginx/conf.d/docker-nginx-vhost.template > /etc/nginx/conf.d/default.conf
