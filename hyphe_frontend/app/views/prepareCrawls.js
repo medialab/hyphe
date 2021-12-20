@@ -1006,6 +1006,7 @@ angular.module('hyphe.preparecrawlsController', [])
                     return o.url != feedback.url
                   })
                   $scope.$apply()
+                  updateCheckStartpagesSummary()
                 })
               }
               ,function(data, status, headers, config){     // Fail callback
@@ -1046,6 +1047,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 return o.url != url
               })
               $scope.$apply()
+              updateCheckStartpagesSummary()
             })
           } else {
             console.error('Check new start page resolution feedback has unknown task', feedback)
