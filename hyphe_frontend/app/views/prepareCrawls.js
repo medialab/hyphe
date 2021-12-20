@@ -528,6 +528,11 @@ angular.module('hyphe.preparecrawlsController', [])
           var lookupQB = new QueriesBatcher()
           $scope.queriesBatches.push(lookupQB)
           unlooked.forEach(function(urlObj){
+            if (!urlObj.webentity.webarchives) {
+              urlObj.webentity.webarchives = {}
+              Object.assign(urlObj.webentity.webarchives, $scope.webarchives)
+            }
+
             lookupQB.addQuery(
                 api.urlLookup                         // Query call
                 ,{                                    // Query settings
@@ -612,6 +617,11 @@ angular.module('hyphe.preparecrawlsController', [])
         }
       })
 
+      if (!targetWebentity.webarchives) {
+        targetWebentity.webarchives = {}
+        Object.assign(targetWebentity.webarchives, sourceWebentity.webarchives)
+      }
+
       // Add the target webentity object for reload
       var maxid = 0
       $scope.list.forEach(function(o){
@@ -641,6 +651,14 @@ angular.module('hyphe.preparecrawlsController', [])
           if(we_list.length > 0){
             obj_setStatus(obj, 'loaded')
             obj.webentity = we_list[0]
+            if ($scope.cookies) {
+              obj.webentity.cookiesString = $scope.cookies
+            }
+            obj.webentity.webarchives = {}
+            Object.assign(obj.webentity.webarchives, $scope.webarchives)
+            if (obj.webarchives) {
+              Object.assign(obj.webentity.webarchives, obj.webarchives)
+            }
             lazyLookups(obj.webentity.startpages, obj.webentity)
           } else {
             obj_setStatus(obj, 'error')
