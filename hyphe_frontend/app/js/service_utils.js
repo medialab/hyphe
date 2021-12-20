@@ -654,7 +654,6 @@ angular.module('hyphe.service_utils', [])
     }
 
     ns.consolidateJob = function(job){
-      job.globalStatus = ''
       if(job.crawling_status == 'RUNNING'){
         job.globalStatus = 'CRAWLING'
       } else if(job.crawling_status != 'FINISHED'){
@@ -675,6 +674,7 @@ angular.module('hyphe.service_utils', [])
         job.globalStatus = 'INDEXING ' + job.indexing_status
       }
       job.nb_pages_indexed = job.nb_crawled_pages - job.nb_unindexed_pages
+      job.nb_crawled_pages_error = job.nb_crawled_pages - job.nb_crawled_pages_200
       job.duration = (job.finished_at || new Date().getTime()) - job.scheduled_at
       return job
     }

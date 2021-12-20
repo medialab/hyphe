@@ -129,8 +129,8 @@
                       <div layout="column" layout-align="center center" class="stats">
                         <div>
                           {{job.nb_crawled_pages_200}} page{{job.nb_crawled_pages_200 | plural}} crawled
-                          <small ng-if="job.nb_crawled_pages - job.nb_crawled_pages_200">
-                            (+{{job.nb_crawled_pages - job.nb_crawled_pages_200}} error{{job.nb_crawled_pages - job.nb_crawled_pages_200 | plural}})
+                          <small ng-if="job.nb_crawled_pages_error">
+                            (+{{job.nb_crawled_pages_error}} error{{job.nb_crawled_pages_error | plural}})
                           </small>
                         </div>
                         <div ng-show="job.nb_unindexed_pages">
@@ -185,19 +185,25 @@
                       md-colors="{'color': (sort == 'nb_pages_indexed') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_pages_indexed')"
                     >
-                      <span><md-tooltip md-direction="top">Pages Indexed</md-tooltip>PI</span>
+                      <span><md-tooltip md-direction="top">Pages indexed</md-tooltip>PI</span>
                     </div>
-                    <div class="md-secondary crawljobs-col-craw"
+                    <!--<div class="md-secondary crawljobs-col-craw"
                       md-colors="{'color': (sort == 'nb_crawled_pages') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_crawled_pages')"
                     >
-                      <span><md-tooltip md-direction="top">Pages Crawled</md-tooltip>PC</span>
-                    </div>
+                      <span><md-tooltip md-direction="top">Pages crawled</md-tooltip>PC</span>
+                    </div>-->
                     <div class="md-secondary crawljobs-col-crok"
                       md-colors="{'color': (sort == 'nb_crawled_pages_200') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_crawled_pages_200')"
                     >
-                      <span><md-tooltip md-direction="top">Pages Crawled Successfully</md-tooltip>PC ✓</span>
+                      <span><md-tooltip md-direction="top">Pages crawled successfully</md-tooltip>PC ✓</span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-crer"
+                      md-colors="{'color': (sort == 'nb_crawled_pages_error') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_crawled_pages_error')"
+                    >
+                      <span><md-tooltip md-direction="top">Pages badly crawled </md-tooltip>PC ✗</span>
                     </div>
                     <div class="md-secondary crawljobs-col-disp"
                       md-colors="{'color': (sort == 'nb_pages') ? ('default-accent') : ('default-primary')}"
@@ -268,8 +274,9 @@
                         </div>
                         <div class="md-secondary crawljobs-col-stat">{{job.globalStatus}}</div>
                         <div class="md-secondary crawljobs-col-inde">{{job.nb_pages_indexed}}</div>
-                        <div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>
+                        <!--<div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>-->
                         <div class="md-secondary crawljobs-col-crok">{{job.nb_crawled_pages_200}}</div>
+                        <div class="md-secondary crawljobs-col-crer">{{job.nb_crawled_pages_error}}</div>
                         <div class="md-secondary crawljobs-col-disp">{{job.nb_pages}}</div>
                         <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
                         <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="left">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
@@ -439,6 +446,9 @@
 
                   <dt>Crawled pages successfully</dt>
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_200}}</dd>
+
+                  <dt>Crawled pages with an error</dt>
+                  <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_error}}</dd>
 
                   <div ng-if="crawljobsIndex[focusedJobId].nb_unindexed_pages">
                     <dt>not indexed yet</dt>

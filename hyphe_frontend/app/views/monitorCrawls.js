@@ -86,6 +86,9 @@ angular.module('hyphe.monitorcrawlsController', [])
       ,nb_crawled_pages: {
         type: 'number'
       }
+      ,nb_crawled_pages_error: {
+        type: 'number'
+      }
       ,nb_crawled_pages_200: {
         type: 'number'
       }
@@ -310,15 +313,13 @@ angular.module('hyphe.monitorcrawlsController', [])
               .map(utils.consolidateJob)
               // Sort by currently working then reverse chronological order
               .sort(function(a,b){
-                if (!$scope.sort) {
-                  if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
-                    return -1
-                  if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
-                    return 1
+                if (a.globalStatus === b.globalStatus)
                   return b.created_at - a.created_at
-                } else {
-                  return b[$scope.sort] - b["$scope.sort"]
-                }
+                if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
+                  return -1
+                if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
+                  return 1
+                return b.created_at - a.created_at
               })
           )
 
@@ -570,6 +571,8 @@ angular.module('hyphe.monitorcrawlsController', [])
         // Reset
         $scope.sort = null
         $scope.crawlJobs = $scope.crawlJobs.sort(function(a,b){
+          if (a.globalStatus === b.globalStatus)
+            return b.created_at - a.created_at
           if (a.globalStatus === "CRAWLING" || a.globalStatus === "INDEXING")
             return -1
           if (b.globalStatus === "CRAWLING" || b.globalStatus === "INDEXING")
@@ -579,14 +582,16 @@ angular.module('hyphe.monitorcrawlsController', [])
       } else {
         $scope.sort = field
         $scope.crawlJobs = $scope.crawlJobs.sort(function(a,b){
-          if (field == "webentity_name") {
-            if (a[field] < b[field]) {
+          if (field == "webentity_name" || field == "globalStatus") {
+            if (a[field].toLowerCase() < b[field].toLowerCase()) {
               return -1;
-            } else if (b[field] < a[field]) {
+            } else if (b[field].toLowerCase() < a[field].toLowerCase()) {
               return 1;
             }
-            return 0;
+            return b.created_at - a.created_at;
           }
+          if (a[$scope.sort] === b[$scope.sort])
+            return b.created_at - a.created_at
           return b[$scope.sort] - a[$scope.sort]
         })
       }
