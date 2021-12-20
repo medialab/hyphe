@@ -119,6 +119,7 @@ class MongoDB(object):
             yield self.pages(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
+            yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten') + sortasc('status'), background=True)
             yield self.pages(corpus).create_index(sortasc('url'), background=True)
             yield self.queue(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.queue(corpus).create_index(sortasc('_job'), background=True)
@@ -317,6 +318,7 @@ class MongoDB(object):
           "crawljob_id": None,
           "webentity_id": webentity_id,
           "nb_crawled_pages": 0,
+          "nb_crawled_pages_200": 0,
           "nb_unindexed_pages": 0,
           "nb_pages": 0,
           "nb_links": 0,
@@ -368,6 +370,11 @@ class MongoDB(object):
         returnD(tot)
 
     @inlineCallbacks
+    def count_pages_by_code(self, corpus, job, code, **kwargs):
+        tot = yield self.pages(corpus).count({"_job": job, "forgotten": False, "status": code}, **kwargs)
+        returnD(tot)
+
+    @inlineCallbacks
     def get_pages(self, corpus, urls_or_lrus, include_metas=False, include_body=False, include_links=False):
         projection = {}
 
@@ -398,8 +405,9 @@ class MongoDB(object):
     @inlineCallbacks
     def update_job_pages(self, corpus, job_id):
         crawled_pages = yield self.count_pages(corpus, job_id)
+        success_pages = yield self.count_pages_by_code(corpus, job_id, 200)
         unindexed_pages = yield self.count_queue(corpus, job_id)
-        yield self.update_jobs(corpus, {"crawljob_id": job_id}, {'nb_crawled_pages': crawled_pages, 'nb_unindexed_pages': unindexed_pages})
+        yield self.update_jobs(corpus, {"crawljob_id": job_id}, {'nb_crawled_pages': crawled_pages, 'nb_crawled_pages_200': success_pages, 'nb_unindexed_pages': unindexed_pages})
 
     @inlineCallbacks
     def get_queue(self, corpus, specs={}, **kwargs):

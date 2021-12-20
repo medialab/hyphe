@@ -274,7 +274,11 @@
                                     : (
                                       (job.globalStatus == 'CANCELED')
                                       ? ('default-background-400')
-                                      : ('default-background-100')
+                                      : (
+                                        (job.globalStatus == 'SUSPICIOUS')
+                                        ? ('default-warn-100')
+                                        : ('default-background-100')
+                                      )
                                     )
                                   )
                                 )
@@ -329,7 +333,7 @@
 
                               <md-button
                                 class="md-raised md-mini"
-                                ng-show="job.globalStatus == 'ACHIEVED' || job.globalStatus == 'UNSUCCESSFUL' || job.globalStatus == 'CANCELED'"
+                                ng-show="job.globalStatus == 'ACHIEVED' || job.globalStatus == 'UNSUCCESSFUL' || job.globalStatus == 'CANCELED' || job.globalStatus == 'SUSPICIOUS'"
                                 ng-click="reCrawl(job)"
                               >
                                 <md-icon>autorenew</md-icon>
@@ -338,7 +342,7 @@
 
                               <md-button
                                 class="md-raised md-mini"
-                                ng-show="job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'"
+                                ng-show="job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED' || job.globalStatus != 'SUSPICIOUS'"
                                 ng-click="abortCrawl(job)"
                               >
                                 <md-icon>clear</md-icon>
@@ -348,7 +352,10 @@
                           </div>
                           <div layout="column" layout-align="center center" class="stats">
                             <div>
-                              {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled
+                              {{job.nb_crawled_pages_200}} page{{job.nb_crawled_pages_200 | plural}} crawled
+                              <small ng-if="job.nb_crawled_pages - job.nb_crawled_pages_200">
+                                (+{{job.nb_crawled_pages - job.nb_crawled_pages_200}} error{{job.nb_crawled_pages - job.nb_crawled_pages_200 | plural}})
+                              </small>
                             </div>
                             <div ng-show="job.nb_unindexed_pages">
                               ({{job.nb_unindexed_pages}} not indexed yet)

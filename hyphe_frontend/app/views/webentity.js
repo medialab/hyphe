@@ -482,7 +482,7 @@ angular.module('hyphe.webentityController', [])
             return b.created_at - a.created_at
           })
           if ($scope.crawls.some(function(job){
-            return job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED'
+            return job.globalStatus != 'ACHIEVED' && job.globalStatus != 'UNSUCCESSFUL' && job.globalStatus != 'CANCELED' && job.globalStatus != 'SUSPICIOUS'
           })) $timeout(fetchCrawls, 3000)
         }
         ,function(){

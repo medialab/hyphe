@@ -86,6 +86,9 @@ angular.module('hyphe.monitorcrawlsController', [])
       ,nb_crawled_pages: {
         type: 'number'
       }
+      ,nb_crawled_pages_200: {
+        type: 'number'
+      }
       ,nb_pages_indexed: {
         type: 'number'
       }

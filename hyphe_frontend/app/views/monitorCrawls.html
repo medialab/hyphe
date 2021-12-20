@@ -75,7 +75,11 @@
                                 : (
                                   (job.globalStatus == 'CANCELED')
                                   ? ('default-background-400')
-                                  : ('default-background-100')
+                                  : (
+                                    (job.globalStatus == 'SUSPICIOUS')
+                                    ? ('default-warn-100')
+                                    : ('default-background-100')
+                                  )
                                 )
                               )
                             )
@@ -124,7 +128,10 @@
                       </div>
                       <div layout="column" layout-align="center center" class="stats">
                         <div>
-                          {{job.nb_crawled_pages}} page{{job.nb_crawled_pages | plural}} crawled
+                          {{job.nb_crawled_pages_200}} page{{job.nb_crawled_pages_200 | plural}} crawled
+                          <small ng-if="job.nb_crawled_pages - job.nb_crawled_pages_200">
+                            (+{{job.nb_crawled_pages - job.nb_crawled_pages_200}} error{{job.nb_crawled_pages - job.nb_crawled_pages_200 | plural}})
+                          </small>
                         </div>
                         <div ng-show="job.nb_unindexed_pages">
                           ({{job.nb_unindexed_pages}} not indexed yet)
@@ -178,13 +185,19 @@
                       md-colors="{'color': (sort == 'nb_pages_indexed') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_pages_indexed')"
                     >
-                      <span><md-tooltip md-direction="top">Pages indexed</md-tooltip>PI</span>
+                      <span><md-tooltip md-direction="top">Pages Indexed</md-tooltip>PI</span>
                     </div>
                     <div class="md-secondary crawljobs-col-craw"
                       md-colors="{'color': (sort == 'nb_crawled_pages') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_crawled_pages')"
                     >
                       <span><md-tooltip md-direction="top">Pages Crawled</md-tooltip>PC</span>
+                    </div>
+                    <div class="md-secondary crawljobs-col-crok"
+                      md-colors="{'color': (sort == 'nb_crawled_pages_200') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_crawled_pages_200')"
+                    >
+                      <span><md-tooltip md-direction="top">Pages Crawled Successfully</md-tooltip>PC ✓</span>
                     </div>
                     <div class="md-secondary crawljobs-col-disp"
                       md-colors="{'color': (sort == 'nb_pages') ? ('default-accent') : ('default-primary')}"
@@ -233,7 +246,11 @@
                                   : (
                                     (job.globalStatus == 'CANCELED')
                                     ? ('default-background-400')
-                                    : ('default-background-100')
+                                    : (
+                                      (job.globalStatus == 'SUSPICIOUS')
+                                      ? ('default-warn-100')
+                                      : ('default-background-100')
+                                    )
                                   )
                                 )
                               )
@@ -252,6 +269,7 @@
                         <div class="md-secondary crawljobs-col-stat">{{job.globalStatus}}</div>
                         <div class="md-secondary crawljobs-col-inde">{{job.nb_pages_indexed}}</div>
                         <div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>
+                        <div class="md-secondary crawljobs-col-crok">{{job.nb_crawled_pages_200}}</div>
                         <div class="md-secondary crawljobs-col-disp">{{job.nb_pages}}</div>
                         <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
                         <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="left">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
@@ -291,7 +309,11 @@
                           : (
                             (crawljobsIndex[focusedJobId].globalStatus == 'CANCELED')
                             ? ('default-background-400')
-                            : ('default-background-100')
+                            : (
+                              (crawljobsIndex[focusedJobId].globalStatus == 'SUSPICIOUS')
+                              ? ('default-warn-100')
+                              : ('default-background-100')
+                            )
                           )
                         )
                       )
@@ -414,6 +436,9 @@
 
                   <dt>Crawled pages</dt>
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages}}</dd>
+
+                  <dt>Crawled pages successfully</dt>
+                  <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_200}}</dd>
 
                   <div ng-if="crawljobsIndex[focusedJobId].nb_unindexed_pages">
                     <dt>not indexed yet</dt>

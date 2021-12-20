@@ -778,6 +778,7 @@ class Core(customJSONRPC):
             kwargs["projection"] = [
               "webentity_id",
               "nb_crawled_pages",
+              "nb_crawled_pages_200",
               "nb_unindexed_pages",
               "nb_pages",
               "nb_links",
@@ -854,7 +855,7 @@ class Core(customJSONRPC):
             yield self.db.add_log(corpus, update_ids, "INDEX_"+indexing_statuses.FINISHED)
             if corpus in self.corpora and self.corpora[corpus]['options']['phantom'].get('autoretry', False):
                 # Try to restart in phantom mode all regular crawls that seem to have failed (less than 3 pages found for a depth of at least 1)
-                res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.max_depth': {'$gt': 0}})
+                res = yield self.db.list_jobs(corpus, {'_id': {'$in': update_ids}, 'nb_crawled_pages_200': {'$lt': 3}, 'crawl_arguments.phantom': False, 'crawl_arguments.max_depth': {'$gt': 0}})
                 for job in res:
                     logger.msg("Crawl job %s seems to have failed, trying to restart it in phantom mode" % job['_id'], system="INFO - %s" % corpus)
                     yield self.jsonrpc_crawl_webentity(job['webentity_id'], min(job['crawl_arguments']['max_depth'], 2), True, corpus=corpus)
@@ -2141,9 +2142,11 @@ class Memory_Structure(customJSONRPC):
 
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
+        success_crawled_pages = yield self.db.count_pages_by_code(corpus, job['crawljob_id'], 200)
         if job['_id'] != 'unknown':
             update = {
                 'nb_crawled_pages': tot_crawled_pages,
+                'nb_crawled_pages_200': success_crawled_pages,
                 'nb_unindexed_pages': crawled_pages_left,
                 'indexing_status': indexing_statuses.BATCH_FINISHED
             }

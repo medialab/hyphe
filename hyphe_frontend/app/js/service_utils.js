@@ -660,8 +660,10 @@ angular.module('hyphe.service_utils', [])
       } else if(job.crawling_status != 'FINISHED'){
         job.globalStatus = job.crawling_status
       } else if(job.indexing_status == 'FINISHED'){
-        if(job.nb_crawled_pages > 0){
+        if(job.nb_crawled_pages_200 > 2){
           job.globalStatus = 'ACHIEVED'
+        } else if(job.nb_crawled_pages_200 > 0){
+          job.globalStatus = 'SUSPICIOUS'
         } else {
           job.globalStatus = 'UNSUCCESSFUL'
         }
