@@ -716,7 +716,8 @@ angular.module('hyphe.preparecrawlsController', [])
         "custom": "Custom",
         "infinity": "Whatever"
       }
-  
+      $scope.infinityRange = 50 * 365
+
       $scope.setArchivesMinMaxDate = function() {
         $scope.date_error = ""
         if (!webentity.webarchives.option) {
