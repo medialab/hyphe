@@ -1,5 +1,5 @@
 click
-pystache
+pystache==0.5.4
 progressbar2
 service_identity
 virtualenvwrapper
