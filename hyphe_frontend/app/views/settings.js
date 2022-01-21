@@ -90,7 +90,7 @@ angular.module('hyphe.settingsController', [])
           $scope.ed_webarchive_daysrange_custom = $scope.infinityRange / 2
         } else {
           $scope.ed_webarchive_daysrange_custom = Math.trunc($scope.options.webarchives_days_range / 2)
-          if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf($scope.options.webarchives_days_range) == -1) {
+          if (Object.keys($scope.webarchives_periods).map(function(x) { return 2*x }).indexOf($scope.options.webarchives_days_range) == -1) {
             $scope.ed_webarchive_daysrange_choice = 'custom'
           } else {
             $scope.ed_webarchive_daysrange_choice = $scope.options.webarchives_days_range / 2
@@ -210,7 +210,7 @@ angular.module('hyphe.settingsController', [])
       $scope.ed_defaultCreationRule   = $scope.options.defaultCreationRule + ""
       $scope.startpages_homepage      = $scope.options.defaultStartpagesMode.includes('homepage')
       $scope.startpages_prefixes      = $scope.options.defaultStartpagesMode.includes('prefixes')
-      $scope.startpages_pages         = $scope.options.defaultStartpagesMode.some(x => x.startsWith('pages'))
+      $scope.startpages_pages         = $scope.options.defaultStartpagesMode.some(function(x) { return x.startsWith('pages') })
       $scope.ed_defaultStartpagesMode = $scope.options.defaultStartpagesMode.slice()
 
       //define the current number of most cited pages as start pages

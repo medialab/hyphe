@@ -436,7 +436,9 @@ angular.module('hyphe.preparecrawlsController', [])
     /* Instanciate and open the Modal */
     function instanciateModal(obj, ev) {
 
-      obj.webentity.crawlDepth ||= $scope.crawlDepth+0
+      if (!obj.webentity.crawlDepth) {
+        obj.webentity.crawlDepth = $scope.crawlDepth + 0
+      }
 
       $mdDialog.show({
         controller: webentityStartPagesDialogController,
@@ -731,7 +733,7 @@ angular.module('hyphe.preparecrawlsController', [])
             $scope.ed_webarchive_daysrange_custom = $scope.infinityRange;
           } else {
             $scope.ed_webarchive_daysrange_custom = Math.trunc(webentity.webarchives.days_range / 2);
-            if (Object.keys($scope.webarchives_periods).map(x => 2*x).indexOf(webentity.webarchives.days_range) == -1) {
+            if (Object.keys($scope.webarchives_periods).map(function(x) { return 2*x }).indexOf(webentity.webarchives.days_range) == -1) {
               $scope.ed_webarchive_daysrange_choice = 'custom'
             } else {
               $scope.ed_webarchive_daysrange_choice = webentity.webarchives.days_range / 2
