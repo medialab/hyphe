@@ -1,0 +1,35 @@
+{
+  "language": "eng",
+  "license": "AGPL-3.0",
+  "title": "Hyphe: web corpus curation tool & links crawler",
+  "upload_type": "software",
+  "keywords": [
+    "crawl",
+    "webcrawler",
+    "controversies"
+  ],
+  "creators": [
+    {
+      "orcid": "0000-0002-6417-6895",
+      "affiliation": "TANTLab - Aalborg University",
+      "name": "Mathieu Jacomy"
+    },
+    {
+      "orcid": "0000-0001-7698-3507",
+      "affiliation": "médialab - Sciences Po",
+      "name": "Benjamin Ooghe-Tabanou"
+    },
+    {
+      "orcid": "0000-0003-4916-8472",
+      "affiliation": "médialab - Sciences Po",
+      "name": "Guillaume Plique"
+    },
+    {
+      "orcid": "0000-0001-9332-3308",
+      "affiliation": "OuestWare",
+      "name": "Paul Girard"
+    }
+  ],
+  "access_right": "open",
+  "description": "<p>A research-driven web crawler which aims at providing a tool to build web corpus by crawling data from the web and generating networks between what we call \"web entities\", which can be single pages as well as a website, subdomains or parts of it, or even a combination of those.</p>"
+}
