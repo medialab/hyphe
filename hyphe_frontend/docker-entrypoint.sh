@@ -26,7 +26,7 @@ chmod -R 550 /frontend/app && chown -R nginx:nginx /frontend/app
 envsubst '\$NS \$BACKEND_HOST \$BACKEND_PORT' < /etc/nginx/conf.d/docker-nginx-vhost.template > /etc/nginx/conf.d/default.conf
 
 [[ ! -z "${HYPHE_HTPASSWORD_USER}" ]] && [[ ! -z "${HYPHE_HTPASSWORD_PASS}" ]] &&
-  printf "${HYPHE_HTPASSWORD_USER}:${HYPHE_HTPASSWORD_PASS}\n" > .htpasswd &&
+  printf "${HYPHE_HTPASSWORD_USER}:${HYPHE_HTPASSWORD_PASS}\n" > /frontend/.htpasswd &&
   sed -r --in-place 's|( location / \{)|\1\n        auth_basic Restricted;\n        auth_basic_user_file /frontend/.htpasswd;|' /etc/nginx/conf.d/default.conf
 
 exec "$@"
