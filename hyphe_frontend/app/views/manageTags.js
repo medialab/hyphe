@@ -339,7 +339,8 @@ angular.module('hyphe.manageTagsController', [])
                 values: selection,
                 name: selection[0],
                 remove: function(){
-                  $scope.tagCategories[this.tagCat][this.values[0]].selected = false
+                  if ($scope.tagCategories[this.tagCat][this.values[0]])
+                    $scope.tagCategories[this.tagCat][this.values[0]].selected = false
                   updateTags()
                 }
               })
