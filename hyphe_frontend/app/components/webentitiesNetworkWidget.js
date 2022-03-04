@@ -104,11 +104,17 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         }
 
         function setEdgesToGrey(){
+          unselectNode();
           // Default color for edges
           $scope.network.edges().forEach(function(eid) {
             $scope.network.setEdgeAttribute(eid, 'color', '#DDD');
           });
 
+        }
+
+        function unselectNode(){
+          if ($scope.WEId)
+            $scope.network.setNodeAttribute($scope.WEId, "highlighted", false);
         }
 
         $scope.$watch('selectedItem', function(newVal, oldVal){
@@ -121,6 +127,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         });
 
         $scope.networkNodeClick = function(nid) {
+          unselectNode();
           var n = g.getNodeAttributes(nid);
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
@@ -130,6 +137,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           $scope.outDegree = 0;
           $scope.bothDegree = 0;
 
+          g.setNodeAttribute(nid, 'highlighted', true);
           g.forEachEdge(nid, function(edge, attributes, source, target){
             if (source === nid){
               if (g.hasEdge(target, source)){
