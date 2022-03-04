@@ -285,46 +285,36 @@
     >
       <p class="md-title">Selected Web Entity:</p>
 
-      <p class="webentity-link" flex layout="row">
-        <a
+      <div layout="row">
+        <p class="webentity-link" flex layout="row">
+          <a
             ng-show="WEHomepage"
             href="{{WEHomepage}}"
             target="_blank"
             ng-click="$event.stopPropagation();"
             style="margin-right: 2px"
-        >
-          <md-tooltip md-direction="left">{{WEHomepage}}</md-tooltip>
-          <md-icon>link</md-icon>
-          <span md-truncate flex>{{selectedItem}}</span>
-        </a>
-        <span style="height: 25px" ng-show="!WEHomepage" md-truncate flex>{{selectedItem}}</span>
-      </p>
-
-      <div layout="row" >
-        <md-button class="md-raised"
-                   flex
-                   target="_blank"
-                   ng-href="#/project/{{corpusId}}/webentity/{{WEId}}"
-                   ng-click="$event.stopPropagation();"
-                   ng-disabled="!selectedItem">
-          <md-tooltip md-direction="up">Edit this Web Entity</md-tooltip>
-          EDIT &nbsp;
-        </md-button>
+          >
+            <md-tooltip md-direction="left">{{WEHomepage}}</md-tooltip>
+            <md-icon>link</md-icon>
+            <span md-truncate flex>{{selectedItem}}</span>
+          </a>
+          <span style="height: 25px" ng-show="!WEHomepage" md-truncate flex>{{selectedItem}}</span>
+          <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="WEId" style="margin-top: -7px; position: fixed; right: 0px"></webentity-link>
+        </p>
       </div>
 
       <div layout="column" style="margin: 8px">
         <div>
-          <md-icon style="transform: rotate(-30deg); color: #0053c2; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-          &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINKS
+          <md-icon style="transform: rotate(-30deg); color: #FAA; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+          &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINK{{inDegree | PLURAL}}
         </div>
         <div>
-          <md-icon style="transform: rotate(-30deg); color: #f3419c; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-          &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINKS
+          <md-icon style="transform: rotate(-30deg); color: #93BDE0; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+          &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINK{{outDegree | PLURAL}}
         </div>
         <div>
-          <md-icon style="transform: rotate(-30deg); color: #6e246c
-; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-          &nbsp; &nbsp; <span>{{bothDegree}}</span> SYMMETRIC LINKS
+          <md-icon style="transform: rotate(-30deg); color: #d4a1dd; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+          &nbsp; &nbsp; <span>{{bothDegree}}</span> SYMMETRIC LINK{{bothDegree | PLURAL}}
         </div>
       </div>
 

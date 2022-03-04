@@ -47,6 +47,12 @@ angular.module('hyphe.filters', [])
     }
   }])
 
+  .filter('PLURAL', [function(){
+    return function(plural) {
+      return (plural > 1 ? 'S' : '')
+    }
+  }])
+
   .filter('y_ies', [function(){
     return function(plural) {
       return (plural > 1 ? 'ies' : 'y')

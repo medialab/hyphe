@@ -133,21 +133,21 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           g.forEachEdge(nid, function(edge, attributes, source, target){
             if (source === nid){
               if (g.hasEdge(target, source)){
-                g.setEdgeAttribute(edge, 'color', '#6e246c');
+                g.setEdgeAttribute(edge, 'color', '#d4a1dd');
                 $scope.bothDegree++;
               }
               else {
-                g.setEdgeAttribute(edge, 'color', '#f3419c');
+                g.setEdgeAttribute(edge, 'color', '#93BDE0');
                 $scope.outDegree++;
               }
             }
             else if(target === nid){
               if (g.hasEdge(target, source)) {
-                g.setEdgeAttribute(edge, 'color', '#6e246c');
+                g.setEdgeAttribute(edge, 'color', '#d4a1dd');
                 $scope.bothDegree++;
               }
               else{
-                g.setEdgeAttribute(edge, 'color', '#0053c2');
+                g.setEdgeAttribute(edge, 'color', '#FAA');
                 $scope.inDegree++;
               }
             }
