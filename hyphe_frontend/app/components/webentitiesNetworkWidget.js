@@ -108,6 +108,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           // Default color for edges
           $scope.network.edges().forEach(function(eid) {
             $scope.network.setEdgeAttribute(eid, 'color', '#DDD');
+            $scope.network.setEdgeAttribute(eid, 'size', 1);
           });
 
         }
@@ -140,6 +141,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           g.setNodeAttribute(nid, 'highlighted', true);
           g.forEachEdge(nid, function(edge, attributes, source, target){
             if (source === nid){
+              g.setEdgeAttribute(edge, 'size', 3.5);
               if (g.hasEdge(target, source)){
                 g.setEdgeAttribute(edge, 'color', '#d4a1dd');
                 $scope.bothDegree++;
@@ -150,6 +152,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
             }
             else if(target === nid){
+              g.setEdgeAttribute(edge, 'size', 3.5);
               if (g.hasEdge(target, source)) {
                 g.setEdgeAttribute(edge, 'color', '#d4a1dd');
                 $scope.bothDegree++;
