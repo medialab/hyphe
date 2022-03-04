@@ -91,6 +91,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
               labelGridCellSize: 150,
               labelRenderedSizeThreshold: 5
             })
+            window.sigmaRenderer = renderer;
 
             $scope.zoomIn = function(){
               var camera = renderer.getCamera()

@@ -164,6 +164,10 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             }
           });
           $scope.bothDegree = $scope.bothDegree/2;  //the bothDegree was counted from the two nodes so we have to divide it by 2.
+
+          var nodePosition = window.sigmaRenderer.getNodeDisplayData(nid);
+          window.sigmaRenderer.getCamera().animate(nodePosition, {duration: 500});
+
         };
 
         $scope.networkStageClick = function(){
