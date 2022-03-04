@@ -297,7 +297,7 @@ angular.module('hyphe.manageTagsController', [])
             var val
             for (val in $scope.tagCategories[tagCat]) {
               var valData = $scope.tagCategories[tagCat][val]
-              if (valData.selected) {
+              if (valData && valData.selected) {
                 selection.push(val)
               }
             }
@@ -310,7 +310,9 @@ angular.module('hyphe.manageTagsController', [])
                 name: 'Some of ' + selection.length + ' values',
                 remove: function(){
                   var tagCat = this.tagCat
-                  this.values.forEach(function(val){
+                  this.values.filter(function(val){
+                    return $scope.tagCategories[tagCat][val]
+                  }).forEach(function(val){
                     $scope.tagCategories[tagCat][val].selected = false
                   })
                   updateTags()
@@ -325,7 +327,9 @@ angular.module('hyphe.manageTagsController', [])
                 name: selection[0] + ' OR ' + selection[1],
                 remove: function(){
                   var tagCat = this.tagCat
-                  this.values.forEach(function(val){
+                  this.values.filter(function(val){
+                    return $scope.tagCategories[tagCat][val]
+                  }).forEach(function(val){
                     $scope.tagCategories[tagCat][val].selected = false
                   })
                   updateTags()
