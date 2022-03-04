@@ -87,9 +87,9 @@ angular.module('hyphe.sigmaNetworkComponent', [])
             if (!container || !$scope.network.size) return
 
             renderer = new Sigma.Sigma($scope.network, container, {
-              labelRenderedSizeThreshold: 5,
-              labelDensity: 0.1,
-              labelGridCellSize: 150
+              labelDensity: 1,
+              labelGridCellSize: 150,
+              labelRenderedSizeThreshold: 5
             })
 
             $scope.zoomIn = function(){
@@ -108,9 +108,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
             }
 
             // Defaults to some unzoom
-            var camera = renderer.getCamera()
-            var state = camera.getState()
-            camera.animate({ratio: 1.2, x:0.5, y:0.5})
+            $scope.resetCamera()
 
             if ($scope.layout) {
               $scope.layout.kill()
@@ -155,6 +153,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
             })
 
           }
+
           if ($scope.onStageClick !== undefined) {
             renderer.on('clickStage', function(e){
               $timeout($scope.onStageClick)
