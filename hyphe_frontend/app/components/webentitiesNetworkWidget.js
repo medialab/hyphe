@@ -20,6 +20,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
       }
       ,link: function($scope, el, attrs) {
         var pageSize = 5000
+        $scope.initPage = true
         $scope.checkLoadAndUpdateCurrentToken = 0
         $scope.corpusId = corpus.getId()
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
@@ -667,6 +668,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             , undecided: status.corpus.traph.webentities.UNDECIDED
             , out: status.corpus.traph.webentities.OUT
             , discovered: status.corpus.traph.webentities.DISCOVERED
+            }
+            if ($scope.initPage) {
+              $scope.initPage = false
+              if ($scope.counts.in < 3) {
+                $scope.statuses.discovered = true
+                $scope.settings.discovered = true
+              }
             }
             $scope.loadingStatus = false
           },function(data, status, headers, config){
