@@ -133,7 +133,6 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     }
 
-
     $scope.focusOnJob = function(job){
       if (!job || !job._id) return
       $location.search({'id': job._id})
@@ -196,6 +195,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     // Initialization
+    api.globalStatus({})
     updateLastCrawlJobs()
     if ($location.search().id) {
       $scope.focusedJobId = $location.search().id

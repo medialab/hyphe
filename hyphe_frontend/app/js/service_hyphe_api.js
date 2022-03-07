@@ -2,7 +2,7 @@
 
 angular.module('hyphe.service_hyphe_api', [])
 
-  .factory('api', ['config', '$http', 'corpus', '$location', function(config, $http, corpus, $location) {
+  .factory('api', ['config', '$http', 'corpus', '$location', '$timeout', function(config, $http, corpus, $location, $timeout) {
     var surl = config.get('serverURL')
     if (!surl) {
       console.error('[Error] NO SERVER URL SPECIFIED. Please check front end config file.')
@@ -802,17 +802,42 @@ angular.module('hyphe.service_hyphe_api', [])
           // Success
           function(response){
             var target = (response.data[0] || {}).result
+            if (pseudo_route === API.STATUS_GET && target && target.corpus && target.corpus.name && corpus.getName() !== target.corpus.name) {
+              corpus.setName(target.corpus.name);
+              window.location.reload();
+            }
             if(target !== undefined){
               if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready" && $location.path()!=='/admin') {
-                // Corpus shut down
-                $location.path('/login')
+                if (pseudo_route !== API.CORPUS_START) {
+                  ns.startCorpus({
+                    id: corpus.getId(),
+                    password: ""
+                  }, function(){
+                    $timeout(function() {
+                      buildApiCall(pseudo_route, params)(settings, successCallback, errorCallback);
+                    }, 1000);
+                  },function(data, status, headers, conf){
+                    $location.path('/login')
+                  })
+                } else $location.path('/login')  // Corpus shut down
+              } else {
+                // console.log('[OK]', response.data)
+                successCallback(target, response.data[0])
               }
-              // console.log('[OK]', response.data)
-              successCallback(target, response.data[0])
             } else {
               if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready" && $location.path()!=='/admin') {
-                // Corpus shut down
-                $location.path('/login')
+                if (pseudo_route !== API.CORPUS_START) {
+                  ns.startCorpus({
+                    id: corpus.getId(),
+                    password: ""
+                  }, function(){
+                    $timeout(function() {
+                      buildApiCall(pseudo_route, params)(settings, successCallback, errorCallback);
+                    }, 1000);
+                  },function(data, status, headers, conf){
+                    $location.path('/login')
+                  })
+                } else $location.path('/login')  // Corpus shut down
               } else {
                 console.error('[Error: API call: unexpected response] Response:', response.data)
                 errorCallback(response.data, response.status, response.headers, response.config)

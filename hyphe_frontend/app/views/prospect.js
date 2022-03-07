@@ -65,8 +65,6 @@ angular.module('hyphe.prospectController', [])
       $scope.settingsChanged = difference
     }
 
-
-
     $scope.loadWebentities = function(query){
 
       // Get filtering settings
@@ -450,6 +448,7 @@ angular.module('hyphe.prospectController', [])
     $scope.dynamicWebentities = new DynamicWebentities()
 
     // Init
+    api.globalStatus({})
     $scope.applySettings()
 
     $scope.$on('$locationChangeStart', function(event, newUrl) {

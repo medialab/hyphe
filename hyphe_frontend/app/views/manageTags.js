@@ -236,6 +236,7 @@ angular.module('hyphe.manageTagsController', [])
     }
 
     // Init
+    api.globalStatus({})
     loadInWebentities()
 
     // Functions
