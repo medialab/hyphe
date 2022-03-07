@@ -138,6 +138,16 @@ angular.module('hyphe.listwebentitiesController', [])
       })
     }
 
+    $scope.lastCheckedBox = null
+    $scope.dynamicCheck = function($event, obj){
+      console.log(obj.id, $event, $event.shiftKey)
+      if ($event.target.localName !== "div")
+        obj.selected = !obj.selected;
+      if ($event.shiftKey && obj.selected && $scope.lastCheckedBox)
+        $scope.dynamicWebentities.checkAllBetween(obj.id, $scope.lastCheckedBox)
+      $scope.lastCheckedBox = obj.selected ? obj.id : null
+    }
+
     $scope.uncheck = function(weid){
       checkedList_remove(weid)
       $scope.dynamicWebentities.uncheck(weid)
@@ -493,6 +503,30 @@ angular.module('hyphe.listwebentitiesController', [])
 
     DynamicWebentities.prototype.uncheckAll = function(callback) {
       this.checkOrUncheckAll(false, callback)
+    }
+
+    DynamicWebentities.prototype.checkAllBetween = function(idx1, idx2) {
+      var first = idx1, last = idx2;
+      if (first === last || Math.abs(first-last) == 1) return
+      if (first > last) {
+        first = idx2
+        last = idx1
+      }
+      console.log("SHOULD CHECK ALL WEs between", first, "and", last);
+      var first_p = Math.floor(first / this.PAGE_SIZE), last_p = Math.floor(last / this.PAGE_SIZE)
+      var p
+      for (p = first_p; p <= last_p; p++) {
+        if (this.loadedPages[p]) {
+          this.loadedPages[p].forEach(function(obj){
+            if (obj.id > first && obj.id < last)
+              obj.selected = true
+          })
+   //     } else {
+   //       settings.pagesToLoad.push(p)
+        }
+      }
+    // refacto cascading to account only values between first and last
+    
     }
 
     DynamicWebentities.prototype.checkOrUncheckAll = function(checkValue, callback) {

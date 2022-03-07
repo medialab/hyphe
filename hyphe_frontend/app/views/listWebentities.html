@@ -218,8 +218,9 @@
                             'background': obj.selected ? 'default-accent-100' : 'default-background-100'
                           }"
                           flex
+                          ng-click="dynamicCheck($event, obj)"
                         >
-                          <md-checkbox ng-model="obj.selected" ng-disabled="!obj.webentity"></md-checkbox>
+                          <md-checkbox ng-model="obj.selected" ng-click="dynamicCheck($event, obj)" ng-disabled="!obj.webentity"></md-checkbox>
                           <p flex layout="row">
                             <a
                               ng-show="obj.webentity.homepage"
