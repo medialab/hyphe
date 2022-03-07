@@ -822,7 +822,8 @@ angular.module('hyphe.service_hyphe_api', [])
                 } else $location.path('/login')  // Corpus shut down
               } else {
                 // console.log('[OK]', response.data)
-                successCallback(target, response.data[0])
+                if (successCallback)
+                  successCallback(target, response.data[0])
               }
             } else {
               if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready" && $location.path()!=='/admin') {
