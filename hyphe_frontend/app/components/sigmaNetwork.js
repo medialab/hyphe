@@ -77,14 +77,14 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         $scope.resetCamera = function(){}
 
         $scope.$on("$destroy", function(){
-          $scope.layout.kill()
+          if ($scope.layout) $scope.layout.kill()
         })
 
         /// Functions
         function refreshSigma() {
           $timeout(function(){
             var container = document.getElementById('sigma-div')
-            if (!container || !$scope.network.size) return
+            if (!container || !$scope.network.order) return
 
             renderer = new Sigma.Sigma($scope.network, container, {
               labelDensity: 1,
