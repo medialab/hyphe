@@ -141,7 +141,7 @@ angular.module('hyphe.services', [])
     // NB: corpus id now stored in route
 
   	var ns = this    // Namespace
-    ns.storage = localStorage // alternative: sessionStorage
+    ns.storage = sessionStorage // alternative: localStorage
     ns.prefix = $location.absUrl().split('#')[0]
       .replace($location.protocol() + "://" + $location.host(), '')
     ns.storageKeys = {name: 'hyphe-'+ns.prefix+'-name'}
