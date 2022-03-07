@@ -331,6 +331,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Init
+    api.globalStatus({})
     api.downloadCorpusTLDs(function(){
       fetchWebentity()
       fetchCrawls()

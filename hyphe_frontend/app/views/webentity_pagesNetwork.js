@@ -52,6 +52,7 @@ angular.module('hyphe.webentityPagesNetworkController', [])
     })
 
     // Init
+    api.globalStatus({})
     api.downloadCorpusTLDs(function(){
       fetchWebentity(utils.readWebentityIdFromRoute())
     })
