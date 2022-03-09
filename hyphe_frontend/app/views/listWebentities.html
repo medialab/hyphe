@@ -215,12 +215,12 @@
                           md-item-size="48"
                           md-on-demand
                           md-colors="{
-                            'background': obj.selected ? 'default-accent-100' : 'default-background-100'
+                            'background': obj.checked ? 'default-accent-100' : 'default-background-100'
                           }"
                           flex
-                          ng-click="dynamicCheck($event, obj)"
+                          ng-click="shiftCheck($event, obj)"
                         >
-                          <md-checkbox ng-model="obj.selected" ng-click="dynamicCheck($event, obj)" ng-disabled="!obj.webentity"></md-checkbox>
+                          <md-checkbox ng-checked="obj.checked" ng-click="shiftCheck($event, obj)"></md-checkbox>
                           <p flex layout="row">
                             <a
                               ng-show="obj.webentity.homepage"

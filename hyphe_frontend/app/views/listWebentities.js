@@ -138,14 +138,20 @@ angular.module('hyphe.listwebentitiesController', [])
       })
     }
 
-    $scope.lastCheckedBox = null
-    $scope.dynamicCheck = function($event, obj){
-      console.log(obj.id, $event, $event.shiftKey)
-      if ($event.target.localName !== "div")
-        obj.selected = !obj.selected;
-      if ($event.shiftKey && obj.selected && $scope.lastCheckedBox)
-        $scope.dynamicWebentities.checkAllBetween(obj.id, $scope.lastCheckedBox)
-      $scope.lastCheckedBox = obj.selected ? obj.id : null
+    $scope.lastClickedBox = null
+    $scope.shiftCheck = function($event, obj){
+      if (!obj.webentity) return
+      var clickedOnBox = $event.target.localName === "div";
+      obj.checked = !obj.checked
+      if ($event.shiftKey && $scope.lastClickedBox !== null && obj.id !== $scope.lastClickedBox) {
+        var first = obj.id, last = $scope.lastClickedBox;
+        if (first > last) {
+          first = $scope.lastClickedBox
+          last = obj.id
+        }
+        $scope.dynamicWebentities.checkOrUncheckAll(obj.checked, Function.prototype, first, last)
+      }
+      $scope.lastClickedBox = obj.id
     }
 
     $scope.uncheck = function(weid){
@@ -323,7 +329,8 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     function checkedList_add(weid, we){
-      $scope.checkedList.push(weid)
+      if ($scope.checkedList.indexOf(weid) === -1)
+        $scope.checkedList.push(weid)
       $scope.checkedIndex[weid] = we
     }
 
@@ -408,7 +415,6 @@ angular.module('hyphe.listwebentitiesController', [])
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity: we,
-                selected: $scope.checkedIndex[we.id] !== undefined,
                 checked: $scope.checkedIndex[we.id] !== undefined
               }
               return obj
@@ -440,7 +446,6 @@ angular.module('hyphe.listwebentitiesController', [])
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity: we,
-                selected: $scope.checkedIndex[we.id] !== undefined,
                 checked: $scope.checkedIndex[we.id] !== undefined
               }
               return obj
@@ -472,7 +477,7 @@ angular.module('hyphe.listwebentitiesController', [])
         var items = this.loadedPages[p] || []
         items.forEach(function(obj){
           if (obj.webentity && obj.webentity.id == weid) {
-            obj.selected = false
+            obj.checked = false
           }
         })
       }
@@ -484,7 +489,7 @@ angular.module('hyphe.listwebentitiesController', [])
       for (p = 0; p < Math.ceil(this.numItems / this.PAGE_SIZE); p++) {
         if (this.loadedPages[p]) {
           this.loadedPages[p].forEach(function(obj){
-            if (obj.selected) {
+            if (obj.checked) {
               summary.checked++
             } else {
               summary.unchecked++
@@ -505,40 +510,20 @@ angular.module('hyphe.listwebentitiesController', [])
       this.checkOrUncheckAll(false, callback)
     }
 
-    DynamicWebentities.prototype.checkAllBetween = function(idx1, idx2) {
-      var first = idx1, last = idx2;
-      if (first === last || Math.abs(first-last) == 1) return
-      if (first > last) {
-        first = idx2
-        last = idx1
-      }
-      console.log("SHOULD CHECK ALL WEs between", first, "and", last);
-      var first_p = Math.floor(first / this.PAGE_SIZE), last_p = Math.floor(last / this.PAGE_SIZE)
-      var p
-      for (p = first_p; p <= last_p; p++) {
-        if (this.loadedPages[p]) {
-          this.loadedPages[p].forEach(function(obj){
-            if (obj.id > first && obj.id < last)
-              obj.selected = true
-          })
-   //     } else {
-   //       settings.pagesToLoad.push(p)
-        }
-      }
-    // refacto cascading to account only values between first and last
-    
-    }
-
-    DynamicWebentities.prototype.checkOrUncheckAll = function(checkValue, callback) {
+    DynamicWebentities.prototype.checkOrUncheckAll = function(checkValue, callback, minIdx, maxIdx) {
       // Strategy: Load each page, check all, and forget
-      var settings = {pagesToLoad: [], totalPages: 0, token: this.searchToken, callback:callback, checkValue:checkValue}
+      var settings = {pagesToLoad: [], totalPages: 0, token: this.searchToken, callback:callback, checkValue:checkValue, minIdx: minIdx || 0, maxIdx: maxIdx || this.numItems}
+
+      if (settings.minIdx === settings.maxIdx) return
 
       // Check/Uncheck loaded pages
       var p
-      for (p = 0; p < Math.ceil(this.numItems / this.PAGE_SIZE); p++) {
+      for (p = Math.floor(settings.minIdx / this.PAGE_SIZE); p < Math.ceil(settings.maxIdx / this.PAGE_SIZE); p++) {
         if (this.loadedPages[p]) {
           this.loadedPages[p].forEach(function(obj){
-            obj.selected = checkValue
+            if (obj.id >= settings.minIdx && obj.id <= settings.maxIdx) {
+              obj.checked = checkValue
+            }
           })
         } else {
           settings.pagesToLoad.push(p)
@@ -552,7 +537,7 @@ angular.module('hyphe.listwebentitiesController', [])
     DynamicWebentities.prototype.cascadingCheckPage = function(settings) {
       if ($route.current.loadedTemplateUrl != "views/listWebentities.html") return
       var percent = Math.round(100 - 100 * settings.pagesToLoad.length/settings.totalPages)
-      var page = settings.pagesToLoad.shift()
+      var page = settings.pagesToLoad.shift(), PAGE_SIZE = this.PAGE_SIZE
 
       if (page === undefined) {
         settings.callback()
@@ -568,15 +553,14 @@ angular.module('hyphe.listwebentitiesController', [])
             page: page
           }
           ,function(result){
-            if (settings.checkValue) {
-              result.forEach(function(idName, i){
-                checkedList_add(idName[0], {id: idName[0], name:idName[1]})
-              })
-            } else {
-              result.forEach(function(idName, i){
-                checkedList_remove(idName[0], {id: idName[0], name:idName[1]})
-              })
-            }
+            result.forEach(function(idName, i){
+              var idx = page * PAGE_SIZE + i
+              if (idx >= settings.minIdx && idx <= settings.maxIdx) {
+                if (settings.checkValue)
+                  checkedList_add(idName[0], {id: idName[0], name:idName[1]})
+                else checkedList_remove(idName[0], {id: idName[0], name:idName[1]})
+              }
+            })
             if (settings.pagesToLoad.length > 0) {
               $scope.dynamicWebentities.cascadingCheckPage(settings)
             } else {
@@ -602,7 +586,7 @@ angular.module('hyphe.listwebentitiesController', [])
         var items = $scope.dynamicWebentities.loadedPages[p] || []
         items.forEach(function(obj){
           if (obj.webentity) {
-            if (obj.selected) {
+            if (obj.checked) {
               var weid = obj.webentity.id
               checked.push(weid)
               checkedIndex[weid] = obj.webentity
