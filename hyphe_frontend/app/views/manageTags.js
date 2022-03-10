@@ -51,6 +51,7 @@ angular.module('hyphe.manageTagsController', [])
     $scope.allCheckedIndeterminate = false
     $scope.searchQuery
     $scope.displayCategory
+    $scope.displayedEntitiesList = ""
 
     $scope.network
 
@@ -87,7 +88,24 @@ angular.module('hyphe.manageTagsController', [])
       updateTags()
     }
 
+    $scope.lastClicked = null
+    $scope.shiftCheck = function($event, $index, webentity){
+      webentity.selected = !webentity.selected
+      if ($event.shiftKey && $scope.lastClicked !== null && webentity.id !== $scope.lastClicked) {
+        var first = $index, last = $scope.lastClicked;
+        if (first > last) {
+          first = $scope.lastClicked
+          last = $index
+        }
+        $scope.displayedEntities.slice(first, last).forEach(function(we){
+          we.selected = webentity.selected
+        })
+      }
+      $scope.lastClicked = $index
+    }
+
     $scope.toggleCheckAll = function() {
+      $scope.lastClicked = null
       if ($scope.allChecked) {
         // Uncheck all
         $scope.displayedEntities.forEach(function(webentity){
@@ -210,6 +228,9 @@ angular.module('hyphe.manageTagsController', [])
     $scope.$watch('searchQuery', updateDisplayedEntities)
     $scope.$watch('displayedEntities', updateNetwork)
     $scope.$watch('checkedList', updateNetwork)
+    $scope.$watch('displayedEntitiesList', function(){
+      $scope.lastClicked = null
+    })
 
     $scope.addTagToSelection = function(tagValue, tagCat, webentities) {
       $scope.status = {message: 'Adding tags'}
@@ -252,6 +273,7 @@ angular.module('hyphe.manageTagsController', [])
         else if (a.name > b.name) return 1;
         return 0;
       })
+      $scope.displayedEntitiesList = $scope.displayedEntities.map(function(we){ return we.id }).join("|")
     }
 
     function updateTags() {

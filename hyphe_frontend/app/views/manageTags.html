@@ -223,8 +223,9 @@
                           md-colors="{
                             'background': webentity.selected ? 'default-accent-100' : 'default-background-100'
                           }"
+                          ng-click="shiftCheck($event, $index, webentity)"
                         >
-                          <md-checkbox ng-model="webentity.selected"></md-checkbox>
+                          <md-checkbox ng-checked="webentity.selected" ng-click="shiftCheck($event, $index, webentity)"></md-checkbox>
                           <p flex layout="row">
                             <a
                               ng-show="webentity.homepage"
