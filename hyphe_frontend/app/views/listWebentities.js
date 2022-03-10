@@ -138,20 +138,19 @@ angular.module('hyphe.listwebentitiesController', [])
       })
     }
 
-    $scope.lastClickedBox = null
+    $scope.lastClicked = null
     $scope.shiftCheck = function($event, obj){
       if (!obj.webentity) return
-      var clickedOnBox = $event.target.localName === "div";
       obj.checked = !obj.checked
-      if ($event.shiftKey && $scope.lastClickedBox !== null && obj.id !== $scope.lastClickedBox) {
-        var first = obj.id, last = $scope.lastClickedBox;
+      if ($event.shiftKey && $scope.lastClicked !== null && obj.id !== $scope.lastClicked) {
+        var first = obj.id, last = $scope.lastClicked;
         if (first > last) {
-          first = $scope.lastClickedBox
+          first = $scope.lastClicked
           last = obj.id
         }
         $scope.dynamicWebentities.checkOrUncheckAll(obj.checked, Function.prototype, first, last)
       }
-      $scope.lastClickedBox = obj.id
+      $scope.lastClicked = obj.id
     }
 
     $scope.uncheck = function(weid){
@@ -166,6 +165,7 @@ angular.module('hyphe.listwebentitiesController', [])
     }
 
     $scope.toggleCheckAll = function() {
+      $scope.lastClicked = null
       if ($scope.allChecked) {
         $scope.allCheckedDisable = true
         $scope.dynamicWebentities.uncheckAll(function(){
