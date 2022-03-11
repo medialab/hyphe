@@ -661,8 +661,12 @@ angular.module('hyphe.service_utils', [])
       } else if(job.indexing_status == 'FINISHED'){
         if(job.nb_crawled_pages_200 > 2){
           job.globalStatus = 'ACHIEVED'
-        } else if(job.nb_crawled_pages_200 > 0){
-          job.globalStatus = 'SUSPICIOUS'
+        } else if(job.nb_crawled_pages_200 > 0) {
+          if (job.crawl_arguments.max_depth > 0) {
+            job.globalStatus = 'SUSPICIOUS'
+          } else {
+            job.globalStatus = 'ACHIEVED'
+          }
         } else {
           job.globalStatus = 'UNSUCCESSFUL'
         }
