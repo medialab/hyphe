@@ -307,6 +307,8 @@ def lru_variations(lru):
         hosts.pop(-1)
     else:
         hosts.append("h:www")
+    if len(hosts) == 1:
+        return variations
     www_hosts_var = "|".join(hosts) + "|"
     variations.append(lru.replace(hosts_str, www_hosts_var, 1))
     if https_var:
