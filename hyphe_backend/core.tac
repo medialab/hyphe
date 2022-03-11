@@ -1619,6 +1619,8 @@ class Memory_Structure(customJSONRPC):
         if is_error(weid):
             returnD(weid)
         weid = weid["result"]["created_webentities"].keys()[0]
+        if not tags:
+            tags = {}
         if tags:
             for ns in tags:
                 for cat in tags[ns]:
