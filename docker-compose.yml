@@ -48,3 +48,4 @@ services:
     image: mongo:3.6
     volumes:
       - ${DATA_PATH}mongo-data:/data/db
+    command: mongod --setParameter failIndexKeyTooLong=false --smallfiles

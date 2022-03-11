@@ -58,6 +58,12 @@ sudo apt-get install -y mongodb-org
 sudo service mongod restart
 ```
 
+In order to avoid very rare issues with crazy long urls found by the crawler on the web, the following setting should be set onto mongo globally:
+
+```bash
+mongo --eval "db.getSiblingDB('admin').runCommand( { setParameter: 1, failIndexKeyTooLong: false } )"
+```
+
 For development and administrative use, you can also optionally install one of the following projects to easily access and manage MongoDB's databases:
 - [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us): a PHP web admin interface
 - [RoboMongo](http://robomongo.org/): a shell-centric GUI
