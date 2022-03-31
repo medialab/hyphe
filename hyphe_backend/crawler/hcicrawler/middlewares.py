@@ -26,11 +26,12 @@ class ProxyMiddleware(object):
 class CustomDupeFilter(BaseDupeFilter):
     """Request Fingerprint duplicates filter, handle duplicates only on same proxy"""
 
-    def __init__(self, path=None, proxy=None):
+    def __init__(self, path=None, proxy=None, webarchives=None):
         self.file = None
         self.fingerprints = set()
         self.logdupes = True
         self.proxy = proxy
+        self.webarchives = webarchives
         if path:
             self.file = open(os.path.join(path, 'requests.seen'), 'a+')
             self.fingerprints.update(x.rstrip() for x in self.file)
@@ -39,12 +40,15 @@ class CustomDupeFilter(BaseDupeFilter):
     def from_crawler(cls, crawler):
         settings = crawler.settings
         proxy = crawler.spider.proxy
-        return cls(job_dir(settings), proxy)
+        webarchives = crawler.spider.webarchives
+        return cls(job_dir(settings), proxy, webarchives)
 
     def request_seen(self, request):
         fp = request_fingerprint(request)
         if use_proxy(request, self.proxy):
-             fp += "/P"
+            fp += "/P"
+        if self.webarchives and request.meta.get("redirections", None):
+            fp += "|%s" % request.meta.get("redirections")
         if fp in self.fingerprints:
             return True
         self.fingerprints.add(fp)
