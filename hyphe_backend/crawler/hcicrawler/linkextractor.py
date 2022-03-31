@@ -51,6 +51,6 @@ class RegexpLinkExtractor(LinkExtractor):
 
         return [Link(url, "") for url in urlstext if url.split(":")[0].lower() not in SCHEME_FILTERS]
 
-    def extract_links(self, response):
+    def extract_links(self, response, modified_body=None):
         base_url = get_root_url(response)
-        return self._extract_links(response.body, response.url, response.encoding, base_url)
+        return self._extract_links(modified_body or response.body, response.url, response.encoding, base_url)

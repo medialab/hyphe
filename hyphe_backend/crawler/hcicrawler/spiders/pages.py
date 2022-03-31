@@ -26,7 +26,7 @@ from ural import normalize_url, get_domain_name, infer_redirection
 from ural.lru.trie import LRUTrie
 
 from hcicrawler.linkextractor import RegexpLinkExtractor, SCHEME_FILTERS
-from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF_ARCHIVES_PERMALINK, RE_BNF_ARCHIVES_BANNER
+from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF_ARCHIVES_PERMALINK, RE_BNF_ARCHIVES_BANNER, RE_WEB_ARCHIVES_BANNER
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
@@ -297,6 +297,9 @@ class PagesCrawler(Spider):
         skip_page = False
         if self.webarchives:
             redir_url = self.archiveredirect.search(response.body)
+            if "web.archive.org" in self.webarchives["url_prefix"]:
+                # Remove WEB ARCHIVES banner
+                clean_body = RE_WEB_ARCHIVES_BANNER.sub("", response.body)
             # Collect archive date from BNF archives from the added banner with the permalink
             if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 archive_url = RE_BNF_ARCHIVES_PERMALINK.search(response.body)
@@ -351,7 +354,7 @@ class PagesCrawler(Spider):
 
         elif not skip_page:
             try:
-                links = self.link_extractor.extract_links(response)
+                links = self.link_extractor.extract_links(response, modified_body=clean_body)
             except Exception as e:
                 self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e), logging.ERROR)
                 links = []
@@ -380,11 +383,6 @@ class PagesCrawler(Spider):
             except (ValueError, IndexError) as e:
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
-
-            if self.webarchives:
-                # Filter more links added within archives to other pieces of the archive
-                if lrulink.replace("s:https|", "s:http|").startswith(self.archivedomain_lru):
-                    continue
 
             lrulinks.append((url, lrulink))
 
