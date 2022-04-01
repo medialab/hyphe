@@ -332,6 +332,7 @@ class PagesCrawler(Spider):
                     skip_page = redir_location
                 response.headers['Location'] = redir_location
 
+        links = []
         if not skip_page and 300 <= response.status < 400:
             redir_url = response.headers['Location']
 
@@ -357,7 +358,6 @@ class PagesCrawler(Spider):
                 links = self.link_extractor.extract_links(response, modified_body=clean_body)
             except Exception as e:
                 self.log("ERROR: links extractor crashed on %s: %s %s" % (response, type(e), e), logging.ERROR)
-                links = []
                 self.errors += 1
 
         for link in links:
