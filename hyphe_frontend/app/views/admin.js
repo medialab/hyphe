@@ -205,8 +205,8 @@ angular.module('hyphe.adminController', [])
     }
 
     function destroyAll(){
-      var password = prompt("This action is about to destroy every corpora. Are you sure? Type your password to confirm.");
-      if (password === $scope.password){
+      var password = prompt('This action is about to destroy every corpora. Are you sure? Type "DESTROY!" to confirm.');
+      if (password === "DESTROY!"){
         $scope.working = true;
         var corpusListOrdered = utils.sortByField($scope.corpusList, $scope.currentSort, $scope.reverse)
         var idOrdered = corpusListOrdered.map(function(c){return c.corpus_id})
