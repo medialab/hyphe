@@ -20,6 +20,8 @@ angular.module('hyphe.listwebentitiesController', [])
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
+    $scope.webarchives_permalinks = null
+
     $scope.dynamicWebentities
 
     $scope.checkedList = []
@@ -287,6 +289,8 @@ angular.module('hyphe.listwebentitiesController', [])
         , out: status.corpus.traph.webentities.OUT
         , discovered: status.corpus.traph.webentities.DISCOVERED
         }
+        $scope.webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+        $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", $scope.webarchives_date)
         $scope.loadingStatus = false
         $scope.jobsToCome=$timeout(loadStatus, 5000);
       },function(data, status, headers, config){
@@ -412,6 +416,7 @@ angular.module('hyphe.listwebentitiesController', [])
           }
           ,function(result){
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              setArchivesPermalinks(we)
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity: we,
@@ -443,6 +448,7 @@ angular.module('hyphe.listwebentitiesController', [])
             self.searchToken = result.token
 
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              setArchivesPermalinks(we)
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity: we,
@@ -460,6 +466,12 @@ angular.module('hyphe.listwebentitiesController', [])
             self.loading = false
           }
         )
+      }
+    }
+
+    function setArchivesPermalinks(we){
+      if ($scope.webarchives_permalinks && we.homepage) {
+        we.webarchives_homepage = $scope.webarchives_permalinks.replace("DATETIME", "20200101000000").replace("SOURCEURL", we.homepage)
       }
     }
 
