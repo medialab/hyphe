@@ -28,6 +28,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.limitAll = ''
         $scope.hideLinksFromOUT = true
 
+        $scope.webarchives_permalinks = null
+
         $scope.settings = {
           in: $scope.statuses.in
         , undecided: $scope.statuses.undecided
@@ -134,6 +136,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
           $scope.WEHomepage = n.homepage;
+          $scope.archives_WEHomepage = utils.getArchivesPermalinks(n.homepage, $scope.webarchives_permalinks);
 
           $scope.inDegree = 0;
           $scope.outDegree = 0;
@@ -212,23 +215,25 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
           $scope.selectedItem = null;
 
-          loadStatus(); // Get the number of IN / OUT / UND / DISC
+         // Get the number of IN / OUT / UND / DISC
+          loadStatus(function(){
 
-          for(var status in $scope.statuses){
-            $scope.settings[status] = $scope.statuses[status]
-          }
+            for(var status in $scope.statuses){
+              $scope.settings[status] = $scope.statuses[status]
+            }
 
-          if ($scope.settings.hideLinksFromOUT !== $scope.hideLinksFromOUT) {
-            $scope.data.links.loaded = false
-          }
+            if ($scope.settings.hideLinksFromOUT !== $scope.hideLinksFromOUT) {
+              $scope.data.links.loaded = false
+            }
 
-          $scope.settings.limitDiscovered = $scope.limitDiscovered
-          $scope.settings.limitAll = $scope.limitAll
-          $scope.settings.hideLinksFromOUT = $scope.hideLinksFromOUT
+            $scope.settings.limitDiscovered = $scope.limitDiscovered
+            $scope.settings.limitAll = $scope.limitAll
+            $scope.settings.hideLinksFromOUT = $scope.hideLinksFromOUT
 
-          $scope.touchSettings()
-          updateCounts()
-          checkLoadAndUpdate(++$scope.checkLoadAndUpdateCurrentToken)
+            $scope.touchSettings()
+            updateCounts()
+            checkLoadAndUpdate(++$scope.checkLoadAndUpdateCurrentToken)
+          })
         }
 
         $scope.revertSettings = function(){
@@ -669,6 +674,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             , out: status.corpus.traph.webentities.OUT
             , discovered: status.corpus.traph.webentities.DISCOVERED
             }
+            var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+            $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
             if ($scope.initPage) {
               $scope.initPage = false
               if ($scope.counts.in < 3) {
@@ -677,6 +684,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               }
             }
             $scope.loadingStatus = false
+            callback()
           },function(data, status, headers, config){
             $scope.status = {message: 'Error loading status', background:'danger'}
             $scope.loadingStatus = false
