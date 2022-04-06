@@ -21,6 +21,8 @@ angular.module('hyphe.manageTagsController', [])
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
+    $scope.webarchives_permalinks = null
+
     $scope.data = {
       in: {
         loading: false,
@@ -257,8 +259,11 @@ angular.module('hyphe.manageTagsController', [])
     }
 
     // Init
-    api.globalStatus({})
-    loadInWebentities()
+    api.globalStatus({}, function(status){
+      var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+      $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
+      loadInWebentities()
+    })
 
     // Functions
     function updateDisplayedEntities() {
@@ -268,10 +273,13 @@ angular.module('hyphe.manageTagsController', [])
           $scope.searchQuery, false, 'name'
         ),
         $scope.filters, $scope.tagCategories
-      ).sort(function (a,b) {
+      ).sort(function(a, b) {
         if (a.name < b.name) return -1;
         else if (a.name > b.name) return 1;
         return 0;
+      })
+      $scope.displayedEntities.forEach(function(we){
+        we.webarchives_homepage = utils.getArchivesPermalinks(we.homepage, $scope.webarchives_permalinks)
       })
       $scope.displayedEntitiesList = $scope.displayedEntities.map(function(we){ return we.id }).join("|")
     }
