@@ -9,12 +9,14 @@ ARCHIVES_OPTIONS = {
         "label": "Web.Archive.org",
         "description": "crawl worldwide web archives maintained by Archive.org",
         "url_prefix": "https://web.archive.org/web/",
+        "permalinks_prefix": "https://web.archive.org/web/DATETIME/SOURCEURL",
         "min_date": "1996-01-01"
     },
     "archivesinternet.bnf.fr": {
         "label": "ArchivesInternet.BNF.fr",
         "description": "crawl France's official web archives maintained by BNF",
         "url_prefix": "http://archivesinternet.bnf.fr",
+        "permalinks_prefix": "http://rntse.bnf.fr/jsp/lancerDL.jsp?appli=WAYBACK_URL&titre=la%20navigation%20dans%20les%20archives%20de%20l%27internet&url=http://archivesinternet.bnf.fr/DATETIME/SOURCEURL",
         "proxy": "archivesinternet.bnf.fr:8090",
         "min_date": "1996-01-01"
     }

@@ -224,7 +224,7 @@
                           <p flex layout="row">
                             <a
                               ng-show="obj.webentity.homepage"
-                              href="{{obj.webentity.homepage}}"
+                              href="{{obj.webentity.webarchives_homepage || obj.webentity.homepage}}"
                               target="_blank"
                               ng-click="$event.stopPropagation();"
                               style="margin-right:2px; z-index: 1000"
