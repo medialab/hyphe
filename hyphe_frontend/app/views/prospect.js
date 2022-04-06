@@ -18,6 +18,8 @@ angular.module('hyphe.prospectController', [])
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
+    $scope.webarchives_permalinks = null
+
     $scope.loading = false  // This flag prevents multiple simultaneous queries
 
     $scope.fullListLength = -1
@@ -284,9 +286,10 @@ angular.module('hyphe.prospectController', [])
           }
           ,function(result){
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              we.webarchives_homepage = utils.getArchivesPermalinks(we.homepage, $scope.webarchives_permalinks)
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
-                webentity:we
+                webentity: we
               }
               return obj
             })
@@ -314,9 +317,10 @@ angular.module('hyphe.prospectController', [])
             self.searchToken = result.token
 
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
+              we.webarchives_homepage = utils.getArchivesPermalinks(we.homepage, $scope.webarchives_permalinks)
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
-                webentity:we
+                webentity: we
               }
               return obj
             })
@@ -346,8 +350,11 @@ angular.module('hyphe.prospectController', [])
     $scope.dynamicWebentities = new DynamicWebentities()
 
     // Init
-    api.globalStatus({})
-    $scope.applySettings()
+    api.globalStatus({}, function(status){
+      var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+      $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
+      $scope.applySettings()
+    })
 
     $scope.$on('$locationChangeStart', function(event, newUrl) {
       if ( !newUrl.endsWith("/prepareCrawls")){
