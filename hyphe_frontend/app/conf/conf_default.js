@@ -11,6 +11,7 @@ angular.module('hyphe.conf', [])
   .constant('disclaimer', '')
   .constant('hyBroURL', 'https://github.com/medialab/hyphe-browser/releases/')
   .constant('headerCustomColor', '')
+  .constant('extraTitle', '')
 
 
 ;

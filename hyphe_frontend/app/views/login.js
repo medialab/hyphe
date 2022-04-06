@@ -185,7 +185,7 @@ angular.module('hyphe.loginController', [])
       },function(data){
 
         $scope.starting = false
-        corpus.setName(name)
+        corpus.setName(name, config.get('extraTitle') || '')
         $location.path('/project/'+id+'/overview')
       
       }, function(){

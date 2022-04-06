@@ -13,7 +13,7 @@ angular.module('hyphe.webentityExplorerController', [])
     $rootScope,
     config
   ) {
-    $scope.corpusName = corpus.getName()
+    $scope.corpusName = corpus.getName(config.get('extraTitle') || '')
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 

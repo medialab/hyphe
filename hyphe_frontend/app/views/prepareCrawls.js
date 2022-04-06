@@ -6,7 +6,7 @@ angular.module('hyphe.preparecrawlsController', [])
   ,function($scope, api, store, utils, $location, QueriesBatcher, corpus, $timeout, $interval, $mdDialog, config) {
     
     $scope.currentPage = 'prepareCrawls'
-    $scope.corpusName = corpus.getName()
+    $scope.corpusName = corpus.getName(config.get('extraTitle') || '')
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 

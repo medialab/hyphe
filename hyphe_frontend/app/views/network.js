@@ -13,7 +13,7 @@ angular.module('hyphe.networkController', ['angular-md5'])
     $window,
   ) {
     $scope.currentPage = 'network'
-    $scope.corpusName = corpus.getName()
+    $scope.corpusName = corpus.getName(config.get('extraTitle') || '')
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
   })

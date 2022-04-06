@@ -2,8 +2,8 @@
 
 angular.module('hyphe.adminController', [])
 
-  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout','$window', 'corpus', 'autocompletion',
-  function($scope, api, utils, $location, $timeout, $window, corpus, autocompletion) {
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout','$window', 'corpus', 'autocompletion', 'config'
+  function($scope, api, utils, $location, $timeout, $window, corpus, autocompletion, config) {
     $scope.currentPage = 'admin'
     $scope.corpusList = []
     $scope.corpusList_byId = {}
@@ -30,7 +30,7 @@ angular.module('hyphe.adminController', [])
         $scope.$on('$destroy', function(){
           clearInterval($scope.loop);
         });
-      }, function(data, status, headers, config){
+      }, function(data, status, headers, conf){
         $scope.passwordError = "Wrong password, redirecting you to home"
         $timeout($scope.cancel, 700)
       });
@@ -78,7 +78,7 @@ angular.module('hyphe.adminController', [])
         });
         // console.log('list',list)
 
-      },function(data, status, headers, config){
+      },function(data, status, headers, conf){
         $scope.loadingList = false
         $scope.corpusList = ''
         console.error('Error loading corpus list')
@@ -94,7 +94,7 @@ angular.module('hyphe.adminController', [])
       },function(data){
 
         $scope.starting = false
-        corpus.setName(name)
+        corpus.setName(name, config.get('extraTitle') || '')
         //$location.path('/project/'+id+'/overview');
         //console.log($location.host());
         console.log(window.location);
@@ -148,7 +148,7 @@ angular.module('hyphe.adminController', [])
         else
           $scope.busy[id] = false;
 
-      },function(data, status, headers, config){
+      },function(data, status, headers, conf){
         $scope.busy[id] = false;
         alert('Error: could not open corpus, something might be wrong: ' + data)
       })
@@ -164,7 +164,7 @@ angular.module('hyphe.adminController', [])
         if (callback)
           callback()
       }
-      ,function(data, status, headers, config){
+      ,function(data, status, headers, conf){
         alert('Error')
       })
     }
@@ -186,7 +186,7 @@ angular.module('hyphe.adminController', [])
         if (callback) callback();
         $scope.busy[id] = false;
           }
-      , function (data, status, headers, config) {
+      , function (data, status, headers, conf) {
         alert('Error, could not destroy the corpus '+id);
         $scope.busy[id] = false;
 
@@ -230,7 +230,7 @@ angular.module('hyphe.adminController', [])
             }, function(){
               loadCorpusList();
               $scope.busy[id] = false;
-            }, function (data, status, headers, config) {
+            }, function (data, status, headers, conf) {
               alert('Error while resetting corpus')
             })
       }
@@ -268,7 +268,7 @@ angular.module('hyphe.adminController', [])
           if (callback) callback();
         }
       },
-      function (data, status, headers, config) {
+      function (data, status, headers, conf) {
         alert('Error during backup of '+id)
       })
     }
@@ -311,7 +311,7 @@ angular.module('hyphe.adminController', [])
           refresh;
           $scope.busy[id] = false;
           }
-      ,function(data, status, headers, config){
+      ,function(data, status, headers, conf){
           $scope.busy[id] = false;
           alert('Error during re-indexation of links')
         })

@@ -6,7 +6,7 @@ angular.module('hyphe.settingsController', [])
   ,function($scope, api, utils, $location, corpus, config) {
     $scope.MAXPAGES = 50
     $scope.currentPage = 'settings'
-    $scope.corpusName = corpus.getName()
+    $scope.corpusName = corpus.getName(config.get('extraTitle') || '')
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
     $scope.corpusNotEmpty

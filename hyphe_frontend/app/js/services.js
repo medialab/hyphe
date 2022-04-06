@@ -152,14 +152,22 @@ angular.module('hyphe.services', [])
 
     ns.name = undefined
 
-    ns.setName = function(name){
+    ns.baseTitle = "Hyphe — "
+
+    ns.setName = function(name, extraTitle){
+      if (extraTitle)
+        document.querySelector("title").textContent = (extraTitle ? extraTitle + " " : "") + ns.baseTitle + name
       ns.storage[ns.storageKeys.name] = name
       ns.name = name
     }
-    ns.getName = function(){
-      if(ns.name !== undefined)
-        return ns.name
-      return ns.storage[ns.storageKeys.name]
+    ns.getName = function(extraTitle){
+      var name
+      if(ns.name !== undefined) 
+        name = ns.name
+      name = ns.storage[ns.storageKeys.name]
+      if (extraTitle)
+        document.querySelector("title").textContent = (extraTitle ? extraTitle + " " : "") + ns.baseTitle + name
+      return name
     }
 
     return ns
