@@ -495,10 +495,10 @@
 
                 <h3 style="margin-bottom:0px"><span hyphe-glossary="START PAGES"/></h3>
                 <dl ng-if="crawljobsIndex[focusedJobId].crawl_arguments.start_urls.length" class="key-value-pairs">
-                  <dd ng-repeat="url in crawljobsIndex[focusedJobId].crawl_arguments.start_urls">
+                  <dd ng-repeat="url in (crawljobsIndex[focusedJobId].crawl_arguments.archives_start_urls || crawljobsIndex[focusedJobId].crawl_arguments.start_urls)" track by $index>
                     <a href="{{url}}" target="_blank" title="Open in a new tab">
                       <md-icon>link</md-icon>
-                    </a>{{url}}
+                    </a>{{ crawljobsIndex[focusedJobId].crawl_arguments.start_urls[$index] }}
                   </dd>
                 </dl>
                 <dl ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.start_urls.length" class="key-value-pairs">

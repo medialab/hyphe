@@ -23,6 +23,8 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.selectedTab = 0
     $scope.focusedJobId
 
+    $scope.webarchives_permalinks = null
+
     $scope.crawlJobs = []
     $scope.crawljobsIndex = {}
     $scope.lastCrawlJobs = []
@@ -195,13 +197,16 @@ angular.module('hyphe.monitorcrawlsController', [])
     }
 
     // Initialization
-    api.globalStatus({})
-    updateLastCrawlJobs()
-    if ($location.search().id) {
-      $scope.focusedJobId = $location.search().id
-      updateSingleCrawlJobs($location.search().id)
-      $scope.selectedTab = 2
-    }
+    api.globalStatus({}, function(status){
+      var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+      $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
+      updateLastCrawlJobs()
+      if ($location.search().id) {
+        $scope.focusedJobId = $location.search().id
+        updateSingleCrawlJobs($location.search().id)
+        $scope.selectedTab = 2
+      }
+    })
 
     /// Functions
 
@@ -335,6 +340,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
     function updateCrawlJobsIndex() {
       $scope.crawlJobs.forEach(function(job){
+        job.crawl_arguments.archives_start_urls = $scope.webarchives_permalinks ? job.crawl_arguments.start_urls.map(function(u) { return utils.getArchivesPermalinks(u, $scope.webarchives_permalinks)}) : null;
         $scope.crawljobsIndex[job._id] = deepmerge(job, $scope.crawljobsIndex[job._id] || {})
       })
 
