@@ -530,6 +530,12 @@ angular.module('hyphe.service_utils', [])
         )
     }
 
+    ns.getArchivesPermalinks = function(url, archives_permalinks){
+      if (url && archives_permalinks)
+        return archives_permalinks.replace("SOURCEURL", url)
+      return null;
+    }
+
     // TLD
     ns.tld_tree = undefined
     ns.getTLDTree = function(){

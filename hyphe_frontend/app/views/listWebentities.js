@@ -57,16 +57,17 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.applySettings = function(){
       
-      loadStatus()
+      loadStatus(function(){
 
-      for(var status in $scope.statuses){
-        $scope.settings[status] = $scope.statuses[status]
-      }
-      $scope.settings.query = $scope.query
+        for(var status in $scope.statuses){
+          $scope.settings[status] = $scope.statuses[status]
+        }
+        $scope.settings.query = $scope.query
 
-      $scope.touchSettings()
-      summarizeStatuses()
-      doQuery()
+        $scope.touchSettings()
+        summarizeStatuses()
+        doQuery()
+      })
     }
 
     $scope.revertSettings = function(){
@@ -289,10 +290,11 @@ angular.module('hyphe.listwebentitiesController', [])
         , out: status.corpus.traph.webentities.OUT
         , discovered: status.corpus.traph.webentities.DISCOVERED
         }
-        $scope.webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
-        $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", $scope.webarchives_date)
+        var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+        $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
         $scope.loadingStatus = false
         $scope.jobsToCome=$timeout(loadStatus, 5000);
+        callback()
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
         $scope.loadingStatus = false
@@ -416,7 +418,7 @@ angular.module('hyphe.listwebentitiesController', [])
           }
           ,function(result){
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
-              setArchivesPermalinks(we)
+              we.webarchives_homepage = utils.getArchivesPermalinks(we.homepage, $scope.webarchives_permalinks)
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity: we,
@@ -448,7 +450,7 @@ angular.module('hyphe.listwebentitiesController', [])
             self.searchToken = result.token
 
             self.loadedPages[pageNumber] = result.webentities.map(function(we, i){
-              setArchivesPermalinks(we)
+              we.webarchives_homepage = utils.getArchivesPermalinks(we.homepage, $scope.webarchives_permalinks)
               var obj = {
                 id: pageNumber * self.PAGE_SIZE + i,
                 webentity: we,
@@ -466,12 +468,6 @@ angular.module('hyphe.listwebentitiesController', [])
             self.loading = false
           }
         )
-      }
-    }
-
-    function setArchivesPermalinks(we){
-      if ($scope.webarchives_permalinks && we.homepage) {
-        we.webarchives_homepage = $scope.webarchives_permalinks.replace("DATETIME", "20200101000000").replace("SOURCEURL", we.homepage)
       }
     }
 

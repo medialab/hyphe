@@ -51,7 +51,7 @@
 
                           <dt>Home page</dt>
                           <dd>
-                            <a href="{{webentity.homepage}}" target="_blank" title="Open in a new tab">
+                            <a href="{{webentity.webarchives_homepage || webentity.homepage}}" target="_blank" title="Open in a new tab">
                               <md-tooltip md-direction="left">Open homepage in a new tab</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
@@ -500,14 +500,14 @@
                       md-virtual-repeat="page in pages | filter:urlSearchQuery:false:url | filterBoolFieldWhenActive:pagesOnlyCrawled:'crawled'"
                     >
                       <div class="md-primary">
-                        <a href="{{ page.url }}" target="_blank">
+                        <a href="{{ page.archive_permalink || page.url }}" target="_blank">
                           <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
                           <md-icon>link</md-icon>
                         </a>
-                        <a ng-if="page.archive_url && page.archive_date_obtained" href="{{ page.archive_url }}" target="_blank">
+                        <span ng-if="page.archive_url && page.archive_date_obtained">
                           <md-tooltip md-direction="left">Open in a new tab archived page from {{ page.archive_date_obtained }}</md-tooltip>
                           <md-icon>history</md-icon>
-                        </a>
+                        </span>
                         <span ng-if="page.archive_date_requested && !page.archive_date_obtained">
                           <md-tooltip md-direction="left">This page could not be found in web archives around {{ page.archive_date_requested }}</md-tooltip>
                           <md-icon style="opacity: 0.2">history</md-icon>

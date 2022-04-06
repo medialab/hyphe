@@ -21,6 +21,8 @@ angular.module('hyphe.webentityController', [])
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
+    $scope.webarchives_permalinks = null
+
     $scope.webentity = {id:utils.readWebentityIdFromRoute(), loading:true}
 
     $scope.identityEditMode = false
@@ -179,8 +181,9 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(result){
           var pagesBatch = []
-          var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested"]
+          var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested", "archive_permalink"]
           result.pages.forEach(function(page){
+            page.archive_permalink = utils.getArchivesPermalinks(page.url, $scope.webarchives_permalinks)
             if (page.archive_date_requested) {
               page.archive_date_requested = page.archive_date_requested.replace(/^(....)(..)(..).*$/, "$1-$2-$3")
             }
@@ -331,11 +334,14 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Init
-    api.globalStatus({})
-    api.downloadCorpusTLDs(function(){
-      fetchWebentity()
-      fetchCrawls()
-      fetchAutocompletionTags()
+    api.globalStatus({}, function(status){
+      var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
+      $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
+      api.downloadCorpusTLDs(function(){
+        fetchWebentity()
+        fetchCrawls()
+        fetchAutocompletionTags()
+      })
     })
 
     function synchronizeTags() {
@@ -443,6 +449,7 @@ angular.module('hyphe.webentityController', [])
         }
         ,function(result){
           $scope.webentity = result[0]
+          $scope.webentity.webarchives_homepage = utils.getArchivesPermalinks($scope.webentity.homepage, $scope.webarchives_permalinks)
           $scope.webentity.loading = false
 
           $scope.webentity.prefixes.sort(utils.sort_LRUs)
@@ -461,6 +468,7 @@ angular.module('hyphe.webentityController', [])
             return {
               url: p,
               lru: utils.URL_to_LRU(p),
+              archive_permalink: utils.getArchivesPermalinks(p, $scope.webarchives_permalinks),
               isStartPage: true,
               crawled: false
             }
