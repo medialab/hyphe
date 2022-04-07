@@ -352,7 +352,7 @@ angular.module('hyphe.prospectController', [])
     // Init
     api.globalStatus({}, function(status){
       var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
-      $scope.webarchives_permalinks = status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix.replace("DATETIME", webarchives_date)
+      $scope.webarchives_permalinks = (status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix || "").replace("DATETIME", webarchives_date)
       $scope.applySettings()
     })
 

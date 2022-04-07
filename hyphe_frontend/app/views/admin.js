@@ -2,7 +2,7 @@
 
 angular.module('hyphe.adminController', [])
 
-  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout','$window', 'corpus', 'autocompletion', 'config'
+  .controller('Admin', ['$scope', 'api', 'utils', '$location', '$timeout','$window', 'corpus', 'autocompletion', 'config',
   function($scope, api, utils, $location, $timeout, $window, corpus, autocompletion, config) {
     $scope.currentPage = 'admin'
     $scope.corpusList = []
