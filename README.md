@@ -222,7 +222,7 @@ See our [roadmap](doc/roadmap.md)!
 
 * PLIQUE, Guillaume, JACOMY, Mathieu, OOGHE-TABANOU, Benjamin & GIRARD, Paul, "It's a Tree... It's a Graph... It's a Traph!!!! Designing an on-file multi-level graph index for the Hyphe web crawler". ([Video](https://fosdem.org/2018/schedule/event/multi_level_graph_index/) / [Slides](https://medialab.github.io/hyphe-traph/fosdem2018/)) Presentation at the FOSDEM, Brussels, BELGIUM, February 3rd, 2018.
 
-* JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](https://spire.sciencespo.fr/hdl:/2441/6obemb2hsj9pboj9bbvc7sftne/resources/jacomy-all-hyphe-icwsm-2016.pdf)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
+* JACOMY, Mathieu, GIRARD, Paul, OOGHE-TABANOU, Benjamin, et al, "[Hyphe, a curation-oriented approach to web crawling for the social sciences.](https://hyphe.medialab.sciences-po.fr/docs/20160518-ICWSM-Hyphe-CurationOrientedWebCrawlingForSHS.pdf)", in International AAAI Conference on Web and Social Media. Association for the Advancement of Artificial Intelligence, 2016.
 
 
 ### Publications using Hyphe
@@ -237,7 +237,7 @@ See our [roadmap](doc/roadmap.md)!
 
 * TOURNAY Virginie, JACOMY Mathieu, NECULA Andra, LEIBING Annette & BLASIMME Alessandro, 2019, "[A New Web-Based Big Data Analytics for Dynamic Public Opinion Mapping in Digital Networks on Contested Biotechnology Fields](https://www.liebertpub.com/doi/10.1089/omi.2019.0130)", in OMICS: A Journal of Integrative Biology. DOI: 10.1089/omi.2019.0130
 
-* CARDON, Dominique, Jean-Philippe COINTET, Benjamin OOGHE, and Guillaume PLIQUE. "[Unfolding the Multi-Layered Structure of the French Mediascape](https://spire.sciencespo.fr/hdl:/2441/52avseho8m9rjbmeot0eogd0iu/resources/wp1medialab-unfolding-the-multi-layered-structure-of-french-media-landscape-vf-2.pdf)" (2019), report for Institut Montaigne.
+* CARDON, Dominique, Jean-Philippe COINTET, Benjamin OOGHE, and Guillaume PLIQUE. "[Unfolding the Multi-Layered Structure of the French Mediascape](https://hal.archives-ouvertes.fr/hal-02163951)" (2019), report for Institut Montaigne.
 
 * LAROUSSERIE David, 2019, "[Les premiers pas d’un Internet quantique](https://www.lemonde.fr/sciences/article/2019/11/25/les-premiers-pas-d-un-internet-quantique_6020492_1650684.html)", in Le Monde.
 
