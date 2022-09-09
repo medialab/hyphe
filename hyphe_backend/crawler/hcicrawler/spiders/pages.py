@@ -469,7 +469,9 @@ class PagesCrawler(Spider):
             kw['method'] = 'HEAD'
         if self.webarchives:
             if self.webarchives["option"] == "dlweb.ina.fr":
-                # TODO: fix urls such as http://domain.com without trailing slash not working with INA archive
+                # Fix urls such as http://domain.com without trailing slash not working with INA archive
+                if url.count("/") < 3:
+                    url += "/"
                 kw["headers"] = {
                     "X-DLWeb-Token": sha256("%s\n%s\n" % (WEBARCHIVES_PASSWORD, url)).hexdigest(),
                     "X-Request-Time": self.archivetimestamp,
