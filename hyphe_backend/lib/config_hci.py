@@ -132,6 +132,7 @@ GLOBAL_CONF_SCHEMA = {
   }, "webarchives": {
     "type": dict,
     "int_fields": ["days_range"],
+    "str_fields": ["password"],
     "extra_fields": {
       "options": webarchives.validateOptions,
       "date": webarchives.validateArchiveDate

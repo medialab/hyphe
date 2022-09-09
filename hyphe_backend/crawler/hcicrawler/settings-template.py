@@ -40,6 +40,8 @@ MONGO_JOBS_COL = 'jobs'
 MONGO_QUEUE_COL = 'queue'
 MONGO_PAGESTORE_COL = 'pages'
 
+WEBARCHIVES_PASSWORD = '{{webarchives_password}}'
+
 PHANTOM = {
   "PATH": os.path.join('{{hyphePath}}', 'bin', 'hyphe-phantomjs-2.0.0'),
   "JS_PATH": os.path.join('{{hyphePath}}', 'hyphe_backend', 'crawler', BOT_NAME, 'spiders', 'js'),
