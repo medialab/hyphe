@@ -2,6 +2,7 @@
 
 import os, time, signal, re
 import json
+from hashlib import sha256
 import logging
 from datetime import datetime, timedelta
 
@@ -30,7 +31,7 @@ from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
+from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, WEBARCHIVES_PASSWORD
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -89,20 +90,25 @@ class PagesCrawler(Spider):
         if "option" not in self.webarchives or self.webarchives["option"] not in ARCHIVES_OPTIONS or not self.webarchives["option"]:
             self.webarchives = {}
         if self.webarchives:
-            self.webarchives["url_prefix"] = ARCHIVES_OPTIONS[self.webarchives["option"]].get("url_prefix", None)
+            self.webarchives["url_prefix"] = ARCHIVES_OPTIONS[self.webarchives["option"]].get("url_prefix", "") or ""
             archivedate = re.sub(r"\D", "", str(self.webarchives["date"]))
             self.archivedate = str(archivedate) + "120000"
             archivedt = datetime.strptime(self.archivedate, "%Y%m%d%H%M%S")
             self.archivemindate = datetime.strftime(archivedt - timedelta(days=self.webarchives["days_range"]/2., seconds=43200), "%Y%m%d%H%M%S")
             self.archivemaxdate = datetime.strftime(archivedt + timedelta(days=self.webarchives["days_range"]/2., seconds=43199), "%Y%m%d%H%M%S")
 
-            archiveprefix = self.webarchives["url_prefix"].rstrip('/')
-            self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
-            self.archiveregexp = re.compile(r"^%s/(\d{14}).?/" % archiveprefix, re.I)
-            self.archivehost = "/".join(archiveprefix.split('/')[:3])
-            self.archivedomain_lru = url_to_lru_clean("http://%s" % get_domain_name(archiveprefix), TLDS_TREE)
-            archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivehost, ""))
-            self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % archivedomain_regexp, re.I|re.S)
+            archiveprefix = (self.webarchives["url_prefix"] or "").rstrip('/')
+            if archiveprefix:
+                self.archiveprefix = "%s/%s/" % (archiveprefix, self.archivedate)
+                self.archiveregexp = re.compile(r"^%s/(\d{14}).?/" % archiveprefix, re.I)
+                self.archivehost = "/".join(archiveprefix.split('/')[:3])
+                self.archivedomain_lru = url_to_lru_clean("http://%s" % get_domain_name(archiveprefix), TLDS_TREE)
+                archivedomain_regexp = "(?:%s|%s)" % (archiveprefix, archiveprefix.replace(self.archivehost, ""))
+                self.archiveredirect = re.compile(RE_ARCHIVE_REDIRECT % archivedomain_regexp, re.I|re.S)
+            else:
+                self.archiveprefix = ""
+                self.archivetimestamp = str(int((archivedt - datetime(1970, 1, 1)).total_seconds()))
+
 
             if "proxy" in ARCHIVES_OPTIONS[self.webarchives["option"]]:
                 self.proxy = ARCHIVES_OPTIONS[self.webarchives["option"]]["proxy"]
@@ -122,7 +128,7 @@ class PagesCrawler(Spider):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
         self.log("ARGUMENTS : "+str(self.args), logging.INFO)
         if self.webarchives:
-            self.log("Crawling on Web Archive using for prefix %s between %s and %s" % (self.archiveprefix, self.archivemindate, self.archivemaxdate))
+            self.log("Crawling on Web Archive %s using for prefix %s between %s and %s" % (self.webarchives["option"], self.archiveprefix, self.archivemindate, self.archivemaxdate))
         if self.proxy:
             self.log("Using proxy %s" % self.proxy, logging.INFO)
 
@@ -178,6 +184,7 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
+        # self.log("RESPONSE %s: %s" % (response.url, dict(response.headers)), logging.DEBUG)
 
         if self.phantom:
             self.phantom.get(response.url)
@@ -235,7 +242,7 @@ class PagesCrawler(Spider):
               ("archivesinternet.bnf.fr" in self.webarchives["url_prefix"] and 300 <= response.status < 400 and \
                (not response.body or "<head><title>301 Moved Permanently</title></head>" in response.body)):
                 redir_url = response.headers['Location']
-                if redir_url.startswith("/"):
+                if redir_url.startswith("/") and self.archiveprefix:
                     redir_url = "%s%s" % (self.archivehost, redir_url)
                 if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                     if "depth" in response.meta:
@@ -246,20 +253,21 @@ class PagesCrawler(Spider):
                     if not response.body and redir > 10:
                         return self.parse_html(response)
                     return self._request(redir_url, redirection=redir, dont_filter=(not response.body))
-                real_url = self.archiveregexp.sub("", redir_url)
-                orig_url = self.archiveregexp.sub("", response.url)
-                match = self.archiveregexp.search(redir_url)
-                if match:
-                    # Check date obtained fits into a user defined timerange and return 404 otherwise
-                    if not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
-                        self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_url, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
-                        return self._make_raw_page(response, archive_fail_url=redir_url)
-                    if normalize(real_url) == normalize(orig_url):
-                        if "depth" in response.meta:
-                            response.meta['depth'] -= 1
-                        else:
-                            response.meta['depth'] = -1
-                        return self._request(redir_url)
+                if self.archiveprefix:
+                    real_url = self.archiveregexp.sub("", redir_url)
+                    orig_url = self.archiveregexp.sub("", response.url)
+                    match = self.archiveregexp.search(redir_url)
+                    if match:
+                        # Check date obtained fits into a user defined timerange and return 404 otherwise
+                        if not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
+                            self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_url, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                            return self._make_raw_page(response, archive_fail_url=redir_url)
+                        if normalize(real_url) == normalize(orig_url):
+                            if "depth" in response.meta:
+                                response.meta['depth'] -= 1
+                            else:
+                                response.meta['depth'] = -1
+                            return self._request(redir_url)
             if response.status >= 400:
                 return self._make_raw_page(response)
 
@@ -287,7 +295,7 @@ class PagesCrawler(Spider):
         archive_timestamp = None
         clean_body = None
         orig_url = response.url
-        if self.webarchives:
+        if self.webarchives and self.archiveprefix:
             orig_url = self.archiveregexp.sub("", orig_url)
         lru = url_to_lru_clean(orig_url, TLDS_TREE)
         lrulinks = []
@@ -297,7 +305,8 @@ class PagesCrawler(Spider):
 
         skip_page = False
         if self.webarchives:
-            redir_url = self.archiveredirect.search(response.body)
+            # TODO detect INA redirection cases
+            redir_url = self.archiveredirect.search(response.body) if self.archiveprefix else None
             if "web.archive.org" in self.webarchives["url_prefix"]:
                 # Remove WEB ARCHIVES banner
                 clean_body = RE_WEB_ARCHIVES_BANNER.sub("", response.body)
@@ -320,6 +329,18 @@ class PagesCrawler(Spider):
                 # Remove BNF banner
                 clean_body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
 
+            elif self.webarchives["option"] == "dlweb.ina.fr":
+                archive_url = response.headers["X-Response-URL"]
+                # Check date obtained fits into a user defined timerange and return 404 otherwise
+                archive_timestamp = response.headers["X-Response-Time"]
+                if not archive_timestamp:
+                    self.log("Skipping archive page (%s) for which archive date could not be found within response's headers (%s)." % (response.url, dict(response.headers)), logging.ERROR)
+                    return
+                archive_timestamp = datetime.strftime((datetime(1970, 1, 1) + timedelta(seconds=int(archive_timestamp))), "%Y%m%d%H%M%S")
+                if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
+                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    skip_page = archive_url
+
             # Specific case of redirections from website returned by archives as JS redirections with code 200
             elif redir_url:
                 response.status = int(redir_url.group(2))
@@ -337,7 +358,7 @@ class PagesCrawler(Spider):
         if not skip_page and 300 <= response.status < 400:
             redir_url = response.headers['Location']
 
-            if self.webarchives and self.archiveregexp.match(redir_url):
+            if self.webarchives and self.archiveprefix and self.archiveregexp.match(redir_url):
                 redir_url = self.archiveregexp.sub("", redir_url)
 
             if redir_url.startswith('/'):
@@ -367,7 +388,7 @@ class PagesCrawler(Spider):
             except AttributeError:
                 url = link['url']
 
-            if self.webarchives:
+            if self.webarchives and self.archiveprefix:
                 # Rewrite archives urls and filter internal archives links
                 url = self.archiveregexp.sub("", url)
                 if url.startswith(self.archivehost) or \
@@ -411,7 +432,7 @@ class PagesCrawler(Spider):
         p = Page()
         p['url'] = response.url
         if self.webarchives:
-            p['url'] = self.archiveregexp.sub("", response.url)
+            p['url'] = self.archiveregexp.sub("", response.url) if self.archiveprefix else response.headers.get("x-response-url", response.url)
             p['archive_url'] = archive_fail_url or response.url
             p['archive_date_requested'] = self.archivedate
             if 'archive_timestamp' in response.meta and not archive_fail_url:
@@ -444,6 +465,17 @@ class PagesCrawler(Spider):
         if self.phantom:
             kw['method'] = 'HEAD'
         if self.webarchives:
+            if self.webarchives["option"] == "dlweb.ina.fr":
+                # TODO: fix urls such as http://domain.com without trailing slash not working with INA archive
+                kw["headers"] = {
+                    "X-DLWeb-Token": sha256("%s\n%s\n" % (WEBARCHIVES_PASSWORD, url)).hexdigest(),
+                    "X-Request-Time": self.archivetimestamp,
+                    "X-User": "HYPHE_%s_%s" % (HYPHE_PROJECT, self.crawler.settings['JOBID'])
+                }
+                kw["meta"]["archive_timestamp"] = self.archivedate
+                # self.log("REQUEST %s: %s" % (url, kw), logging.DEBUG)
+
+                return Request(url, **kw)
             if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 kw['headers'] = {
                     "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.crawler.settings['JOBID'])

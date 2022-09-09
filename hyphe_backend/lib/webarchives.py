@@ -19,6 +19,12 @@ ARCHIVES_OPTIONS = {
         "permalinks_prefix": "http://rntse.bnf.fr/jsp/lancerDL.jsp?appli=WAYBACK_URL&titre=la%20navigation%20dans%20les%20archives%20de%20l%27internet&url=http://archivesinternet.bnf.fr/DATETIME/SOURCEURL",
         "proxy": "archivesinternet.bnf.fr:8090",
         "min_date": "1996-01-01"
+    },
+    "dlweb.ina.fr": {
+        "label": "DLWeb.INA.fr",
+        "description": "crawl France's official web medias archives maintained by INA",
+        "proxy": "dlweb.ina.fr:82",
+        "min_date": "1996-01-01"
     }
 }
 
