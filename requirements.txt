@@ -3,7 +3,7 @@ pystache==0.5.4
 progressbar2
 service_identity
 virtualenvwrapper
-urllib3[secure]
+urllib3>=1.26.9,<2
 fake-useragent==0.1.11
 hyphe-traph>=1.4.0,<2
 msgpack-python>=0.3
