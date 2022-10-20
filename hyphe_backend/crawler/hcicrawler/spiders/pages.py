@@ -5,6 +5,7 @@ import json
 from hashlib import sha256
 import logging
 from datetime import datetime, timedelta
+import socket
 
 from pymongo import MongoClient
 try:
@@ -43,6 +44,15 @@ def normalize(url):
         strip_index=False,
         strip_irrelevant_subdomains=False
     )
+
+try:
+    HOSTNAME = socket.gethostname()
+except:
+    HOSTNAME = "localhost"
+try:
+    HOST_IP = socket.gethostbyname(HOSTNAME)
+except:
+    HOST_IP = "0.0.0.0"
 
 class PagesCrawler(Spider):
 
@@ -475,7 +485,11 @@ class PagesCrawler(Spider):
                 kw["headers"] = {
                     "X-DLWeb-Token": sha256("%s\n%s\n" % (WEBARCHIVES_PASSWORD, url)).hexdigest(),
                     "X-Request-Time": self.archivetimestamp,
-                    "X-User": "HYPHE_%s_%s" % (HYPHE_PROJECT, self.crawler.settings['JOBID'])
+                    "X-User": "HYPHE_%s_%s" % (HYPHE_PROJECT, self.crawler.settings['JOBID']),
+                    "X-IP": HOST_IP,
+                    "X-HostName": HOSTNAME,
+                    "X-Platform": "Linux",
+                    "X-DLWeb-Browser": "Hyphe crawler"
                 }
                 kw["meta"]["archive_timestamp"] = self.archivedate
                 # self.log("REQUEST %s: %s" % (url, kw), logging.DEBUG)
