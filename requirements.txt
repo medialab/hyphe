@@ -12,6 +12,7 @@ msgpack-python>=0.3
 Scrapy==1.6.0
 scrapyd-client==1.2.0a1
 selenium==2.42.1
+typing==3.10.0.0
 Twisted>=18,<=19
 txJSON-RPC==0.5
 jsonrpclib
