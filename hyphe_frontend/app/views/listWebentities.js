@@ -294,7 +294,7 @@ angular.module('hyphe.listwebentitiesController', [])
         $scope.webarchives_permalinks = (status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix || "").replace("DATETIME", webarchives_date)
         $scope.loadingStatus = false
         $scope.jobsToCome=$timeout(loadStatus, 5000);
-        callback()
+        callback && callback();
       },function(data, status, headers, config){
         $scope.status = {message: 'Error loading status', background:'danger'}
         $scope.loadingStatus = false
