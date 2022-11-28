@@ -1,6 +1,7 @@
 import os, sys
 import json, msgpack
 from time import time, sleep
+from collections import deque
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
@@ -297,12 +298,13 @@ class TraphClientProtocol(LineOnlyReceiver):
     delimiter = b"\r\n##TxHypheMsgPackDelimiter\r\n"
     MAX_LENGTH = 536870912
 
-    def __init__(self, corpus):
+    def __init__(self, corpus, max_successive_non_iterated_calls=10):
         self.corpus = corpus
         self.deferred = None
         self.queue = Queue()
         self.iteratorQueue = Queue()
         self.last_query = None
+        self.last_queries = deque(maxlen=max_successive_non_iterated_calls)
         self.start_query = None
 
     def connectionMade(self):
@@ -327,8 +329,7 @@ class TraphClientProtocol(LineOnlyReceiver):
             return
         self.corpus.call_running = True
         if not self.iteratorQueue.empty() and (
-          self.queue.empty() or
-          (self.last_query and self.last_query["method"] != "iterate_previous_query")
+          self.queue.empty() or "iterate_previous_query" not in self.last_queries
         ):
             queue = self.iteratorQueue
         else: queue = self.queue
@@ -340,6 +341,7 @@ class TraphClientProtocol(LineOnlyReceiver):
           "args": args,
           "kwargs": kwargs
         }
+        self.last_queries.append(method)
         if method == "clear":
             self.corpus.log("Dropping cleared traph queued queries: %s calls & %s iterative calls" % (self.queue.len(), self.iteratorQueue.len()))
             self.iteratorQueue.drop()
