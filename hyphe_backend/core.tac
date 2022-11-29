@@ -2124,7 +2124,7 @@ class Memory_Structure(customJSONRPC):
         logger.msg("...batch of %s crawled pages with %s links prepared..." % (len(batchpages), n_batchlinks), system="INFO - %s" % corpus)
         s = time.time()
 
-        res = yield self.traphs.call(corpus, "index_batch_crawl", batchpages)
+        res = yield self.traphs.call(corpus, "index_batch_crawl", batchpages, 50)
         if is_error(res):
             logger.msg(res['message'], system="ERROR - %s" % corpus)
             returnD(res)

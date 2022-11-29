@@ -5,7 +5,7 @@ service_identity
 virtualenvwrapper
 urllib3>=1.26.9,<2
 fake-useragent==0.1.11
-hyphe-traph>=2.0.0,<3
+hyphe-traph>=2.1.0,<3
 msgpack-python>=0.3
 Scrapy==1.6.0
 scrapyd-client==1.2.0a1
