@@ -1,5 +1,6 @@
 service_identity==18.1.0
-urllib3[secure]
+urllib3>=1.26.9,<2
+incremental==21.3.0
 Twisted==20.3.0
 Scrapy==1.8.0
 scrapyd==1.2.1
