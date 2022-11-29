@@ -1,3 +1,4 @@
+Automat==20.2.0
 service_identity==18.1.0
 urllib3>=1.26.9,<2
 incremental==21.3.0
