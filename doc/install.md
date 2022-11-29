@@ -106,7 +106,7 @@ sudo chown scrapy:nogroup /var/log/scrapyd /var/lib/scrapyd /var/lib/scrapyd/egg
 - Install globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them:
 
 ```bash
-sudo pip install hyphe_backend/crawler/requirements-scrapyd.txt
+cat hyphe_backend/crawler/requirements-scrapyd.txt | sudo xargs -n 1 -L 1 pip install
 ```
 
 - Start ScrapyD manually:
@@ -143,7 +143,7 @@ source virtualenvwrapper.sh
 # Create Hyphe's VirtualEnv & install dependencies
 mkvirtualenv hyphe-traph
 add2virtualenv $(pwd)
-pip install -r requirements.txt
+cat requirements.txt | xargs -n 1 -L 1 pip install
 deactivate
 ```
 
