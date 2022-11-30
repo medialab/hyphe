@@ -356,24 +356,29 @@ angular.module('hyphe.prospectController', [])
       $scope.applySettings()
     })
 
+    window.onbeforeunload = function(){
+      if($scope.setToIn>0) {
+        return "you have set some entities as IN which you should probably crawl. Do you really want to leave this page?"
+      }
+    }
+
     $scope.$on('$locationChangeStart', function(event, newUrl) {
       if ( !newUrl.endsWith("/prepareCrawls")){
         var toIn = $scope.setToIn
         if (toIn) {
           var answer = confirm("You have set as IN " + toIn + " web entit" + (toIn > 1 ? "ies" : "y") + " which you should probably crawl. Do you really want to leave this page?")
           if (!answer) {
-            event.preventDefault();
+            return event.preventDefault();
           } else {
-            $window.onbeforeunload = null;
+            return window.onbeforeunload = () => null;
           }
         }
       }
+      window.onbeforeunload = () => null;
     })
 
-    $window.onbeforeunload = function(){
-      if($scope.setToIn>0) {
-        return "you have set some entities as IN which you should probably crawl. Do you really want to leave this page?"
-      }
-    }
+    $scope.$on('$destroy', function() {
+      window.onbeforeunload = () => null;
+    });
 
   })
