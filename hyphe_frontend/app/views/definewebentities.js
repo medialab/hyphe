@@ -521,4 +521,27 @@ angular.module('hyphe.definewebentitiesController', [])
       obj.status = 'loading'
       return obj
     }
+
+    window.onbeforeunload = function(){
+      if($scope.list.length || $scope.retry || $scope.createdList.length || $scope.existingList.length) {
+        return "you still have web entities to complete creating. Do you really want to leave this page?"
+      }
+    }
+
+    $scope.$on('$locationChangeStart', function(event, newUrl) {
+      if (!newUrl.endsWith("/prepareCrawls") && ($scope.list.length || $scope.retry || $scope.createdList.length || $scope.existingList.length)) {
+        var answer = confirm("you still have web entities to complete creating. Do you really want to leave this page?")
+        if (!answer) {
+          return event.preventDefault();
+        } else {
+          return window.onbeforeunload = () => null;
+        }
+      }
+      window.onbeforeunload = () => null;
+    })
+
+    $scope.$on('$destroy', function() {
+      window.onbeforeunload = () => null;
+    });
+
   }])

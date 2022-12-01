@@ -263,4 +263,26 @@ angular.module('hyphe.settingsController', [])
       $location.path('/login')
     })
 
+    window.onbeforeunload = function(){
+      if($scope.corpusSettingsEditMode) {
+        return "you have not saved your settings modifications yet. Do you really want to leave this page?"
+      }
+    }
+
+    $scope.$on('$locationChangeStart', function(event, newUrl) {
+      if ($scope.corpusSettingsEditMode) {
+        var answer = confirm("you have not saved your settings modifications yet. Do you really want to leave this page?")
+        if (!answer) {
+          return event.preventDefault();
+        } else {
+          return window.onbeforeunload = () => null;
+        }
+      }
+      window.onbeforeunload = () => null;
+    })
+
+    $scope.$on('$destroy', function() {
+      window.onbeforeunload = () => null;
+    });
+
   }])

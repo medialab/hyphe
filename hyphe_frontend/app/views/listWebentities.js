@@ -657,5 +657,25 @@ angular.module('hyphe.listwebentitiesController', [])
 
     $scope.$on('$destroy', function () {
       $timeout.cancel($scope.jobsToCome)
+      window.onbeforeunload = () => null;
     })
+
+    window.onbeforeunload = function(){
+      if($scope.checkedList.length) {
+        return "you have selected web entities but did not do anything with them. Do you really want to leave this page?"
+      }
+    }
+
+    $scope.$on('$locationChangeStart', function(event, newUrl) {
+      if ($scope.checkedList.length) {
+        var answer = confirm("you have selected web entities but did not do anything with them. Do you really want to leave this page?")
+        if (!answer) {
+          return event.preventDefault();
+        } else {
+          return window.onbeforeunload = () => null;
+        }
+      }
+      window.onbeforeunload = () => null;
+    })
+
   })

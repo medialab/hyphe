@@ -27,6 +27,8 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.getWebentities = getWebentities
 
+    $scope.allowLeave = false;
+
     var timeout = 20
     $scope.queriesBatches = []
     var lookupEngine = getLookupEngine()
@@ -51,9 +53,28 @@ angular.module('hyphe.preparecrawlsController', [])
     $scope.$on(
       "$destroy",
       function( event ) {
-          $interval.cancel( lazylookupTimeInterval )
+        $interval.cancel( lazylookupTimeInterval )
+        window.onbeforeunload = () => null;
       }
     )
+
+    window.onbeforeunload = function(){
+      if($scope.list.length && !$scope.allowLeave) {
+        return "you still have web entities to start crawling. Do you really want to leave this page?"
+      }
+    }
+
+    $scope.$on('$locationChangeStart', function(event, newUrl) {
+      if ($scope.list.length && !$scope.allowLeave) {
+        var answer = confirm("you still have web entities to start crawling. Do you really want to leave this page?")
+        if (!answer) {
+          return event.preventDefault();
+        } else {
+          return window.onbeforeunload = () => null;
+        }
+      }
+      window.onbeforeunload = () => null;
+    })
 
     // Update summaries
     $scope.$watch('lookups', function (newValue, oldValue) {
@@ -116,6 +137,7 @@ angular.module('hyphe.preparecrawlsController', [])
       queriesBatcher.atFinalization(function(list, pending, success, fail){
         $scope.status = {}
         $timeout(function() {
+          $scope.allowLeave = true;
           $location.path('/project/'+$scope.corpusId+'/monitorCrawls')
         }, 500)
       })
@@ -180,6 +202,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
       // Redirect if needed
       if(list.length == 0){
+        $scope.allowLeave = true;
         $location.path('/project/'+$scope.corpusId+'/monitorCrawls')
       } else {
         $scope.list = list
@@ -345,7 +368,8 @@ angular.module('hyphe.preparecrawlsController', [])
         }
       })
       updateStatusesSummary()
-      $scope.$apply()
+      if ($scope.list.length)
+        $scope.$apply()
     }
 
     function updateStartpagesSummary(startpages){
