@@ -43,22 +43,22 @@ angular.module('hyphe.definewebentitiesController', [])
               }
           })
       } else if(store.get('parsedUrls_type') == 'table') {
-        var settings = store.get('parsedUrls_settings')
+        var colId = store.get('parsedUrls_colId')
         ,table = store.get('parsedUrls')
         
         // Table headline
-        $scope.headline = table.shift().filter(function(d,i){return i != settings.urlColId})
+        $scope.headline = table.shift().filter(function(d,i){return i != colId})
         
         list = table.map(function(row, i){
           var meta = {}
-          table[0].forEach(function(colName,j){
-            if(j != settings.urlColId)
+          table[0].forEach(function(colName, j){
+            if(j != colId)
               meta[colName] = row[j]
           })
           return {
-            id:i
-            ,url:row[settings.urlColId]
-            ,row:row.filter(function(d,i){return i != settings.urlColId})
+            id: i
+            ,url: row[colId]
+            ,row: row.filter(function(d,i){return i != colId})
             ,meta:meta
           }
         })
@@ -71,7 +71,7 @@ angular.module('hyphe.definewebentitiesController', [])
       // Clean store
       store.remove('parsedUrls')
       store.remove('parsedUrls_type')
-      store.remove('parsedUrls_settings')
+      store.remove('parsedUrls_colId')
 
       // Build the list
       bootstrapUrlList(list)

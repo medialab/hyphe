@@ -31,6 +31,10 @@ angular.module('hyphe.importurlsController', [])
     $scope.$watch('dataText', updatePreview)
     $scope.$watch('parsingOption', updatePreview)
     $scope.$watch('headline', updatePreview)
+    $scope.$watch('selectedColumn', function() {
+      if (!$scope.table) return;
+      store.set('parsedUrls_colId', $scope.table[0].indexOf($scope.selectedColumn.name))
+    })
 
     // This trick to turn around a bug about textarea initialization
     $timeout(function(){
@@ -154,7 +158,7 @@ angular.module('hyphe.importurlsController', [])
         $scope.selectedColumn = $scope.columns[selectedColumnId]
 
         // Store these settings
-        store.set('parsedUrls_settings', {urlColId: selectedColumnId})
+        store.set('parsedUrls_colId', selectedColumnId)
       }
     })
   
