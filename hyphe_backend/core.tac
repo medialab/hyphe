@@ -1074,6 +1074,7 @@ class Core(customJSONRPC):
                     res = yield self.lookup_httpstatus(url, timeout=timeout+2, tryout=tryout+1, noproxy=noproxy, deadline=deadline, corpus=corpus, _alternate_proxy=_alternate_proxy)
                     returnD(res)
             elif type(e) == DNSLookupError:
+                res['result'] = -1
                 res['message'] = "DNS not found for url %s : %s" % (url, e)
             else:
                 res['result'] = -1
