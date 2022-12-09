@@ -31,10 +31,12 @@ ARCHIVES_OPTIONS = {
 
 
 def validateOption(value):
+    """be a string among the different options listed in https://github.com/medialab/hyphe/blob/master/hyphe_backend/lib/webarchives.py#L3"""
     return type(value) in [str, bytes, unicode] and value.lower() in [x.lower() for x in ARCHIVES_OPTIONS.keys()]
 
 
 def validateOptions(values):
+    """be a string or an array of strings among the different options listed in https://github.com/medialab/hyphe/blob/master/hyphe_backend/lib/webarchives.py#L3"""
     return all(validateOption(v) for v in values)
 
 
