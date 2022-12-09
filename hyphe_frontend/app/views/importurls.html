@@ -91,7 +91,7 @@
 
                 <md-input-container>
                   <label>Column containing the URLs</label>
-                  <md-select ng-model="selectedColumn" ng-click="settingsTouched = true">
+                  <md-select ng-model="$parent.selectedColumn" ng-click="$parent.settingsTouched = true">
                     <md-option ng-repeat="col in columns" ng-value="col">{{col.name}}</md-option>
                   </md-select>
                 </md-input-container>
