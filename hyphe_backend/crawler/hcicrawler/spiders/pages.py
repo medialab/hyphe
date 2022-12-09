@@ -203,7 +203,7 @@ class PagesCrawler(Spider):
             with open(os.path.join(PHANTOM["JS_PATH"], "get_iframes_content.js")) as js:
                 get_bod_w_iframes = js.read()
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
-            # TODO use modifed_body instead od _set_body
+            # TODO use modifed_body instead of _set_body
             response._set_body(bod_w_iframes.encode('utf-8'))
 
           # Try to scroll and unfold page
@@ -231,7 +231,7 @@ class PagesCrawler(Spider):
                     self.errors += 1
                     return self._make_raw_page(response)
             bod_w_iframes = self.phantom.execute_script(get_bod_w_iframes)
-            # TODO use modifed_body instead od _set_body
+            # TODO use modifed_body instead of _set_body
             response._set_body(bod_w_iframes.encode('utf-8'))
 
       # Cleanup pages with base64 images embedded that make scrapy consider them not htmlresponses
@@ -254,6 +254,8 @@ class PagesCrawler(Spider):
                 redir_url = response.headers['Location']
                 if redir_url.startswith("/") and self.archiveprefix:
                     redir_url = "%s%s" % (self.archivehost, redir_url)
+                if self.webarchives["option"] == "dlweb.ina.fr" and get_domain_name(redir_url).endswith(".dlweb"):
+                    return self._make_raw_page(response, archive_fail_url=redir_url)
                 if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                     if "depth" in response.meta:
                         response.meta['depth'] -= 1
@@ -315,7 +317,6 @@ class PagesCrawler(Spider):
 
         skip_page = False
         if self.webarchives:
-            # TODO detect INA redirection cases
             redir_url = self.archiveredirect.search(response.body) if self.archiveprefix else None
             if "web.archive.org" in self.webarchives["url_prefix"]:
                 # Remove WEB ARCHIVES banner
