@@ -227,7 +227,9 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
-* CAFIERO, Florian, Cafiero, GUILLE-ESCURET Paul, WARD Jeremy K, "[“I’m not an antivaxxer, but…”: Spurious and authentic diversity among vaccine critical activists](http://www.sciencedirect.com/science/article/pii/S0378873320300964) (2021), in Social Networks, Volume 65, 2021, Pages 63-70, ISSN 0378-8733. DOI: 10.1016/j.socnet.2020.11.004.
+* HUMALISTO, Niko, VALVE, Helena, ÅKERMAN, Maria, "[Making the circular economy online: a hyperlink analysis of the articulation of nutrient recycling in Finland](https://www.tandfonline.com/doi/abs/10.1080/09644016.2020.1817291?journalCode=fenp20)", (2021), Environmental Politics, 30:5, 833-853, DOI: 10.1080/09644016.2020.1817291
+
+* CAFIERO, Florian, GUILLE-ESCURET Paul, WARD Jeremy K, "[“I’m not an antivaxxer, but…”: Spurious and authentic diversity among vaccine critical activists](http://www.sciencedirect.com/science/article/pii/S0378873320300964)" (2021), in Social Networks, Volume 65, 2021, Pages 63-70, ISSN 0378-8733. DOI: 10.1016/j.socnet.2020.11.004.
 
 * BLANKE, Tobias, VENTURINI, Tommaso, "[A network view on reliability: using machine learning to understand how we assess news websites](https://zenodo.org/record/4742266/files/Blanke-Venturini2021_Article_ANetworkViewOnReliabilityUsing.pdf?download=1)" (2021), in Journal of Computational Social Science. DOI: 10.1007/s42001-021-00116-w
 
