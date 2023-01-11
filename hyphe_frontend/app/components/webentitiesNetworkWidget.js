@@ -645,7 +645,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               } catch(e) {
                 tagVal = ''
               }
-              g.setNodeAttribute(nid, tagCat.trim(), tagVal);
+              g.setNodeAttribute(nid, "tag_" + tagCat.trim(), tagVal);
             }
             // g.removeNodeAttribute(nid, "tags");
           })
