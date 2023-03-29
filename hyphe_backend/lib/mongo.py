@@ -121,6 +121,7 @@ class MongoDB(object):
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten') + sortasc('status'), background=True)
             yield self.pages(corpus).create_index(sortasc('url'), background=True)
+            yield self.pages(corpus).create_index(sortasc('lru'), background=True)
             yield self.queue(corpus).create_index(sortasc('timestamp'), background=True)
             yield self.queue(corpus).create_index(sortasc('_job'), background=True)
             yield self.queue(corpus).create_index(sortasc('_job') + sortdesc('timestamp'), background=True)
