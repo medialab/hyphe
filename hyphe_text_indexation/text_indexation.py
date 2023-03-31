@@ -347,6 +347,7 @@ try:
                     "text_indexation_status": "TO_INDEX",
                     "forgotten": False
                 })
+                print(nb_pages_to_index[corpus], "pages to index for", corpus)
                 nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
                 corpora.append(corpus)
                 # check index exists in elasticsearch
@@ -422,18 +423,20 @@ try:
                         "forgotten": False,
                     }, projection=["_id"]).sort('timestamp').limit(BATCH_SIZE)]
                     batch_uuid = md5("|".join(batch_ids).encode('UTF8')).hexdigest()
-                    # we don't want putting in the queue to be blocking if queue is full cause this which might limit the possibility to update WEs in parallel of long indexation batchs 
+
+                    # change index status to "in batch" before sending it to the queue
+                    mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
+
+                    # we don't want putting in the queue to be blocking if queue is full cause this which might limit the possibility to update WEs in parallel of long indexation batchs
                     try:
                         # create task with corpus and batch uuid
                         task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]}, block=False)
                     except Queue.full:
                         log.info('indexation queue is full')
-                    else:
-                        # change index status to "in batch"
-                        logg.debug("added %s pages in new batch %s"%(len(batch_ids), batch_uuid))
-                        # flag as in batch only if task correclty added to the queue
-                        mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
-                nb_index_batches_since_last_update[c]+=1
+                        # unflag as in batch if task uncorreclty added to the queue
+                        mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'TO_INDEX'}})
+
+                nb_index_batches_since_last_update[c] += 1
 
             # checking job completion
             for c in corpora:
