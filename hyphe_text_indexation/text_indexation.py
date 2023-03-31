@@ -24,7 +24,7 @@ import dragnet
 import trafilatura
 # for page title extraction
 from lxml.html import fromstring
-        
+
 
 
 
@@ -43,7 +43,7 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
     try:
         # get the prepared batch
         query = {
-            "text_indexation_status": "IN_BATCH_%s"%batch_uuid
+            "text_indexation_status": "IN_BATCH_%s" % batch_uuid
         }
         for page in mongo_pages_coll.find(query):
             
@@ -76,44 +76,45 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
                 try:
                     page_to_index["dragnet"] = dragnet.extract_content(html, encoding=encoding)
                 except Exception as e:
-                    logg.exception("Dragnet error on page %s"%page['url'])
+                    logg.exception("Dragnet error on page %s" % page['url'])
                     page_to_index["dragnet"] = None
             if 'trafilatura' in extraction_methods:
                 try:
                     page_to_index["trafilatura"] = trafilatura.extract(html)
-                except Exception:
+                except Exception as e:
                     logg.exception("Trafilatura error")
-                    page_to_index["trafilatura"] = None    
+                    page_to_index["trafilatura"] = None
             # extract title
             try:
                 page_tree = fromstring(html)
                 page_to_index['title'] = page_tree.findtext('.//title')
             except Exception:
                 page_to_index['title'] = None
-            
+
             page_to_index["indexDate"] = datetime.datetime.now()
             pages.append(page_to_index)
+        logg.info("%s: %s pages to index in batch %s" % (corpus, len(pages), batch_uuid))
         # index batch to ES
         nb_indexed_docs, errors = helpers.bulk(es, [{
                 "_op_type": "update",
                 "doc_as_upsert": True,
                 "_id": p['_id'],
                 # we don't index _id as a doc field...
-                'doc':{k:v for k,v in p.items() if k !='_id'} 
+                'doc':{k:v for k,v in p.items() if k !='_id'}
             } for p in pages],
             index=index_name(corpus),
             raise_on_error=False)
         if nb_indexed_docs > 0:
-            logg.info("%s: %s pages indexed in batch %s"%(corpus, nb_indexed_docs, batch_uuid))
+            logg.info("%s: %s pages indexed in batch %s" % (corpus, nb_indexed_docs, batch_uuid))
         # deal with indexing errors
         if len(errors)>0:
-            logg.warning("%s doc were not indexed in the batch %s"%(len(errors), batch_uuid))
+            logg.warning("%s doc were not indexed in the batch %s" % (len(errors), batch_uuid))
             logg.error(errors)
             not_indexed_doc_ids = set(e["update"]["_id"] for e in errors)
-            error_messages = {e["update"]["_id"]: "%s : %s"%(e["update"]["error"]["type"], e["update"]["error"]["reason"]) for e in errors}
+            error_messages = {e["update"]["_id"]: "%s : %s" % (e["update"]["error"]["type"], e["update"]["error"]["reason"]) for e in errors}
         else:
             not_indexed_doc_ids = []
-        # removing errornous doc from list 
+        # removing erroneous doc from list
         indexed_page_urls = []
         not_indexed_page = []
         for p in pages:
@@ -122,34 +123,34 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
             else:
                 not_indexed_page.append({'url':p['url'], 'error_message': error_messages[p['_id']]})
 
-        
+
         if len(not_indexed_page) == 0:
             # update status in mongo for all pages
-            mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
+            mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s" % batch_uuid}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
         elif len(not_indexed_page) > 0:
             # update status in mongo only for no error pages
-            mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid, 'url': {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
-            # not indexed page beacause of errors are discarded 
+            mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s" % batch_uuid, 'url': {'$in' : indexed_page_urls}}, {'$set': {'text_indexation_status': 'INDEXED'}}, upsert=False)
+            # not indexed page because of errors that were discarded
             for p in not_indexed_page:
-                mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': "ERROR", 'text_indexation_error': p['error_message']}}, upsert=False)        
+                mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s" % batch_uuid}, {'$set': {'text_indexation_status': "ERROR", 'text_indexation_error': p['error_message']}}, upsert=False)
 
 
     except Exception as e:
         pages = []
         # erase in_batch_ flag in pages mongo collection
-        mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s"%batch_uuid}, {'$set': {'text_indexation_status': 'TO_INDEX'}}, upsert=False)
-        logg.exception("%s: error in index bulk, batch flag reset"%corpus)
+        mongo_pages_coll.update_many({'text_indexation_status': "IN_BATCH_%s" % batch_uuid}, {'$set': {'text_indexation_status': 'TO_INDEX'}}, upsert=False)
+        logg.exception("%s: error in index bulk, batch flag reset" % corpus)
         logg.debug(e)
         return 1
-    return 0     
-   
+    return 0
+
 def updateWE_task(corpus, es, mongo):
     logg = logging.getLogger()
     # update web entity - page structure
     mongo_webupdates_coll =  mongo["hyphe_%s" % corpus]["WEupdates"]
     mongo_jobs_coll =  mongo["hyphe_%s" % corpus]["jobs"]
     weupdates = list(mongo_webupdates_coll.find({"index_status": "PENDING"}).sort('timestamp'))
-    logg.info("%s: %s WE updates waiting"%(corpus, len(weupdates)))
+    logg.info("%s: %s WE updates waiting" % (corpus, len(weupdates)))
     for weupdate in weupdates:
         nb_unindexed_jobs = mongo_jobs_coll.count_documents({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}, "scheduled_at":{"$lt":weupdate['timestamp']}})
         # don't update WE structure in text index if there is one crawling job
@@ -209,18 +210,18 @@ def updateWE_task(corpus, es, mongo):
             except Exception:
                 logg.exception('update WE %s=>%s failed'%(weupdate['old_webentity'], weupdate['new_webentity']))
             else:
-                logg.info("%s: %s pages updated in %sms update %s"%(corpus, index_result['updated'], index_result['took'], weupdate['_id']))
+                logg.info("%s: %s pages updated in %sms update %s" % (corpus, index_result['updated'], index_result['took'], weupdate['_id']))
                 weupdates = mongo_webupdates_coll.update_one({"_id": weupdate['_id']}, {'$set': {'index_status': 'FINISHED'}})
                 # sync write operations to make updates available for next update
                 # see https://discuss.elastic.co/t/update-by-query-and-refresh/20334/3
                 es.indices.refresh(index= index_name(corpus))
         else:
             # do nothin A update which can't be made block the sooner ones
-            logg.info("update WE %s blocked by job stopping updates"%weupdate['_id'])
+            logg.info("update WE %s blocked by job stopping updates" % weupdate['_id'])
             return 0
 # worker
 def indexation_worker(input, logging_queue):
-    # leave sigint handling to the parent process 
+    # leave sigint handling to the parent process
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
     es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT_SEC)
@@ -238,7 +239,7 @@ def indexation_worker(input, logging_queue):
             if task['type'] == "indexation":
                 indexation_task(task['corpus'], task['batch_uuid'], task['extraction_methods'], es, mongo)
         except Exception:
-            logg.exception("ERROR in task %s for corpus %s"%(task['type'],task['corpus']))       
+            logg.exception("ERROR in task %s for corpus %s" % (task['type'],task['corpus']))
     logg.info('stopping')
     input.close()
     logging_queue.close()
@@ -287,7 +288,7 @@ console_handler.setLevel(logging.DEBUG)
 logging_listener = logging.handlers.QueueListener(logging_queue, file_handler, console_handler)
 logging_listener.start()
 
-try: 
+try:
     # Initiate MongoDB connection and build index on pages
     try:
         print("connecting to mongo...")
@@ -305,19 +306,19 @@ try:
 
     with open('index_mappings.json', 'r', encoding='utf8') as f:
         index_mappings = json.load(f)
-    
-    
+
+
 
     # Create queues
     task_queue = Queue(NB_INDEXATION_WORKERS)
-    
+
     # start workers
     workers = []
-    logg.info("starting %s workers"%NB_INDEXATION_WORKERS)
+    logg.info("starting %s workers" % NB_INDEXATION_WORKERS)
     for i in range(NB_INDEXATION_WORKERS):
         # create a dedicated connections to db
-    
-        p = Process(target=indexation_worker, args=(task_queue, logging_queue), daemon=True, name="worker-%s"%i)
+
+        p = Process(target=indexation_worker, args=(task_queue, logging_queue), daemon=True, name="worker-%s" % i)
         p.start()
         workers.append(p)
 
@@ -332,16 +333,16 @@ try:
             corpora = []
             nb_pages_to_index = {}
             nb_we_updates = {}
-            # retrive existing indices in ES
+            # retrieve existing indices in ES
             existing_es_indices = es.indices.get(index_name('*'))
             index_to_keep = set()
             for c in hyphe_corpus_coll.find({"options.indexTextContent": True}, projection={
-                    "options.text_indexation_extraction_methods":1, 
+                    "options.text_indexation_extraction_methods":1,
                     "options.text_indexation_default_method":1}):
                 corpus = c["_id"]
                 mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
-                
-                
+
+
                 nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
                     "text_indexation_status": "TO_INDEX",
                     "forgotten": False
@@ -359,13 +360,13 @@ try:
                         default_extraction_method = DEFAULT_EXTRACTION_METHOD
                     if 'options' in c and 'text_indexation_extraction_methods' in c['options']:
                         extraction_methods = c['options']['text_indexation_extraction_methods']
-                    else: 
+                    else:
                         extraction_methods = EXTRACTION_METHODS
                     # adapt mappings with default extraction methods
                     if not default_extraction_method in ['textify', 'dragnet', 'trafilatura']:
-                        logg.warning("unknown DEFAULT_EXTRACTION_METHOD %s"%default_extraction_method)
+                        logg.warning("unknown DEFAULT_EXTRACTION_METHOD %s" % default_extraction_method)
                         if len(extraction_methods)>0:
-                            logg.info("using first method instead %s"%extraction_methods[0])
+                            logg.info("using first method instead %s" % extraction_methods[0])
                             default_extraction_method = extraction_methods[0]
                     else:
                         if not default_extraction_method in extraction_methods:
@@ -376,7 +377,7 @@ try:
                     if not index_exists:
                         # create ES index
                         es.indices.create(index=index_name(corpus), body = index_mappings)
-                        logg.info("index %s created"%corpus)
+                        logg.info("index %s created" % corpus)
                     else:
                         es.indices.put_mapping(index=index_name(corpus), body=index_mappings['mappings'])
                 index_to_keep.add(index_name(corpus))
@@ -399,19 +400,19 @@ try:
                     "aggs": {
                         "indices": {
                         "terms": {
-                            "field": "_index"   
+                            "field": "_index"
                         },
                         "aggs":{
                             "maxIndexDate": { "max" : { "field" : "indexDate" } }
                             }
-                        }  
+                        }
                     }
                 })["aggregations"]["indices"]["buckets"]}
             else:
                 last_index_dates = {}
 
             corpora = sorted(corpora, key=lambda c : last_index_dates[index_name(c)] if index_name(c) in last_index_dates else 0)
-            
+
             # add tasks in queue
             for c in corpora:
                 if nb_pages_to_index[c] > 0 and not task_queue.full():
@@ -434,7 +435,7 @@ try:
                         mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'IN_BATCH_%s'%batch_uuid}})
                 nb_index_batches_since_last_update[c]+=1
 
-            # checking job completion 
+            # checking job completion
             for c in corpora:
                 mongo_jobs_coll = mongo["hyphe_%s" % c]["jobs"]
                 mongo_pages_coll = mongo["hyphe_%s" % c]["pages"]
@@ -443,15 +444,15 @@ try:
                     'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']},
                     'text_indexed': {'$ne': True}
                 }, projection=('_id','crawljob_id'))])
-                
+
                 # tag jobs when completed
                 not_completed_jobs_pipeline = [
                     {
                         "$match": {
                             "_job" : {"$in": list(pending_jobs_ids)},
                             # TODO: we might want to use a regexp IN_BATCH_.* here. Less performant but resilient to introduction of new statuses
-                            # OR we should split IN_BATCH status and UUID 
-                            "text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED","ERROR"]},
+                            # OR we should split IN_BATCH status and UUID
+                            "text_indexation_status": {"$nin": ["DONT_INDEX", "INDEXED", "ERROR"]},
                             "forgotten": False
                         }
                     },
@@ -464,12 +465,12 @@ try:
                 # counting completed jobs
                 not_completed_jobs = set(o['_id'] for o in mongo_pages_coll.aggregate(not_completed_jobs_pipeline))
                 completed_jobs = pending_jobs_ids - not_completed_jobs
-                
+
                 if len(completed_jobs) > 0:
                     r = mongo_jobs_coll.update_many({'crawljob_id': {"$in": list(completed_jobs)}}, {'$set': {'text_indexed': True}})
                     if r.modified_count != len(completed_jobs):
                         logg.warning('only %s jobs were modified on %s completed ?'%(r.modified_count, len(completed_jobs)))
-                    logg.info("%s: %s jobs were fully indexed. %s pending."%(c, len(completed_jobs), len(not_completed_jobs)))
+                    logg.info("%s: %s jobs were fully indexed. %s pending." % (c, len(completed_jobs), len(not_completed_jobs)))
                     # make sure documents are stored to let update do there jobs
                     # see https://discuss.elastic.co/t/update-by-query-and-refresh/20334/3
                     es.indices.refresh(index= index_name(c))
@@ -485,18 +486,18 @@ try:
             first_run = False
 
             # loop
-            if sum(nb_pages_to_index.values()) == 0 and sum(nb_we_updates.values()) == 0: 
+            if sum(nb_pages_to_index.values()) == 0 and sum(nb_we_updates.values()) == 0:
                 # wait for more tasks to be created
                 logg.info('waiting %s'%throttle)
                 time.sleep(throttle)
                 if throttle < 5:
                     throttle += 0.5
             else:
-                # next throttlet will be 
+                # next throttle will be
                 throttle = 0.5
         except KeyboardInterrupt:
             # raise, closing nicely will be done in the root except clause
-            raise 
+            raise
         except Exception:
             logg.exception("in main, trying to continue operations")
 except:
