@@ -23,7 +23,7 @@ def reset_text_index(corpus, elasticsearch, mongo):
         print("mongo database hyphe_%s reset" % corpus)
     except pymongo.errors.InvalidName:
         print("Could not find the mongo database %s"%"hyphe_%s" % corpus)
-    # retrive existing indices in ES
+    # retrieve existing indices in ES
     if elasticsearch.indices.exists(index=index_name(corpus)):
         elasticsearch.indices.delete(index=index_name(corpus))
         print('elasticsearch index %s deleted'%index_name(corpus))
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     except:
         logg.exception("can't connect to elasticsearch %s:%s"%(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT))
         exit('Could not initiate connection to Elasticsearch')
-    
+
 
 
     # Initiate MongoDB connection and build index on pages

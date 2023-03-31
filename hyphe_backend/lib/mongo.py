@@ -121,6 +121,8 @@ class MongoDB(object):
             yield self.pages(corpus).create_index(sortasc('_job') + sortasc('forgotten'), background=True)
             yield self.pages(corpus).create_index(sortasc('url'), background=True)
             if index_content:
+                yield self.pages(corpus).create_index(sortasc('text_indexation_status'), background=True)
+                yield self.pages(corpus).create_index(sortasc('text_indexation_status' + sortasc('forgotten')), background=True)
                 yield self.updates(corpus).create_index(sortasc('indexed'), background=True)
                 yield self.updates(corpus).create_index(sortasc('timestamp'), background=True)
                 yield self.updates(corpus).create_index(sortasc('indexed') + sortasc('timestamp'), background=True)
