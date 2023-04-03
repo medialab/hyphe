@@ -76,7 +76,7 @@ def cli(webentities_json_export, corpus_id, api_url): #, restart_after):
         startpages = list(set(we["START PAGES"] + we["PREFIXES AS URL"]))
         if we["HOME PAGE"] and we["HOME PAGE"] not in startpages:
             startpages.append(we["HOME PAGE"])
-        res = hyphe_api.store.declare_webentity_by_lrus(we["PREFIXES AS LRU"], we["NAME"], we["STATUS"], startpages, False, cid)
+        res = hyphe_api.store.declare_webentity_by_lrus(we["PREFIXES AS LRU"], we["NAME"], we["STATUS"], startpages, False, {"USER": we['TAGS']} if 'TAGS' in we else {}, cid)
         if 'code' not in res or res['code'] == 'fail':
             print >> sys.stderr, 'ERROR: Could not declare WebEntity', res
             return
@@ -85,12 +85,6 @@ def cli(webentities_json_export, corpus_id, api_url): #, restart_after):
             res = hyphe_api.store.set_webentity_homepage(weid, we['HOME PAGE'], cid)
             if 'code' not in res or res['code'] == 'fail':
                 print >> sys.stderr, "WARNING: Could not set WebEntity's homepage", we['NAME'], weid, we['HOME PAGE'], res
-        if we["TAGS"]:
-            for cat, vals in we['TAGS'].items():
-                for val in vals:
-                    res = hyphe_api.store.add_webentity_tag_value(weid, 'USER', cat, val, cid)
-                    if 'code' not in res or res['code'] == 'fail':
-                        print >> sys.stderr, "WARNING: Could not add WebEntity's tag", we['NAME'], weid, cat, val, res
         tocrawl.append(weid)
 
 if __name__ == '__main__':

@@ -190,7 +190,7 @@ def cli(archive_dir, corpus_name, api_url, filter_discovered, destroy_existing, 
             continue
         if restart_after and we['_id'] <= restart_after:
             continue
-        res = hyphe_api.store.declare_webentity_by_lrus(we["prefixes"], we["name"], we["status"], we["startpages"], False, cid)
+        res = hyphe_api.store.declare_webentity_by_lrus(we["prefixes"], we["name"], we["status"], we["startpages"], False, {'USER': we['TAGS']['USER']} if 'TAGS' in we and 'USER' in we ['TAGS'] else {}, cid)
         if 'code' not in res or res['code'] == 'fail':
             print >> sys.stderr, 'ERROR: Could not declare WebEntity', res
             return
@@ -200,12 +200,6 @@ def cli(archive_dir, corpus_name, api_url, filter_discovered, destroy_existing, 
             res = hyphe_api.store.set_webentity_homepage(weid, we['homepage'], cid)
             if 'code' not in res or res['code'] == 'fail':
                 print >> sys.stderr, "WARNING: Could not set WebEntity's homepage", we['name'], weid, we['homepage'], res
-        if 'USER' in we['tags']:
-            for cat, vals in we['tags']['USER'].items():
-                for val in vals:
-                    res = hyphe_api.store.add_webentity_tag_value(weid, 'USER', cat, val, cid)
-                    if 'code' not in res or res['code'] == 'fail':
-                        print >> sys.stderr, "WARNING: Could not add WebEntity's tag", we['name'], weid, cat, val, res
 
 #TODO : remove existing CORE tags and add old ones ?
 
