@@ -86,8 +86,8 @@ docker-compose -f docker-compose.yml
 - install deps in a virtualenv
 ```bash
 $ cd hyphe_text_indexation
-$ pyenv install 3.5
-$ pyenv virtualenv 3.5 hyphe_text_indexation
+$ pyenv install 3.7.9
+$ pyenv virtualenv 3.7.9 hyphe_text_indexation
 $ pyenv activate hyphe_text_indexation
 # install deps
 $ bash ./install_deps.sh
@@ -154,7 +154,7 @@ docker-compose -f docker-compose.yml -f docker-compose-text_indexation.yml  up
 ### prepare deps
 
 ```bash
-pyenv virtualenv 3.7.6 hyphe_text_indexation
+pyenv virtualenv 3.7.9 hyphe_text_indexation
 pyenv activate hyphe_text_indexation
 bash install_deps.sh
 ```

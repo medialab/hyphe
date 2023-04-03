@@ -1,4 +1,4 @@
-FROM python:3.5
+FROM python:3.7
 
 COPY . /hyphe_text_indexation
 WORKDIR /hyphe_text_indexation
