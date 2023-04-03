@@ -92,7 +92,18 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
                 page_to_index['title'] = None
 
             page_to_index["indexDate"] = datetime.datetime.now()
-            pages.append(page_to_index)
+            to_index = True
+            for k, v in page_to_index.items():
+                try:
+                    if type(v) == str:
+                        v.encode("utf-8")
+                except UnicodeEncodeError as e:
+                    logg.warning("Page %s has an encoding error on field %s. Declaring it as error before trying to index it in ES (%s)" % (page_to_index["url"], k, e))
+                    mongo_pages_coll.update_one({'url' : page_to_index['url'], 'text_indexation_status': "IN_BATCH_%s" % batch_uuid}, {'$set': {'text_indexation_status': "ERROR", 'text_indexation_error': "%s: %s" % (type(e), e)}}, upsert=False)
+                    to_index = False
+                    break
+            if to_index:
+                pages.append(page_to_index)
         logg.info("%s: %s pages to index in batch %s" % (corpus, len(pages), batch_uuid))
         # index batch to ES
         nb_indexed_docs, errors = helpers.bulk(es, [{
