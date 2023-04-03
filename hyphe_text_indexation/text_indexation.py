@@ -45,8 +45,10 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
         query = {
             "text_indexation_status": "IN_BATCH_%s" % batch_uuid
         }
+        logg.info("Working on batch %s of %s pages" % (batch_uuid, mongo_pages_coll.count_documents(query)))
         for page in mongo_pages_coll.find(query):
-            
+            #logg.debug("Preparing page %s" % page['url'])
+
             stems = page['lru'].rstrip('|').split('|')
             page_to_index = {
                 '_id': md5(page['url'].encode('UTF8')).hexdigest(),
@@ -145,7 +147,6 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
             for p in not_indexed_page:
                 mongo_pages_coll.update_one({'url' : p['url'], 'text_indexation_status': "IN_BATCH_%s" % batch_uuid}, {'$set': {'text_indexation_status': "ERROR", 'text_indexation_error': p['error_message']}}, upsert=False)
 
-
     except Exception as e:
         pages = []
         # erase in_batch_ flag in pages mongo collection
@@ -166,7 +167,7 @@ def updateWE_task(corpus, es, mongo):
         nb_unindexed_jobs = mongo_jobs_coll.count_documents({"webentity_id": weupdate['old_webentity'], "text_indexed": {"$exists": False}, "scheduled_at":{"$lt":weupdate['timestamp']}})
         # don't update WE structure in text index if there is one crawling job
         if nb_unindexed_jobs == 0:
-            print('%s: updating index WE_is %s => %s'%(corpus, weupdate['old_webentity'], weupdate['new_webentity']))
+            logg.info('%s: updating index WE_is %s => %s'%(corpus, weupdate['old_webentity'], weupdate['new_webentity']))
             # two cases , trivial if no prefixes, complexe otherwise
             if weupdate['prefixes'] and len(weupdate['prefixes']) > 0:
                 updateQuery = {
@@ -302,7 +303,7 @@ logging_listener.start()
 try:
     # Initiate MongoDB connection and build index on pages
     try:
-        print("connecting to mongo...")
+        logg.info("connecting to mongo...")
         mongo = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
     except Exception as e:
         logg.exception("can't connect to mongo")
@@ -313,7 +314,7 @@ try:
     # connect to ES
     # Wait for Elasticsearch to come up.
     es = connect_to_es(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT, ELASTICSEARCH_TIMEOUT_SEC)
-    print('Elasticsearch started!')
+    logg.info('Elasticsearch started!')
 
     with open('index_mappings.json', 'r', encoding='utf8') as f:
         index_mappings = json.load(f)
@@ -358,7 +359,7 @@ try:
                     "text_indexation_status": "TO_INDEX",
                     "forgotten": False
                 })
-                print(nb_pages_to_index[corpus], "pages to index for", corpus)
+                logg.info("%s pages to index for %s" % (nb_pages_to_index[corpus], corpus))
                 nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
                 corpora.append(corpus)
                 # check index exists in elasticsearch
