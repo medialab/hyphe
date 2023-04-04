@@ -22,6 +22,12 @@
             "trafilatura": {
                 "type": "text"
             },
+            "trafilaturaAuthor": {
+                "type": "text"
+            },
+            "trafilaturaComments": {
+                "type": "text"
+            },
             "text": {
                 "type": "alias",
                 "path": "textify" 
@@ -35,7 +41,10 @@
             "HTTP_status": {
                 "type": "keyword"
             },
-            "crawlDate":{
+            "trafilaturaDate": {
+                "type": "date"
+            },
+            "crawlDate": {
                 "type": "date"
             },
             "indexDate": {

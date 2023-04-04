@@ -71,6 +71,13 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
 
             page_to_index["webentity_id"] = page['webentity_when_crawled']
 
+            # extract title
+            try:
+                page_tree = fromstring(html)
+                page_to_index['title'] = page_tree.findtext('.//title')
+            except Exception:
+                page_to_index['title'] = None
+
             page["html"] = html
             if 'textify' in extraction_methods:
                 page_to_index["textify"] = textify(html, encoding=encoding)
@@ -82,16 +89,18 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
                     page_to_index["dragnet"] = None
             if 'trafilatura' in extraction_methods:
                 try:
-                    page_to_index["trafilatura"] = trafilatura.extract(html)
+                    extracts = trafilatura.bare_extraction(html)
+                    page_to_index["trafilatura"] = extracts.get("text")
+                    page_to_index["title"] = extracts.get("title") or page_to_index["title"]
+                    page_to_index["trafilaturaDate"] = extracts.get("date")
+                    page_to_index["trafilaturaAuthor"] = extracts.get("author")
+                    page_to_index["trafilaturaComments"] = extracts.get("comments")
                 except Exception as e:
                     logg.exception("Trafilatura error")
                     page_to_index["trafilatura"] = None
-            # extract title
-            try:
-                page_tree = fromstring(html)
-                page_to_index['title'] = page_tree.findtext('.//title')
-            except Exception:
-                page_to_index['title'] = None
+                    page_to_index["trafilaturaDate"] = None
+                    page_to_index["trafilaturaAuthor"] = None
+                    page_to_index["trafilaturaComments"] = None
 
             page_to_index["indexDate"] = datetime.datetime.now()
             to_index = True
