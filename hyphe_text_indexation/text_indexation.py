@@ -90,11 +90,18 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
             if 'trafilatura' in extraction_methods:
                 try:
                     extracts = trafilatura.bare_extraction(html)
-                    page_to_index["trafilatura"] = extracts.get("text")
-                    page_to_index["title"] = extracts.get("title") or page_to_index["title"]
-                    page_to_index["trafilaturaDate"] = extracts.get("date")
-                    page_to_index["trafilaturaAuthor"] = extracts.get("author")
-                    page_to_index["trafilaturaComments"] = extracts.get("comments")
+                    if not extracts:
+                        logg.exception("Trafilatura error")
+                        page_to_index["trafilatura"] = None
+                        page_to_index["trafilaturaDate"] = None
+                        page_to_index["trafilaturaAuthor"] = None
+                        page_to_index["trafilaturaComments"] = None
+                    else:
+                        page_to_index["trafilatura"] = extracts.get("text")
+                        page_to_index["title"] = extracts.get("title") or page_to_index["title"]
+                        page_to_index["trafilaturaDate"] = extracts.get("date")
+                        page_to_index["trafilaturaAuthor"] = extracts.get("author")
+                        page_to_index["trafilaturaComments"] = extracts.get("comments")
                 except Exception as e:
                     logg.exception("Trafilatura error")
                     page_to_index["trafilatura"] = None
