@@ -227,6 +227,54 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
+* GRUSON-DANIEL, Célya. Mapping contemporary “research on research” and “science studies”: how new methods change the traditional academic landscape and inform public open science policies. 2023.
+
+* YOUNG, Lisa, ALFREY, Laura, et O’CONNOR, Justen. When teachers Google physical literacy: A cartography of controversies analysis. European Physical Education Review, 2022, vol. 28, no 3, p. 613-632.
+
+* Hongyi Shi. Exploratory analysis of the hypertext structure linked to diabetes. Human health and pathology. Sorbonne Université, 2020. English. ⟨NNT : 2020SORUS391⟩. ⟨tel-03609140⟩
+
+* BLANKE, Tobias et VENTURINI, Tommaso. A network view on reliability: using machine learning to understand how we assess news websites. Journal of Computational Social Science, 2022, vol. 5, no 1, p. 69-88.
+
+* DA SILVA, Jaércio. Um conceito na rede: interseccionalidade e sua tradução micromidiática na web francesa. Revista Fronteiras, estudos midiáticos, 2022, vol. 24, no 1, p. 22-36.
+
+* BROWNE, Danielle. The ‘more-than-food’geographies of omega-3s. 2022. Thèse de doctorat. Memorial University of Newfoundland.
+
+* HEGADE, Prakash, CHITRAGAR, Ruturaj, KULKARNI, Raghavendra, et al. InSciC—Knowledge-Aware Crawler for Indian Sciences. In : Proceedings of International Conference on Communication and Computational Technologies: ICCCT 2022. Singapore : Springer Nature Singapore, 2022. p. 913-924.
+
+* BAKER, Catherine R. Infrastructures of male supremacism: a mixed-methods analysis of the incel wiki. 2022. Thèse de doctorat. Loughborough University.
+
+* MORALES, Pedro Ramaciotti, COINTET, Jean-Philippe, BENBOUZID, Bilel, et al. Atlas multi-plateforme d’un mouvement social: le cas des Gilets jaunes. Statistique et société, 2022, vol. 9, no 1-2, p. 39-77.
+
+* PAPAZU, Irina et VENG, Adam. Controversy Mapping and the Care for Climate Commons: Re-assembling the Danish Climate Movement by Counter-Mapping Digital Network Maps. 2022.
+
+* SHI, Hongyi, PFAENDER, Fabien, et JAULENT, Marie-Christine. Mapping the hyperlink structure of diabetes online communities. In : MEDINFO 2019: Health and Wellbeing e-Networks for All. IOS Press, 2019. p. 467-471.
+
+* DESBONNET, Johan. Réinterroger les notions d'accès à l'information géographique numérique au prisme de ses supports et de sa circulation sur le web. Applications aux territoires littoraux français et québécois. In : ASRDLF-57ème colloque-Territoire (s) et numérique Innovations, mutations et décision. 2021.
+
+* SHI, Hongyi, JAULENT, Marie-Christine, et PFAENDER, Fabien. Semantic interpretation of the map with diabetes-related websites. Procedia Computer Science, 2019, vol. 160, p. 330-337.
+
+* LECLERC, Éric. Ville intelligente et e-gouvernance en Inde, cartographier un nouveau paysage urbain. Mappemonde. Revue trimestrielle sur l’image géographique et les formes du territoire, 2020, no 128.
+
+* DOUZET, Frédérick, LIMONIER, Kévin, MIHOUBI, Selma, et al. Cartographier la propagation des contenus russes et chinois sur le Web africain francophone. Hérodote, 2020, no 2-3, p. 77-99.
+
+* DESBONNET, Johan, GOURMELON, Françoise, et CLARAMUNT, Christophe. Analyser la structure de dispositifs de mise à disposition de données géographiques-Application aux enjeux de suivi et de gestion du trait de côte en France. Revue Internationale de Géomatique, 2019, vol. 29, no 1, p. 57-80.
+
+* LEPAWSKY, Josh, DAVIS, John-Michael, AKESE, Grace, et al. Cooking with controversies: How geographers might use controversy mapping as a research tool. The Professional Geographer, 2019, vol. 71, no 3, p. 437-448.
+
+* DOUZET, Frédérick, LIMONIER, Kévin, MIHOUBI, Selma, et al. Mapping the spread of Russian and Chinese contents on the French-speaking African web. Journal of Cyber Policy, 2021, vol. 6, no 1, p. 50-67.
+
+* CIUCCARELLI, Giulia De Rossi Paolo. Mapping Communication Design through the Web. Design and Digital Interaction: Re: Research, Volume 7, 2019, vol. 7, p. 89.
+
+* LE DEUFF, Olivier, DAVID, Jean, BOREL, Clément, et al. Paul Otlet sur le web: une étude cartographique. In : H2PTM’19. De l’hypertexte aux humanités numériques. 2019.
+
+* CAYLA, Nathalie. Dinosaur Geotourism: A World-Wide Growing Tourism Niche. In : The Geotourism Industry in the 21st Century. Apple Academic Press, 2020. p. 449-472.
+
+* VERDI, UGO et DESFRICHES-DORIA, ORÉLIE. Information Literacy: une exploration hypertextuelle. H2PTM’19: De l’hypertexte aux humanités numériques, 2019, p. 22.
+
+* FROIO, Caterina. Nosotros y los Otros. La alteridad en los sitios web de las extremas derechas en Francia. We and the Others. The alterity in the websites of the. deSignis Serie Intersecciones deSigniS Intersection’s Series, p. 241.
+
+* HERASIMOVICH, Volha et ALZUA-SORZABAL, Aurkene. Communication network analysis to advance mapping ‘sport for development and peace’complexity: Cohesion and leadership. International Review for the Sociology of Sport, 2021, vol. 56, no 2, p. 170-193.
+
 * HUMALISTO, Niko, VALVE, Helena, ÅKERMAN, Maria, "[Making the circular economy online: a hyperlink analysis of the articulation of nutrient recycling in Finland](https://www.tandfonline.com/doi/abs/10.1080/09644016.2020.1817291?journalCode=fenp20)", (2021), Environmental Politics, 30:5, 833-853, DOI: 10.1080/09644016.2020.1817291
 
 * CAFIERO, Florian, GUILLE-ESCURET Paul, WARD Jeremy K, "[“I’m not an antivaxxer, but…”: Spurious and authentic diversity among vaccine critical activists](http://www.sciencedirect.com/science/article/pii/S0378873320300964)" (2021), in Social Networks, Volume 65, 2021, Pages 63-70, ISSN 0378-8733. DOI: 10.1016/j.socnet.2020.11.004.
