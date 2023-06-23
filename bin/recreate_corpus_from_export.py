@@ -85,7 +85,19 @@ def cli(webentities_json_export, corpus_id, api_url): #, restart_after):
             res = hyphe_api.store.set_webentity_homepage(weid, we['HOME PAGE'], cid)
             if 'code' not in res or res['code'] == 'fail':
                 print >> sys.stderr, "WARNING: Could not set WebEntity's homepage", we['NAME'], weid, we['HOME PAGE'], res
-        tocrawl.append(weid)
+        #if we["TAGS"]:
+        #    for cat, vals in we['TAGS'].items():
+        #        for val in vals:
+        #            res = hyphe_api.store.add_webentity_tag_value(weid, 'USER', cat, val, cid)
+        #            if 'code' not in res or res['code'] == 'fail':
+        #                print >> sys.stderr, "WARNING: Could not add WebEntity's tag", we['NAME'], weid, cat, val, res
+        if we["STATUS"] == "IN":
+            tocrawl.append(weid)
+
+    for weid in tocrawl:
+        res = hyphe_api.crawl_webentity(weid, 1, False, "IN", None, None, {}, {}, cid)
+        if 'code' not in res or res['code'] == 'fail':
+            print >> sys.stderr, 'WARNING: Could not start crawl for webentity', crawl, res
 
 if __name__ == '__main__':
     cli()
