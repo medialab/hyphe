@@ -2238,7 +2238,10 @@ class Memory_Structure(customJSONRPC):
                 }
             page_items = yield self.db.get_queue(corpus, {'_job': job['crawljob_id']}, limit=config['traph']['max_simul_pages_indexing'])
             if page_items:
-                logger.msg("Indexing %s pages from job %s..." % (len(page_items), job['_id']), system="INFO - %s" % corpus)
+                extra_info = "WE %s" % job["webentity_id"]
+                if "crawl_arguments" in job and "start_urls" in job["crawl_arguments"] and job["crawl_arguments"]["start_urls"]:
+                    extra_info += " " + job["crawl_arguments"]["start_urls"][0]
+                logger.msg("Indexing %s pages from job %s (%s)..." % (len(page_items), job['_id'], extra_info), system="INFO - %s" % corpus)
                 if job['_id'] != 'unknown':
                     yield self.db.update_jobs(corpus, job['_id'], {'indexing_status': indexing_statuses.BATCH_RUNNING})
                     yield self.db.add_log(corpus, job['_id'], "INDEX_"+indexing_statuses.BATCH_RUNNING)
