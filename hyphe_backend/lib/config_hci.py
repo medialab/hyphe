@@ -43,6 +43,9 @@ def load_config():
         if 'store_crawled_html_content' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['store_crawled_html_content'] = False
 
+        if 'ignore_internal_links' not in conf['mongo-scrapy']:
+            conf['mongo-scrapy']['ignore_internal_links'] = False
+
         if 'obey_robots' not in conf['mongo-scrapy']:
             conf['mongo-scrapy']['obey_robots'] = False
 
@@ -103,6 +106,7 @@ GLOBAL_CONF_SCHEMA = {
     "extra_fields": {
       "download_delay": float,
       "store_crawled_html_content": bool,
+      "ignore_internal_links": bool,
       "obey_robots": bool
     }
   }, "traph": {

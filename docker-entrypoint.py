@@ -43,6 +43,7 @@ if "HYPHE_PROXY_PORT"           in environ: setConfig("proxy_port", int(environ[
 if "HYPHE_MAXDEPTH"             in environ: setConfig("max_depth", int(environ["HYPHE_MAXDEPTH"]),configdata,"mongo-scrapy")
 if "HYPHE_DOWNLOAD_DELAY"       in environ: setConfig("download_delay", float(environ["HYPHE_DOWNLOAD_DELAY"]),configdata,"mongo-scrapy")
 if "HYPHE_STORE_CRAWLED_HTML"   in environ: setConfig("store_crawled_html_content", strToBool(environ["HYPHE_STORE_CRAWLED_HTML"]),configdata,"mongo-scrapy")
+if "HYPHE_IGNORE_INTERNAL_LINKS" in environ: setConfig("ignore_internal_links", strToBool(environ["HYPHE_IGNORE_INTERNAL_LINKS"]),configdata,"mongo-scrapy")
 if "HYPHE_MAX_SIM_REQ"          in environ: setConfig("max_simul_requests", int(environ["HYPHE_MAX_SIM_REQ"]),configdata,"mongo-scrapy")
 if "HYPHE_HOST_MAX_SIM_REQ"     in environ: setConfig("max_simul_requests_per_host", int(environ["HYPHE_HOST_MAX_SIM_REQ"]),configdata,"mongo-scrapy")
 if "HYPHE_OBEY_ROBOTS"          in environ: setConfig("obey_robots", strToBool(environ["HYPHE_OBEY_ROBOTS"]),configdata,"mongo-scrapy")

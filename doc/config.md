@@ -48,6 +48,10 @@ Typical important options to set depending on your situation are highlighted as 
 
     usually `false`, lets one enable archiving of full zipped HTML content of webpages crawled in MongoDB. This has to be set to true to use Hyphe in combination with [hyphe2solr](http://github.com/medialab/hyphe2solr). Set to false to consume a lot less hard drive space.
 
+  + __`ignore_internal_links [bool]`__ (in Docker __`HYPHE_IGNORE_INTERNAL_LINKS`__):
+
+    usually `false`, tells crawler to not store into Hyphe all internal links within a single WebEntity found within a crawl (they will still be followed though). This lightens heavily the volume of links to index into Hyphe's Traph MemoryStructure, hence fastening the indexation by an order. Although as a consequence, any entity that is split into multiple ones will need to be recrawled to get links between it and its child entities, and the Structural network of a WebEntity's internal links will not display.
+
   + `max_simul_requests [int]` (in Docker: `HYPHE_MAX_SIM_REQ`):
 
     usually `12`, the maximum number of concurrent queries performed by the crawler

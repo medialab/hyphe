@@ -9,6 +9,7 @@
     "max_depth": 3,
     "download_delay": 1,
     "store_crawled_html_content": false,
+    "ignore_internal_links": false,
     "max_simul_requests": 12,
     "max_simul_requests_per_host": 1,
     "obey_robots": false
