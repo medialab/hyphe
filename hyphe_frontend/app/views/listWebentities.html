@@ -206,6 +206,7 @@
                   <div flex>
                     <md-virtual-repeat-container layout-fill>
                       <md-list
+                        class="list-entities"
                         md-colors="{
                           'background': 'default-background-100'
                         }"
@@ -229,7 +230,7 @@
                               ng-click="$event.stopPropagation();"
                               style="margin-right:2px; z-index: 1000"
                             >
-                              <md-tooltip md-direction="left">{{obj.webentity.homepage}}</md-tooltip>
+                              <md-tooltip md-direction="top">{{obj.webentity.homepage}}</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
                             <span md-truncate flex>
@@ -246,7 +247,7 @@
                               'webentity-color-discovered':obj.webentity.status == 'DISCOVERED'
                             }"
                           >
-                            <md-tooltip md-direction="right">Web entity status: {{obj.webentity.status}}</md-tooltip>
+                            <md-tooltip md-direction="top">Web entity status: {{obj.webentity.status}}</md-tooltip>
                             {{obj.webentity.status}}
                           </div>
                           <div
@@ -254,11 +255,11 @@
                             hide show-gt-sm
                           >
                             <div ng-if="obj.webentity.crawled">
-                              <md-tooltip md-direction="left">Crawled</md-tooltip>
+                              <md-tooltip md-direction="top">Crawled</md-tooltip>
                               <md-icon style="opacity: 0.9">opacity</md-icon>
                             </div>
                             <div ng-if="!obj.webentity.crawled">
-                              <md-tooltip md-direction="left">Not crawled</md-tooltip>
+                              <md-tooltip md-direction="top">Not crawled</md-tooltip>
                               <md-icon style="opacity: 0.2">opacity</md-icon>
                             </div>
                           </div>
@@ -266,13 +267,13 @@
                             class="welist-col-number"
                             hide show-gt-sm
                           >
-                            <md-tooltip md-direction="right">{{obj.webentity.pages_total|number}} page{{obj.webentity.pages_total|plural}} of the web entity known (including {{obj.webentity.pages_crawled|number}} crawled)</span></md-tooltip>
+                            <md-tooltip md-direction="top">{{obj.webentity.pages_total|number}} page{{obj.webentity.pages_total|plural}} of the web entity known (including {{obj.webentity.pages_crawled|number}} crawled)</span></md-tooltip>
                             {{obj.webentity.pages_total|number}}
                           </div>
                           <div
                             class="welist-col-number"
                           >
-                            <md-tooltip md-direction="right">Is cited by {{obj.webentity.indegree|number}} other web entit{{obj.webentity.indegree|y_ies}} in the corpus</md-tooltip>
+                            <md-tooltip md-direction="top">Is cited by {{obj.webentity.indegree|number}} other web entit{{obj.webentity.indegree|y_ies}} in the corpus</md-tooltip>
                             {{obj.webentity.indegree|number}}
                           </div>
                           <div
@@ -280,7 +281,7 @@
                             hide show-gt-md
                           >
                             <span md-truncate>
-                              <md-tooltip md-direction="right">Last modified {{obj.webentity.last_modification_date|date}}</md-tooltip>
+                              <md-tooltip md-direction="top">Last modified: {{obj.webentity.last_modification_date|date}}</md-tooltip>
                               {{obj.webentity.last_modification_date|prettyDate}}
                             </span>
                           </div>

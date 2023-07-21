@@ -279,7 +279,7 @@
                         <div class="md-secondary crawljobs-col-crer">{{job.nb_crawled_pages_error}}</div>
                         <div class="md-secondary crawljobs-col-disp">{{job.nb_pages}}</div>
                         <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
-                        <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="left">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
+                        <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="top">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
                         <div class="md-secondary crawljobs-col-dura"><div ng-if="job.finished_at - job.created_at > 0">{{job.duration|duration}}</div></div>
                       </md-list-item>
                     </md-list>

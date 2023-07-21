@@ -708,6 +708,8 @@ textarea.over-error {
   padding: 0px 8px 0px 8px;
   font-size: 0.8em;
   width: 100px;
+  z-index: 2;
+  cursor: initial;
 }
 
 .crawljobs-col-dura {
@@ -739,6 +741,11 @@ textarea.over-error {
 .selected-webentities-container-small {
   overflow-y: auto;
   max-height: 100px;
+}
+
+.list-entities md-list-item._md-button-wrap>div.md-button:first-child .md-list-item-inner {
+  z-index: 2;
+  cursor: initial;
 }
 
 
