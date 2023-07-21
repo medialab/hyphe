@@ -31,7 +31,8 @@ ARCHIVES_OPTIONS = {
         "label": "Arquivo.pt",
         "description": "crawl Portugal's official web archives maintained by FCCN.pt",
         "url_prefix": "https://arquivo.pt/noFrame/replay/",
-        "permalinks_prefix": "https://arquivo.pt/noFrame/replay/DATETIME/SOURCEURL",
+        "extra_prefixes": ["https://arquivo.pt/wayback/"],
+        "permalinks_prefix": "https://arquivo.pt/wayback/DATETIME/SOURCEURL",
         "min_date": "1991-01-01"
     }
 }

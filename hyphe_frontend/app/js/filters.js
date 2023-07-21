@@ -470,9 +470,11 @@ angular.module('hyphe.filters', [])
     .filter('cleanArchivesPrefix', [function(){
       return function(url, available_archives) {
         for (var i in available_archives) {
-          var httpVariant = (available_archives[i].url_prefix || "").replace(/^https/, "http");
-          if (available_archives[i].url_prefix && (url.indexOf(available_archives[i].url_prefix) == 0 || url.indexOf(httpVariant) == 0)) {
-            return url.replace(available_archives[i].url_prefix, "").replace(httpVariant, "").replace(/^\/?\d+\/http/, "http")
+          for (var prefix of [available_archives[i].url_prefix || ""].concat(available_archives[i].extra_prefixes || [])) {
+            var httpVariant = prefix.replace(/^https/, "http");
+            if (prefix && (url.indexOf(prefix) == 0 || url.indexOf(httpVariant) == 0)) {
+              return url.replace(prefix, "").replace(httpVariant, "").replace(/^\/?\d+(?:[a-z_*]*)\/http/, "http")
+            }
           }
         }
         return url

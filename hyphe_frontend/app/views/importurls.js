@@ -19,7 +19,7 @@ angular.module('hyphe.importurlsController', [])
     $scope.selectedColumn
     $scope.textPreview = []
     $scope.headline = true
-    $scope.previewMaxRow = 4
+    $scope.previewMaxRow = 5
     $scope.previewMaxCol = 3
     $scope.differedLoading = false
 

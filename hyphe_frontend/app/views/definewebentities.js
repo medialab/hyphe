@@ -450,14 +450,16 @@ angular.module('hyphe.definewebentitiesController', [])
         // Identify urls prefixed from a web archive, rewrite them and set them as such
         list = list.map(function(obj){
           for (var i in $scope.available_archives) {
-            var httpVariant = ($scope.available_archives[i].url_prefix || "").replace(/^https/, "http");
-            if ($scope.available_archives[i].url_prefix && (obj.url.indexOf($scope.available_archives[i].url_prefix) == 0 || obj.url.indexOf(httpVariant) == 0)) {
-              obj.webarchives = {
-                option: $scope.available_archives[i].id,
-                date: obj.url.replace(/^http.*\/(\d{4})(\d\d)(\d\d)\d+\/http.*$/, "$1-$2-$3")
+            for (var prefix of [$scope.available_archives[i].url_prefix || ""].concat($scope.available_archives[i].extra_prefixes || [])) {
+              var httpVariant = prefix.replace(/^https/, "http");
+              if (prefix && (obj.url.indexOf(prefix) == 0 || obj.url.indexOf(httpVariant) == 0)) {
+                obj.webarchives = {
+                  option: $scope.available_archives[i].id,
+                  date: obj.url.replace(/^http.*\/(\d{4})(\d\d)(\d\d)\d+(?:[a-z_*]*)\/http.*$/, "$1-$2-$3")
+                }
+                obj.url = obj.url.replace(prefix, "").replace(httpVariant, "").replace(/^\/?\d+(?:[a-z_*]*)\/http/, "http")
+                break
               }
-              obj.url = obj.url.replace($scope.available_archives[i].url_prefix, "").replace(httpVariant, "").replace(/^\/?\d+\/http/, "http")
-              break
             }
           }
           return obj
