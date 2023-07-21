@@ -255,6 +255,23 @@
               </md-content>
             </div>
 
+            <!-- ADVANCED -->
+            <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+              <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+                <h3 style="margin:0px">ADVANCED SETTINGS</h3>
+                <dl class="key-value-pairs">
+                  <dt>
+                      Forget internal WebEntities links?<br/>
+                      <small>(the crawler will follow the links within the limits of the WebEntity, but it will not record them in order to fasten indexation; this disables the structural network view of the corpus and requires to recrawl any WebEntity that would be split into multiple ones after it was crawled)</small>
+                  </dt>
+                  <md-radio-group ng-model="ed_ignore_internal_links" class="md-primary">
+                    <md-radio-button value="1" class="md-primary">yes</md-radio-button>
+                    <md-radio-button value="0" class="md-primary">no</md-radio-button>
+                  </md-radio-group>
+                </dl>
+              </md-content>
+            </div>
+
             <!-- WEBENTITY CREATION RULES -->
             <div flex="100" layout="column" style="padding: 4px">
               <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
@@ -393,6 +410,17 @@
                 <dd><em>None</em></dd>
               </dl>
 
+            </md-content>
+          </div>
+
+          <!-- ADVANCED -->
+          <div flex="50" flex-xs="100" flex-gt-sm="33" layout="column" style="padding: 4px">
+            <md-content style="padding: 8px" md-colors="{'background': 'default-background-100'}" flex="grow">
+              <h3 style="margin:0px">ADVANCED SETTINGS</h3>
+              <dl class="key-value-pairs">
+                <dt>Forget internal WebEntities links?</dt>
+                <dd>{{options.ignore_internal_links ? 'yes' : 'no'}}</dd>
+              </dl>
             </md-content>
           </div>
 

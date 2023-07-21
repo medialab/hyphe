@@ -129,7 +129,7 @@ class Core(customJSONRPC):
         if "max_depth" in options and options["max_depth"] > config["mongo-scrapy"]["max_depth"]:
             returnD(format_error("This Hyphe instance does not allow max_depth do be higher than %s" % config["mongo-scrapy"]["max_depth"]))
         redeploy = False
-        if ("defaultCreationRule" in options or "defautStartpagesMode" in options or "obey_robots" in options) and \
+        if ("defaultCreationRule" in options or "defautStartpagesMode" in options or "obey_robots" in options or "ignore_internal_links" in options) and \
           self.corpora[corpus]['crawls'] + self.corpora[corpus]['total_webentities'] > 0:
             returnD(format_error("defautStartpagesMode and default WE creation rule of a corpus can only be set when the corpus is created"))
         defaultCreationRule = yield self.db.get_default_WECR(corpus)
