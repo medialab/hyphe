@@ -194,7 +194,7 @@
                 <!-- Tab: Ego Network -->
                 <md-tab>
                   <md-tab-label>
-                    <md-tooltip md-direction="up">The network of links between the web entities that are linked with this one</md-tooltip>
+                    <md-tooltip md-direction="up">Visualize the network of links between the web entities that are linked with this one</md-tooltip>
                     <md-icon>bubble_chart</md-icon>Ego network</md-tab-label>
                   <md-tab-body>
                     <div layout-fill layout="column" layout-align="center center" ng-if="!ego.loaded">
@@ -464,10 +464,13 @@
                   Most cited
                 </md-button> -->
                 <md-button class="md-raised" ng-href="#/project/{{corpusId}}/webentityExplorer/{{webentity.id}}">
+                  <md-tooltip md-direction="bottom">Explore the pages of the web entity as a tree of subdirectories</md-tooltip>
                   <md-icon>folder</md-icon>
                   as folders
                 </md-button>
-                <md-button class="md-raised" ng-href="#/project/{{corpusId}}/webentityPagesNetwork/{{webentity.id}}">
+                <md-button class="md-raised" ng-href="#/project/{{corpusId}}/webentityPagesNetwork/{{webentity.id}}" ng-disabled="hide_network">
+                  <md-tooltip md-direction="bottom" ng-if="hide_network">Disabled when the corpus is set to forget internal web entities links</md-tooltip>
+                  <md-tooltip md-direction="bottom" ng-if="!hide_network">Visualize the network of links between all crawled pages of the web entity</md-tooltip>
                   <md-icon>bubble_chart</md-icon>
                   network
                 </md-button>
