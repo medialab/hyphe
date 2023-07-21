@@ -50,8 +50,6 @@ PHANTOM = {
 
 STORE_HTML = {{store_crawled_html_content}}
 
-IGNORE_INTERNAL_LINKS = {{ignore_internal_links}}
-
 if 'SCRAPY_JOB' in os.environ:
     JOBID = os.environ['SCRAPY_JOB']
 else:

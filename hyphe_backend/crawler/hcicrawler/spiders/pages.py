@@ -30,7 +30,7 @@ from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, IGNORE_INTERNAL_LINKS
+from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -68,6 +68,8 @@ class PagesCrawler(Spider):
             self.prefixes_trie.set_lru(p, False)
 
         self.discover_prefixes = [url_to_lru_clean("http%s://%s" % (https, u.replace('http://', '').replace('https://', '')), TLDS_TREE) for u in to_list(args['discover_prefixes']) for https in ['', 's']]
+
+        self.ignore_internal_links = args.get('ignore_internal_links', False)
 
         # Init this dictionary to be filled by resolver from within pipelines.py
         self.resolved_links = {}
@@ -385,7 +387,7 @@ class PagesCrawler(Spider):
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
 
-            if not (IGNORE_INTERNAL_LINKS and self.prefixes_trie.match_lru(lrulink)):
+            if not (self.ignore_internal_links and self.prefixes_trie.match_lru(lrulink)):
                 lrulinks.append((url, lrulink))
 
             if self._should_follow(response.meta['depth'], lrulink) and \

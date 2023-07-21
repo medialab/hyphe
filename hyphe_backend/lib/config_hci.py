@@ -40,14 +40,9 @@ def load_config():
           'host': conf['mongo-scrapy']['proxy_host'],
           'port': conf['mongo-scrapy']['proxy_port']
         }
-        if 'store_crawled_html_content' not in conf['mongo-scrapy']:
-            conf['mongo-scrapy']['store_crawled_html_content'] = False
-
-        if 'ignore_internal_links' not in conf['mongo-scrapy']:
-            conf['mongo-scrapy']['ignore_internal_links'] = False
-
-        if 'obey_robots' not in conf['mongo-scrapy']:
-            conf['mongo-scrapy']['obey_robots'] = False
+        for missing_key in ['store_crawled_html_content', 'ignore_internal_links', 'obey_robots']:
+            if missing_key not in conf['mongo-scrapy']:
+                conf['mongo-scrapy'][missing_key] = False
 
   # Set default creation rules if missing
     if "defaultCreationRule" not in conf:
@@ -159,6 +154,10 @@ CORPUS_CONF_SCHEMA = {
   "obey_robots": {
     "type": bool,
     "default": "global/mongo-scrapy/obey_robots"
+  },
+  "ignore_internal_links": {
+    "type": bool,
+    "default": "global/mongo-scrapy/ignore_internal_links"
   },
   "defaultStartpagesMode": {
     "type": validateStartpagesMode,

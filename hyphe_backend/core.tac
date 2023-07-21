@@ -1206,6 +1206,7 @@ class Crawler(customJSONRPC):
             phantom_crawl = True
         if not follow_redirects:
             follow_redirects = self.corpora[corpus]["options"]["follow_redirects"]
+
         try:
             depth = int(depth)
         except:
@@ -1238,6 +1239,7 @@ class Crawler(customJSONRPC):
           'follow_prefixes': list(follow_prefixes),
           'nofollow_prefixes': list(nofollow_prefixes),
           'discover_prefixes': list(follow_redirects),
+          'ignore_internal_links': self.corpora[corpus]["options"]["ignore_internal_links"],
           'proxy': proxy,
           'user_agent': get_random_user_agent(),
           'cookies': cookies_string,
@@ -3047,7 +3049,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pagelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
-        """Warning: this method can be very slow on webentities with many pages or links\, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true". Will not return much of anything if Hyphe was configured with `ignore_internal_links` set to "true"."""
+        """Warning: this method can be very slow on webentities with many pages or links\, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true". Will not return much of anything if the corpus was configured with `ignore_internal_links` set to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         s = time.time()
@@ -3065,7 +3067,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_paginate_webentity_pagelinks_network(self, webentity_id=None, count=10, pagination_token=None, include_external_outlinks=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` internal page links for `count` source pages of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_outlinks` to "true". Will not return much of anything if Hyphe was configured with `ignore_internal_links` set to "true"."""
+        """Returns for a `corpus` internal page links for `count` source pages of a WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following links. Optionally add external NodeLinks (the frontier) by setting `include_external_outlinks` to "true". Will not return much of anything if the corpus was configured with `ignore_internal_links` set to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         include_external = test_bool_arg(include_external_outlinks)
