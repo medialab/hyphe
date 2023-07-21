@@ -30,7 +30,7 @@ from hcicrawler.webarchives import ARCHIVES_OPTIONS, RE_ARCHIVE_REDIRECT, RE_BNF
 from hcicrawler.urllru import url_to_lru_clean, lru_get_host_url, lru_get_path_url, has_prefix, lru_to_url
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.items import Page
-from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL
+from hcicrawler.settings import HYPHE_PROJECT, PHANTOM, STORE_HTML, MONGO_HOST, MONGO_PORT, MONGO_DB, MONGO_JOBS_COL, IGNORE_INTERNAL_LINKS
 from hcicrawler.errors import error_name
 
 def timeout_alarm(*args):
@@ -385,7 +385,8 @@ class PagesCrawler(Spider):
                 self.log("Error converting URL %s to LRU: %s" % (url, e), logging.ERROR)
                 continue
 
-            lrulinks.append((url, lrulink))
+            if not (IGNORE_INTERNAL_LINKS and self.prefixes_trie.match_lru(lrulink)):
+                lrulinks.append((url, lrulink))
 
             if self._should_follow(response.meta['depth'], lrulink) and \
                     not url_has_any_extension(url, self.ignored_exts):
