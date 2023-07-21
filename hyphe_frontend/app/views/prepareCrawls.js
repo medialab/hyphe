@@ -17,7 +17,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.scheduling = false
 
-    $scope.depthRange = [0,1]
+    $scope.depthRange = [0, 1]
 
     $scope.queriesBatches = []
     $scope.lookups = {}
@@ -459,10 +459,6 @@ angular.module('hyphe.preparecrawlsController', [])
 
     /* Instanciate and open the Modal */
     function instanciateModal(obj, ev) {
-
-      if (!obj.webentity.crawlDepth) {
-        obj.webentity.crawlDepth = $scope.crawlDepth + 0
-      }
 
       $mdDialog.show({
         controller: webentityStartPagesDialogController,
