@@ -36,11 +36,17 @@
                     title="Lookup {{lookups[url].status}}"
                   >done</md-icon>
                   <md-icon
-                    ng-if="lookups[url].status == 'issue'"
+                    ng-if="lookups[url].status == 'issue' && !webentity.webarchives.option"
                     class="md-avatar-icon md-warn"
                     title="Lookup {{lookups[url].status}}"
                     md-colors="{'background': 'default-warn'}"
                   >warning</md-icon>
+                  <md-icon
+                    ng-if="lookups[url].status == 'issue' && webentity.webarchives.option"
+                    class="md-avatar-icon md-info"
+                    title="Lookup {{lookups[url].status}}"
+                    md-colors="{'background': 'default-info'}"
+                  >info</md-icon>
 
                   <div class="md-list-item-text">
                     <h3>
@@ -135,7 +141,7 @@
                   </span>
                 </p>
               </div>
-              <div ng-show="startpagesSummary.diagnostic.doomed">
+              <div ng-show="startpagesSummary.diagnostic.doomed && !webentity.webarchives.option">
                 <h3 class="md-title" md-colors="{'color':'default-warn'}">
                   <md-icon class="md-warn">warning</md-icon>
                   DOOMED CRAWL
@@ -149,9 +155,7 @@
                     You can still try to launch it, though. Miracles happen.
                   </span>
                   <br/><br/>
-                  <span ng-show="!webentity.webarchives.option">
-                    If the page{{ startpages.length | plural }} did exist but disappeared from the web, you can enable "Web archives" in the "Advanced Crawl Options" tab to try and browse this specific entity in the past.
-                  </span>
+                  If the page{{ startpages.length | plural }} did exist but disappeared from the web, you can enable "Web archives" in the "Advanced Crawl Options" tab to try and browse this specific entity in the past.
                 </p>
               </div>
               <div ng-show="webentity.webarchives.option">
