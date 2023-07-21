@@ -264,7 +264,7 @@
                         }"
                       >
                         <span md-truncate flex>
-                          {{job.webentity_name || 'Web Entity Loading'}}
+                          {{job.webentity_name || 'Web Entity Loading'}} <webentity-link corpus-id="corpusId" webentity-id="job.webentity_id">
                         </span>
                         <div class="md-secondary crawljobs-col-dept">{{job.crawl_arguments.max_depth}}</div>
                         <div class="md-secondary crawljobs-col-arch">
