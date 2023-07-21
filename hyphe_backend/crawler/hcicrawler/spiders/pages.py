@@ -251,6 +251,7 @@ class PagesCrawler(Spider):
         if self.webarchives:
             # Handle transparently redirections from archives to another available timestamp
             if response.status == 302 or \
+              ("arquivo.pt" in self.webarchives["url_prefix"] and 300 <= response.status < 400) or \
               ("archivesinternet.bnf.fr" in self.webarchives["url_prefix"] and 300 <= response.status < 400 and \
                (not response.body or "<head><title>301 Moved Permanently</title></head>" in response.body)):
                 redir_url = response.headers['Location']
@@ -280,6 +281,8 @@ class PagesCrawler(Spider):
                             else:
                                 response.meta['depth'] = -1
                             return self._request(redir_url)
+                        elif "arquivo.pt" in self.webarchives["url_prefix"]:
+                            return self._request(real_url)
             if response.status >= 400:
                 return self._make_raw_page(response)
 

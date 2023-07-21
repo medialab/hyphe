@@ -26,6 +26,13 @@ ARCHIVES_OPTIONS = {
         "permalinks_prefix": "http://dlweb.ina.fr/versions.dlweb/search?q=SOURCEURL&version=DATETIME",
         "proxy": "dlweb.ina.fr:82",
         "min_date": "1996-01-01"
+    },
+    "arquivo.pt": {
+        "label": "Arquivo.pt",
+        "description": "crawl Portugal's official web archives maintained by FCCN.pt",
+        "url_prefix": "https://arquivo.pt/noFrame/replay/",
+        "permalinks_prefix": "https://arquivo.pt/noFrame/replay/DATETIME/SOURCEURL",
+        "min_date": "1991-01-01"
     }
 }
 
