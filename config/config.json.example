@@ -81,7 +81,7 @@
     "options": ["web.archive.org"],
     "date": "2012-07-01",
     "days_range": 28,
-    "password": null
+    "password": ""
   },
   "ADMIN_PASSWORD": null,
   "OPEN_CORS_API": false,
