@@ -7,8 +7,8 @@ import base64
 import msgpack
 from copy import deepcopy
 from ural import is_url
+import json
 from bson.binary import Binary
-from json import dump as jsondump
 from random import randint
 from datetime import datetime
 from collections import defaultdict
@@ -387,6 +387,23 @@ class Core(customJSONRPC):
                     dico[ns][cat][val] = count
         return dico
 
+    def write_links_cache(self, corpus, links):
+        cache_path = os.path.join(config["traph"]["data_path"], "%s_webentitieslinks.json" % corpus)
+        try:
+            with open(cache_path, "w") as f:
+                json.dump(links, f)
+        except Exception as e:
+            logger.msg("Could not write links cache to filesystem: %s %s (%s)" % (cache_path, e, type(e)), system="ERROR - %s" % corpus)
+
+    def read_links_from_cache(self, corpus):
+        cache_path = os.path.join(config["traph"]["data_path"], "%s_webentitieslinks.json" % corpus)
+        try:
+            with open(cache_path) as f:
+                return json.load(f)
+        except Exception as e:
+            logger.msg("Could not read cached links from filesystem: %s %s (%s)" % (cache_path, e, type(e)), system="WARNING - %s" % corpus)
+            return {}
+
     @inlineCallbacks
     def prepare_corpus(self, corpus=DEFAULT_CORPUS, corpus_conf=None, _noloop=False):
         if not corpus_conf:
@@ -419,11 +436,7 @@ class Core(customJSONRPC):
             self.corpora[corpus]["tags"] = {}
         if self.corpora[corpus]["total_webentities"] and not self.corpora[corpus]["tags"]:
             reactor.callLater(0, self.store.jsonrpc_rebuild_tags_dictionary, corpus)
-        try:
-            self.corpora[corpus]["webentities_links"] = msgpack.unpackb(corpus_conf['webentities_links'])
-        except Exception as e:
-            logger.msg("Could not unpack links from Mongo: %s (%s)" % (e, type(e)), system="WARNING - %s" % corpus)
-            self.corpora[corpus]["webentities_links"] = {}
+        self.corpora[corpus]["webentities_links"] = self.read_links_from_cache(corpus)
         self.corpora[corpus]["reset"] = False
         if not _noloop and not self.corpora[corpus]['jobs_loop'].running:
             self.corpora[corpus]['jobs_loop'].start(10, False)
@@ -457,9 +470,9 @@ class Core(customJSONRPC):
           "last_activity": now_ts()
         }
         if include_tags:
-          conf["tags"] = Binary(msgpack.packb(self.corpora[corpus]['tags']))
+            conf["tags"] = Binary(msgpack.packb(self.corpora[corpus]['tags']))
         if include_links:
-          conf["webentities_links"] = Binary(msgpack.packb(self.corpora[corpus]['webentities_links']))
+            self.write_links_cache(corpus, self.corpora[corpus]['webentities_links'])
         yield self.db.update_corpus(corpus, conf)
 
     @inlineCallbacks
@@ -511,24 +524,24 @@ class Core(customJSONRPC):
                 tags = self.corpora[corpus]["tags"]
             for key in ["tags", "webentities_links"]:
                 del(options[key])
-            jsondump(options, f)
+            json.dump(options, f)
         with open(os.path.join(path, "tags.json"), "w") as f:
-            jsondump(tags, f)
+            json.dump(tags, f)
         with open(os.path.join(path, "crawls.json"), "w") as f:
             crawls = yield self.jsonrpc_listjobs(corpus=corpus)
             if is_error(crawls):
                 returnD(format_error("Error retrieving crawls: %s" % crawls["message"]))
-            jsondump(crawls["result"], f)
+            json.dump(crawls["result"], f)
         with open(os.path.join(path, "webentities.json"), "w") as f:
             WEs = yield self.store.jsonrpc_get_webentities(count=-1, sort=["status", "name"], semilight=True, corpus=corpus)
             if is_error(WEs):
                 returnD(format_error("Error retrieving webentities: %s" % WEs["message"]))
-            jsondump(WEs["result"], f)
+            json.dump(WEs["result"], f)
         with open(os.path.join(path, "links.json"), "w") as f:
             links = yield self.store.jsonrpc_get_webentities_network(include_links_from_OUT=True, include_links_from_DISCOVERED=True, corpus=corpus)
             if is_error(links):
                 returnD(format_error("Error retrieving links: %s" % links["message"]))
-            jsondump(links["result"], f)
+            json.dump(links["result"], f)
         returnD(format_result("Corpus crawls, webentities and links stored in %s" % path))
 
     @inlineCallbacks
@@ -1439,8 +1452,7 @@ class Memory_Structure(customJSONRPC):
             homepages = yield self.get_webentities_missing_linkpages(WEs, corpus=corpus)
         links = None
         if not self.parent.corpus_ready(corpus):
-            options = yield self.db.get_corpus(corpus)
-            links = msgpack.unpackb(options["webentities_links"])
+            links = self.parent.read_links_from_cache(corpus)
         returnD([self.format_webentity(WE, jobs.get(WE["_id"], {}), homepages.get(WE["_id"], None), light, semilight, light_for_csv, weight=(weights.get(WE["_id"], 0) if weights else None), corpus=corpus, _links=links) for WE in WEs])
 
     @inlineCallbacks
@@ -2263,7 +2275,7 @@ class Memory_Structure(customJSONRPC):
         s = time.time()
         # Build links after at least one index if no more than 25000 pages in queue and...
         pages_crawled = yield self.db.check_pages(corpus)
-        if pages_crawled and corpus in self.corpora and self.corpora[corpus]['recent_changes'] and self.corpora[corpus]['pages_queued'] < 25000 and (
+        if pages_crawled and corpus in self.corpora and (self.corpora[corpus]['recent_changes'] or not self.corpora[corpus]['webentities_links']) and self.corpora[corpus]['pages_queued'] < 25000 and (
             # pagesqueue is empty
             not self.corpora[corpus]['pages_queued'] or
             # links were not built since more than 8 times the time it takes
@@ -3166,8 +3178,7 @@ class Memory_Structure(customJSONRPC):
             WEs_to_keep = set(we["_id"] for we in WEs_to_keep)
         res = []
         if not self.parent.corpus_ready(corpus):
-            options = yield self.db.get_corpus(corpus)
-            links = msgpack.unpackb(options["webentities_links"])
+            links = self.parent.read_links_from_cache(corpus)
         else:
             links = self.corpora[corpus]["webentities_links"]
         for target, sources in links.items():
