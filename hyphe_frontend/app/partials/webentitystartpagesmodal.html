@@ -250,6 +250,20 @@
               </div>
             </div>
 
+            <span style="margin: 8px"><span style="color:grey; filter: grayscale(100%);">🕵</span> User-Agent</span>
+            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+              <label><small md-colors="{'color': 'default-primary'}">Paste a specific User-Agent you would like this webentity to be crawled with instead of a random commonly used one</small></label>
+              <md-input-container flex class="md-block">
+                <textarea
+                  id="add-useragent-{{webentity.id}}"
+                  ng-model="webentity.userAgent"
+                  rows="2"
+                  max-rows="3"
+                  aria-label="user-agent"
+                ></textarea>
+              </md-input-container>
+            </div>
+
             <span style="margin: 8px"><span style="color:grey; filter: grayscale(100%);">🍪</span> Cookies</span>
             <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
               <label><small md-colors="{'color': 'default-primary'}">Paste your browser's cookies for this web entity to grant the crawler your authenticated access</small></label>

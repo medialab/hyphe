@@ -441,6 +441,7 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.status || 'IN'
             ,settings.proxy || null
             ,settings.cookies_string || null
+            ,settings.user_agent || null
             ,{}                                 // phantom timeouts
             ,settings.webarchives || {}
             ,corpus.getId()
@@ -478,7 +479,8 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.status || 'IN'
             ,settings.startmode || 'default'
             ,settings.proxy || null
-            ,settings.cookies || null
+            ,settings.cookies_string || null
+            ,settings.user_agent || null
             ,{}                                 // phantom timeouts
             ,settings.webarchives || {}
             ,settings.saveStartpages || false

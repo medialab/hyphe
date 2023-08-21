@@ -134,6 +134,10 @@
                     <md-tooltip md-direction="bottom">The crawl will browse the past using {{ obj.webentity.webarchives.option }} <span ng-if="obj.webentity.webarchives.days_range === 'infinity'">around</span><span ng-if="obj.webentity.webarchives.days_range !== 'infinity'">{{ obj.webentity.webarchives.days_range / 2 }} days before &amp; after</span> {{ obj.webentity.webarchives.date }}</md-tooltip>
                     <md-icon class="material-icons" role="img" aria-label="history">history</md-icon> 
                   </div>
+                  <div ng-show="obj.webentity.userAgent">
+                    <md-tooltip md-direction="bottom">A specific User-Agent will be used for this crawl</md-tooltip>
+                    <span style="color:grey; filter: grayscale(100%);">🕵</span>
+                  </div>
                   <div ng-show="obj.webentity.cookiesString">
                     <md-tooltip md-direction="bottom">A specific cookie will be used for this crawl</md-tooltip>
                     <span style="color:grey; filter: grayscale(100%);">🍪</span>

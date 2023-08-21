@@ -928,8 +928,8 @@ class Core(customJSONRPC):
         returnD(handle_standard_results(startpages))
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status="IN", proxy=None, cookies_string=None, phantom_timeouts={}, webarchives={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
+    def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status="IN", proxy=None, cookies_string=None, user_agent=None, phantom_timeouts={}, webarchives={}, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
@@ -944,12 +944,12 @@ class Core(customJSONRPC):
         if not WE["startpages"]:
             startmode = "default"
             save_startpages = True
-        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, proxy=proxy, cookies_string=cookies_string, phantom_timeouts=phantom_timeouts, webarchives=webarchives, save_startpages=save_startpages, corpus=corpus)
+        res = yield self.jsonrpc_crawl_webentity_with_startmode(WE, depth=depth, phantom_crawl=phantom_crawl, status=status, startmode=startmode, proxy=proxy, cookies_string=cookies_string, user_agent=user_agent, phantom_timeouts=phantom_timeouts, webarchives=webarchives, save_startpages=save_startpages, corpus=corpus)
         returnD(res)
 
     @inlineCallbacks
-    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", proxy=None, cookies_string=None, phantom_timeouts={}, webarchives={}, save_startpages=False, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
+    def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", proxy=None, cookies_string=None, user_agent=None, phantom_timeouts={}, webarchives={}, save_startpages=False, corpus=DEFAULT_CORPUS):
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -1015,7 +1015,7 @@ class Core(customJSONRPC):
         elif webarchives.get("option"):
             yield self.store.jsonrpc_add_webentity_tag_value(webentity_id, "USER", "Crawl Source", webarchives["option"], corpus=corpus, _automatic=True)
 
-        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, proxy=proxy, cookies_string=cookies_string, webarchives=webarchives, corpus=corpus, _autostarts=autostarts)
+        res = yield self.crawler.jsonrpc_start(webentity_id, starts, WE["prefixes"], nofollow, self.corpora[corpus]["options"]["follow_redirects"], depth, phantom_crawl, phantom_timeouts, proxy=proxy, cookies_string=cookies_string, user_agent=user_agent, webarchives=webarchives, corpus=corpus, _autostarts=autostarts)
         returnD(res)
 
     @inlineCallbacks
@@ -1218,8 +1218,8 @@ class Crawler(customJSONRPC):
         returnD(format_result('Crawling database reset.'))
 
     @inlineCallbacks
-    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], proxy=None, cookies_string=None, webarchives={}, corpus=DEFAULT_CORPUS, _autostarts=[]):
-        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- an HTTP `proxy` specified as "domain_or_IP:port"\n- a known `cookies_string` with auth rights to a protected website.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
+    def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], proxy=None, cookies_string=None, user_agent=None, webarchives={}, corpus=DEFAULT_CORPUS, _autostarts=[]):
+        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- an HTTP `proxy` specified as "domain_or_IP:port"\n- a known `cookies_string` with auth rights to a protected website\n- a specific `user_agent`.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not phantom_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['phantom']['whitelist_domains']):
@@ -1261,7 +1261,7 @@ class Crawler(customJSONRPC):
           'discover_prefixes': list(follow_redirects),
           'ignore_internal_links': self.corpora[corpus]["options"]["ignore_internal_links"],
           'proxy': proxy,
-          'user_agent': self.parent.user_agents_list.get_random(),
+          'user_agent': user_agent or self.parent.user_agents_list.get_random(),
           'cookies': cookies_string,
           'webarchives': webarchives
         }

@@ -282,6 +282,7 @@ The API will always answer as such:
   + _`status`_ (optional, default: `"IN"`)
   + _`proxy`_ (optional, default: `null`)
   + _`cookies_string`_ (optional, default: `null`)
+  + _`user_agent`_ (optional, default: `null`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
   + _`webarchives`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
@@ -290,7 +291,7 @@ The API will always answer as such:
  Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
  Optionally add a HTTP `proxy` specified as "domain_or_IP:port".
- Also optionally add known `cookies_string` with auth rights to a protected website.
+ Also optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.
  Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".
  Will use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic, see details in `propose_webentity_startpages`).
 
@@ -303,6 +304,7 @@ The API will always answer as such:
   + _`startmode`_ (optional, default: `"default"`)
   + _`proxy`_ (optional, default: `null`)
   + _`cookies_string`_ (optional, default: `null`)
+  + _`user_agent`_ (optional, default: `null`)
   + _`phantom_timeouts`_ (optional, default: `{}`)
   + _`webarchives`_ (optional, default: `{}`)
   + _`save_startpages`_ (optional, default: `false`)
@@ -312,7 +314,7 @@ The API will always answer as such:
  Optionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.
  Sets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").
  Optionally add a HTTP `proxy` specified as "domain_or_IP:port".
- Also optionally add known `cookies_string` with auth rights to a protected website.
+ Also optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.
  Optionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).
  Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".
 
@@ -390,6 +392,7 @@ The API will always answer as such:
   + _`download_delay`_ (optional, default: `1`)
   + _`proxy`_ (optional, default: `null`)
   + _`cookies_string`_ (optional, default: `null`)
+  + _`user_agent`_ (optional, default: `null`)
   + _`webarchives`_ (optional, default: `{}`)
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
@@ -401,7 +404,8 @@ The API will always answer as such:
   * `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`
   * a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.
   * an HTTP `proxy` specified as "domain_or_IP:port"
-  * a known `cookies_string` with auth rights to a protected website.
+  * a known `cookies_string` with auth rights to a protected website
+  * a specific `user_agent`.
  Optionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".
 
 

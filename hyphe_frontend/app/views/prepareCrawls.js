@@ -12,6 +12,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
     $scope.crawlDepth = 1
     $scope.cautious = false
+    $scope.user_agent = null
     $scope.cookies = null
     $scope.webarchives = {}
 
@@ -111,6 +112,7 @@ angular.module('hyphe.preparecrawlsController', [])
                 ,cautious: $scope.cautious
                 ,proxy: null
                 ,cookies_string: obj.webentity.cookiesString || null
+                ,user_agent: obj.webentity.userAgent || null
                 ,webarchives: obj.webentity.webarchives || {}
               }
             ,function(data){                      // Success callback
@@ -173,6 +175,7 @@ angular.module('hyphe.preparecrawlsController', [])
 
       if (oldjob){
         $scope.crawlDepth = oldjob.crawl_arguments.max_depth
+        $scope.user_agent = oldjob.crawl_arguments.user_agent
         $scope.cookies = oldjob.crawl_arguments.cookies
         $scope.cautious = oldjob.crawl_arguments.phantom
         $scope.webarchives = oldjob.crawl_arguments.webarchives
@@ -241,6 +244,9 @@ angular.module('hyphe.preparecrawlsController', [])
                 if(we_list.length > 0){
                   obj_setStatus(obj, 'loaded')
                   obj.webentity = we_list[0]
+                  if ($scope.user_agent) {
+                    obj.webentity.userAgent = $scope.user_agent
+                  }
                   if ($scope.cookies) {
                     obj.webentity.cookiesString = $scope.cookies
                   }
@@ -673,6 +679,9 @@ angular.module('hyphe.preparecrawlsController', [])
           if(we_list.length > 0){
             obj_setStatus(obj, 'loaded')
             obj.webentity = we_list[0]
+            if ($scope.user_agent) {
+              obj.webentity.userAgent = $scope.user_agent
+            }
             if ($scope.cookies) {
               obj.webentity.cookiesString = $scope.cookies
             }

@@ -693,6 +693,7 @@ angular.module('hyphe.service_utils', [])
         var richJob = ns.consolidateJob(job)
 
         richJob.max_depth = job.crawl_arguments.max_depth
+        richJob.user_agent = job.crawl_arguments.user_agent
         richJob.cookies = job.crawl_arguments.cookies
         richJob.phantom = job.crawl_arguments.phantom
         richJob.webarchives_used = job.crawl_arguments.webarchives.option
