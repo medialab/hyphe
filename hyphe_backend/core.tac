@@ -12,6 +12,10 @@ from bson.binary import Binary
 from random import randint
 from datetime import datetime
 from collections import defaultdict
+import logging
+logging.basicConfig()
+from warnings import filterwarnings
+filterwarnings(action='ignore', message="Python 2 is no longer supported by the Python core team")
 from twisted.internet import reactor
 from twisted.python import log as logger
 from twisted.python.logfile import LogFile
