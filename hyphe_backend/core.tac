@@ -2279,11 +2279,11 @@ class Memory_Structure(customJSONRPC):
         s = time.time()
         # Build links after at least one index if no more than 25000 pages in queue and...
         pages_crawled = yield self.db.check_pages(corpus)
-        if pages_crawled and corpus in self.corpora and (self.corpora[corpus]['recent_changes'] or not self.corpora[corpus]['webentities_links']) and self.corpora[corpus]['pages_queued'] < 25000 and (
+        if pages_crawled and corpus in self.corpora and (self.corpora[corpus]['recent_changes'] or not self.corpora[corpus]['webentities_links']) and (
             # pagesqueue is empty
             not self.corpora[corpus]['pages_queued'] or
-            # links were not built since more than 8 times the time it takes
-            (s - self.corpora[corpus]['last_links_loop'] > 8 * self.corpora[corpus]['links_duration'])
+            # links were not built since more than 32 times the time it takes
+            (s - self.corpora[corpus]['last_links_loop'] > 32 * self.corpora[corpus]['links_duration'])
           ):
             logger.msg("Processing new WebEntity links...", system="INFO - %s" % corpus)
             self.corpora[corpus]['loop_running'] = "Building webentities links"
