@@ -399,7 +399,7 @@ class Core(customJSONRPC):
         cache_path = os.path.join(config["traph"]["data_path"], "%s_webentitieslinks.json" % corpus)
         try:
             with open(cache_path) as f:
-                return json.load(f)
+                return json.load(f, object_hook=lambda x: {(int(k) if k.isdigit() else k): v for k, v in x.items()})
         except Exception as e:
             logger.msg("Could not read cached links from filesystem: %s %s (%s)" % (cache_path, e, type(e)), system="WARNING - %s" % corpus)
             return {}
