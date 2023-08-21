@@ -619,6 +619,7 @@ class Core(customJSONRPC):
         if is_error(res):
             del(self.destroying[corpus])
             returnD(res)
+        self.traphs.destroy_corpus(corpus)
         yield self.crawler.jsonrpc_delete_crawler(corpus, _quiet)
         yield self.db.delete_corpus(corpus)
         del(self.destroying[corpus])
@@ -655,6 +656,7 @@ class Core(customJSONRPC):
             yield self.traphs.start_corpus(corpus)
         yield self.store.clear_traph(corpus)
         yield self.traphs.stop_corpus(corpus)
+        self.traphs.destroy_corpus(corpus)
         if corpus in self.corpora:
             del(self.corpora[corpus])
         del(self.destroying[corpus])

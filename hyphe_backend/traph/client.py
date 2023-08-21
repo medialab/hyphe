@@ -1,5 +1,6 @@
 import os, sys
 import json, msgpack
+import shutil
 from time import time, sleep
 from collections import deque
 from twisted.python import log
@@ -102,6 +103,11 @@ class TraphFactory(object):
         returnD(True)
 
     @inlineCallbacks
+    def destroy_corpus(self, name, quiet=False):
+        if name in self.corpora:
+            yield self.corpora[name].destroy()
+
+    @inlineCallbacks
     def stop(self):
         for corpus in self.corpora:
             yield self.stop_corpus(corpus, True)
@@ -120,8 +126,11 @@ class TraphCorpus(object):
         self.factory = factory
         self.status = "init"
         self.name = name
+        self.directory = os.path.join(self.factory.data_dir, name)
         self.socket = os.path.join(self.factory.sockets_dir, name)
         self.pidfile = self.socket + ".pid"
+        self.options_file = self.socket + "-options.json"
+        self.links_file = os.path.join(self.factory.data_dir, name + "_webentitieslinks.json")
         self.options = {
           "traph_dir": self.factory.data_dir,
           "default_WECR": default_WECR,
@@ -148,7 +157,7 @@ class TraphCorpus(object):
           self.name
         ]
         self.checkAndRemovePID(True)
-        with open(self.socket+"-options.json", "w") as f:
+        with open(self.options_file, "w") as f:
             json.dump(self.options, f)
         self.log("Starting Traph for at least %ss: %s" % (self.keepalive, " ".join(cmd)))
         self.protocol = TraphProcessProtocol(self.socket, self)
@@ -215,6 +224,17 @@ class TraphCorpus(object):
             if warn:
                 self.log("Removing residual socket file %s" % self.socket)
             os.remove(self.socket)
+
+    def destroy(self):
+        if self.status != "stopped":
+            self.log("Cannot destroy Traph file for corpus %s while traph is not properly stopped (status: %s)" % (self.name, self.status))
+        self.checkAndRemovePID(warn=False)
+        if os.path.exists(self.directory):
+            shutil.rmtree(self.directory)
+        if os.path.exists(self.options_file):
+            os.remove(self.options_file)
+        if os.path.exists(self.links_file):
+            os.remove(self.links_file)
 
     def log(self, msg, error=False):
         self.factory.log(self.name, msg, error, quiet=self.quiet)
