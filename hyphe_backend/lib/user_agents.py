@@ -1,70 +1,58 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Cached list of recent user-agents grabbed from https://www.useragents.me
+# Update the fallback cache by running python hyphe_backend/lib/user_agents.py
+
 import os
 import sys
 import random
-from fake_useragent import UserAgent, FakeUserAgentError
+import requests
 
-USER_AGENTS_CLIENT = None
-USER_AGENTS_LIST = []
+class UserAgentsList(object):
 
-# Initializing the UserAgent object if possible, otherwise the user_agets_list from the user_agents.txt file
+    def __init__(self, agents_list=[], cache_file=None, read_cache=True):
+        self.list = agents_list
+        self.cache = cache_file or os.path.join(os.path.dirname(__file__), "user_agents.txt")
 
-directory = os.path.dirname(__file__)
-path_to_file = os.path.join(directory,"user_agents.txt")
+        # Initiate with latest list of UserAgents or fallback with local list
+        if not self.list:
+            self.download_latest()
+        if not self.list:
+            self.read_cache()
 
-# Instantiation of the UserAgent object
-try:
-    USER_AGENTS_CLIENT = UserAgent(cache=False)
-except FakeUserAgentError as e:
-    print "Error when trying to instantiate a user-agent with FakeUserAgent: %s.\nSwitching to local list" % e
-    # Transcription of the local user_agents.txt into the USER_AGENTS_LIST
-    with open(path_to_file) as f:
-        USER_AGENTS_LIST = f.read().splitlines()
+    def download_latest(self):
+        try:
+            json_list = requests.get("https://www.useragents.me/api").json()
+            self.list = [
+                ua["ua"]
+                for ua in json_list.get("data")
+                if not "Trident" in ua["ua"] or "MSIE " in ua["ua"]
+            ]
+        except Exception as e:
+            print "WARNING: could not download latest UserAgents list from https://www.useragents.me ; will use a local cached list: %s - %s" % (type(e), e)
 
-def get_random_user_agent():
-    """Returns a random user agent not including IE ones"""
+    def read_cache(self):
+        try:
+            with open(self.cache) as f:
+                self.list = f.read().splitlines()
+        except Exception as e:
+            print "ERROR: could not read cached list of user agents in file %s: %s - %s" % (self.cache, type(e), e)
 
-    if USER_AGENTS_CLIENT is None:
-        random_user_agent = random.choice(USER_AGENTS_LIST)
-    else:
-        random_user_agent = "MSIE "
-        while "MSIE " in random_user_agent:
-            random_user_agent = USER_AGENTS_CLIENT.random
+    def write_cache(self):
+        try:
+            with open(self.cache, "w") as user_agents_file:
+                for user_agent in self.list:
+                    print >> user_agents_file, user_agent
+        except Exception as e:
+            print "ERROR: could not write list of user agents in cache file %s: %s - %s" % (self.cache, type(e), e)
 
-    return random_user_agent
+    def get_random(self):
+        """Returns a random user agent not including IE or Trident ones"""
+        return random.choice(self.list)
 
-def update_user_agents_list():
-    """Updates the local user_agents.txt file containing 100 user agents"""
-
-    directory = os.path.dirname(__file__)
-    path_to_file = os.path.join(directory,"user_agents.txt")
-
-    if USER_AGENTS_CLIENT is None:
-        print "Error when trying to update the user-agents list with FakeUserAgent"
-        sys.exit(1)
-
-    # Generating a new list of 100 user agents
-
-    new_user_agents_set = set() # Using a set avoids duplicates
-    while len(new_user_agents_set) < 100:
-        ua = USER_AGENTS_CLIENT.random
-        if "MSIE " in ua:
-            continue
-        new_user_agents_set.add(ua)
-    new_user_agents_list = sorted(new_user_agents_set)
-
-    print "List of user agents successfully generated"
-
-    # Storing the list into user_agents.txt
-
-    try:
-        with open(path_to_file, "w") as user_agents_file:
-            for user_agent in new_user_agents_list:
-                print >> user_agents_file, user_agent
-    except:
-        print "Error writing in user_agents.txt"
 
 if __name__ == "__main__":
-    update_user_agents_list()
+    # Updates the local user_agents.txt backup file
+    ua_list = UserAgentsList(read_cache=False)
+    ua_list.write_cache()

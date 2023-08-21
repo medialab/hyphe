@@ -12,13 +12,15 @@ from bson.binary import Binary
 from random import randint
 from datetime import datetime
 from collections import defaultdict
-import logging
-logging.basicConfig()
+
 from warnings import filterwarnings
 filterwarnings(action='ignore', message="Python 2 is no longer supported by the Python core team")
-from twisted.internet import reactor
+import logging
+logging.basicConfig()
+
 from twisted.python import log as logger
 from twisted.python.logfile import LogFile
+from twisted.internet import reactor
 from twisted.web import server
 from twisted.application.internet import TCPServer
 from twisted.application.service import Application
@@ -36,7 +38,7 @@ from hyphe_backend.lib.utils import *
 from hyphe_backend.lib.config_hci import test_and_make_dir, check_conf_sanity, clean_missing_corpus_options, CORPUS_CONF_SCHEMA, DEFAULT_CORPUS, TEST_CORPUS
 from hyphe_backend.lib.creationrules import getPreset as getWECR
 from hyphe_backend.lib.webarchives import ARCHIVES_OPTIONS
-from hyphe_backend.lib.user_agents import get_random_user_agent
+from hyphe_backend.lib.user_agents import UserAgentsList
 from hyphe_backend.lib.tlds import collect_tlds
 from hyphe_backend.lib.jobsqueue import JobsQueue
 from hyphe_backend.lib.mongo import MongoDB, sortasc, sortdesc
@@ -60,6 +62,7 @@ class Core(customJSONRPC):
         self.corpora = {}
         self.existing_corpora = set([])
         self.destroying = {}
+        self.user_agents_list = UserAgentsList()
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
         reactor.callLater(0, self.jsonrpc_list_corpus)
@@ -1073,7 +1076,7 @@ class Core(customJSONRPC):
             if tryout > 3:
                 method = "GET"
             headers = {'Accept': ['*/*'],
-                      'User-Agent': [get_random_user_agent()]}
+                      'User-Agent': [self.user_agents_list.get_random()]}
             response = yield agent.request(method, url, Headers(headers), None)
         except (DNSLookupError, ConnectionRefusedError) as e:
             if use_proxy and (proxy_host in str(e) or type(e) == ConnectionRefusedError):
@@ -1258,7 +1261,7 @@ class Crawler(customJSONRPC):
           'discover_prefixes': list(follow_redirects),
           'ignore_internal_links': self.corpora[corpus]["options"]["ignore_internal_links"],
           'proxy': proxy,
-          'user_agent': get_random_user_agent(),
+          'user_agent': self.parent.user_agents_list.get_random(),
           'cookies': cookies_string,
           'webarchives': webarchives
         }

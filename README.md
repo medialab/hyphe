@@ -345,6 +345,8 @@ This work is supported by [DIME-Web](http://dimeweb.dime-shs.sciences-po.fr/), p
 
 Hyphe is a free open source software released under [AGPL 3.0 license](LICENSE).
 
+Thanks to [https://www.useragents.me](https://www.useragents.me) for maintaining a great updated list of common user agents which are reused within Hyphe!
+
 <blockquote>
 <i>[...] I hear _kainos_ [(greek: "now")] in the sense of thick, ongoing presence, with __hyphae__ infusing all sorts of temporalities and materialities."</i>
 
