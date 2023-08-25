@@ -62,7 +62,7 @@ if "HYPHE_FOLLOW_REDIRECTS"         in environ: setConfig("discoverPrefixes", li
 if "HYPHE_WEBARCHIVES_OPTIONS"   in environ: setConfig("options", literal_eval(environ["HYPHE_WEBARCHIVES_OPTIONS"] or '[]'),configdata, "webarchives")
 if "HYPHE_WEBARCHIVES_DATE"      in environ: setConfig("date", environ["HYPHE_WEBARCHIVES_DATE"],configdata or "", "webarchives")
 if "HYPHE_WEBARCHIVES_DAYSRANGE" in environ: setConfig("days_range", int(environ["HYPHE_WEBARCHIVES_DAYSRANGE"] or 0),configdata, "webarchives")
-if "HYPHE_WEBARCHIVES_PASSWORD" in environ: setConfig("password", int(environ["HYPHE_WEBARCHIVES_PASSWORD"] or ""),configdata, "webarchives")
+if "HYPHE_WEBARCHIVES_PASSWORD" in environ: setConfig("password", environ["HYPHE_WEBARCHIVES_PASSWORD"] or "",configdata, "webarchives")
 
 if "HYPHE_ADMIN_PASSWORD"  in environ: setConfig("ADMIN_PASSWORD", environ["HYPHE_ADMIN_PASSWORD"] or "",configdata)
 if "HYPHE_OPEN_CORS_API"   in environ: setConfig("OPEN_CORS_API", strToBool(environ["HYPHE_OPEN_CORS_API"]),configdata)
