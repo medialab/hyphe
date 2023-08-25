@@ -360,7 +360,11 @@
           </md-select>
         </md-input-container>
 
-        <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeColorMap">
+        <div layout="row" style="padding-bottom: 16px"
+          ng-repeat="item in nodeColorMap"
+          ng-mouseover="$parent.highlightGroup(item.name)"
+          ng-mouseleave="$parent.resetHighlight()"
+        >
           <div style="width: 48px" layout="column" layout-align="center center">
             <md-icon ng-style="{'color':item.color}">fiber_manual_record</md-icon>
           </div>
@@ -384,11 +388,11 @@
             </md-select>
           </md-input-container>
           <div layout="row" layout-align="center center">
-            <md-button class="md-icon-button" style="margin: 0px" ng-click="$parent.nodeSizeBaseRatio = 1.2 * $parent.nodeSizeBaseRatio">
+            <md-button class="md-icon-button" style="margin: 0px" ng-click="$parent.nodeSizeBaseRatio = $parent.nodeSizeBaseRatio * 1.2">
               <md-icon>add_circle_outline</md-icon>
               <md-tooltip md-direction="top">Bigger nodes</md-tooltip>
             </md-button>
-            <md-button class="md-icon-button" style="margin: 0px" ng-click="$parent.nodeSizeBaseRatio = 0.8 * $parent.nodeSizeBaseRatio">
+            <md-button class="md-icon-button" style="margin: 0px" ng-click="$parent.nodeSizeBaseRatio = $parent.nodeSizeBaseRatio / 1.2">
               <md-icon>remove_circle_outline</md-icon>
               <md-tooltip md-direction="top">Smaller nodes</md-tooltip>
             </md-button>

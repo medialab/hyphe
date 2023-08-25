@@ -299,6 +299,21 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.$watch('nodeSizeMode', updateNodeSizes)
         $scope.$watch('nodeSizeBaseRatio', updateNodeSizes)
 
+        $scope.highlightGroup = function(selection) {
+          if ($scope.nodeColorMode === '')
+            return
+          g.forEachNode(function(nid, attrs){
+            var val = attrs.status
+            if ($scope.nodeColorMode !== '_webentitystatus')
+              val = (((attrs.tags || {}).USER || {})[$scope.nodeColorMode] || [""])[0];
+            g.setNodeAttribute(nid, 'color', val === selection ? attrs.color : "rgba(0,0,0, 0.15)")
+          })
+        }
+
+        $scope.resetHighlight = function() {
+          updateNodeColors();
+        }
+
         // Init
         $scope.applySettings()
 
@@ -331,12 +346,16 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               'OUT': '#FAA',
               'DISCOVERED': '#93BDE0'
             }
-            $scope.nodeColorMap = [
-              {color:colors.IN, name:'IN'},
-              {color:colors.UNDECIDED, name:'UNDECIDED'},
-              {color:colors.OUT, name:'OUT'},
-              {color:colors.DISCOVERED, name:'DISCOVERED'}
-            ]
+            $scope.nodeColorMap = []
+            if ($scope.settings.in)
+              $scope.nodeColorMap.push({color:colors.IN, name:'IN'})
+            if ($scope.settings.undecided)
+              $scope.nodeColorMap.push({color:colors.UNDECIDED, name:'UNDECIDED'})
+            if ($scope.settings.out)
+              $scope.nodeColorMap.push({color:colors.OUT, name:'OUT'})
+            if ($scope.settings.discovered)
+              $scope.nodeColorMap.push({color:colors.DISCOVERED, name:'DISCOVERED'})
+
             var g = $scope.network
             if (g === undefined) { return }
             g.nodes().forEach(function(nid){
