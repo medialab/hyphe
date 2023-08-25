@@ -71,7 +71,6 @@ angular.module('hyphe.directives', [])
         cog: '='
       }
       ,link: function(scope, el, attrs) {
-
       }
     }
   }])

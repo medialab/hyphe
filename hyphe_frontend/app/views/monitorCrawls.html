@@ -56,6 +56,24 @@
                     ng-click="focusOnJob(job, $event)"
                     class="pointable-grid-tile"
                   >
+                  <md-tooltip ng-if="job.globalStatus == 'CRASHED'" md-direction="bottom">
+                    This crawl crashed: there's probably a bug within Hyphe which you should report. See the "Report an issue" button within the HELP tab.
+                  </md-tooltip>
+                  <md-tooltip ng-if="job.globalStatus == 'UNSUCCESSFUL'" md-direction="bottom">
+                    This crawl could not proceed properly: either the website is not accessible, the startpages used do not exist, or it uses technologies Hyphe can not deal with (full Javascript websites for instance).
+                  </md-tooltip>
+                  <md-tooltip ng-if="job.globalStatus == 'INDEXING'" md-direction="bottom">
+                    This crawl is completed and the webpages and links found are currently being indexed within Hyphe's database 
+                  </md-tooltip>
+                  <md-tooltip ng-if="job.globalStatus == 'WAITING'" md-direction="bottom">
+                    This crawl is completed and the webpages and links found will soon be indexed within Hyphe's database 
+                  </md-tooltip>
+                  <md-tooltip ng-if="job.globalStatus == 'PENDING'" md-direction="bottom">
+                    All of Hyphe's crawling slots are currently busy running other crawls, this one will start whenever possible
+                  </md-tooltip>
+                  <md-tooltip ng-if="job.globalStatus == 'SUSPICIOUS'" md-direction="bottom">
+                    This crawl is completed but it returned very few links which might indicate an issue while crawling it. Maybe the website redirects elsewhere or the startpages used are not proper pages, or maybe it uses technologies Hyphe can not deal with (full Javascript websites for instance).
+                  </md-tooltip>
                     <div
                       layout="column"
                       layout-align="center center"
@@ -396,7 +414,7 @@
                   <dd ng-if="!crawljobsIndex[focusedJobId].crawl_arguments.phantom">
                     No
                   </dd>
-                  
+
                 </dl>
 
                 <div ng-if="crawljobsIndex[focusedJobId].crawl_arguments.webarchives.option !== ''">
