@@ -321,6 +321,10 @@
                                 <md-icon style="display: revert; font-size: 1em" class="material-icons" role="img" aria-label="history">ads_click</md-icon>
                                 Depth {{job.crawl_arguments.max_depth}}
                               </p>
+                              <p class="subtitle" ng-show="job.crawl_arguments.cookies">
+                                <md-tooltip md-direction="bottom">A specific cookie was used for this crawl</md-tooltip>
+                                <span style="color:grey; filter: grayscale(100%);">🍪</span>
+                              </p>
                             </div>
                             <div layout="column" style="width: 120px">
                               <md-button
