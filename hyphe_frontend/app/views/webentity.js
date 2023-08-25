@@ -36,6 +36,7 @@ angular.module('hyphe.webentityController', [])
     $scope.crawls = []
 
     $scope.pages = []
+    $scope.rawPages = []
     $scope.pagesLoading = true
     $scope.pagesToken = null
     $scope.loadAllPages = false
@@ -52,6 +53,54 @@ angular.module('hyphe.webentityController', [])
     $scope.$on("$destroy", function(){
       $scope.ego = {}
     })
+
+    $scope.CSVfields = {
+      webentity_name: {
+        type: 'string'
+      }
+      ,webentity_id: {
+        type: 'string'
+      }
+      ,url: {
+        type: 'string'
+      }
+      ,lru: {
+        type: 'string'
+      }
+      ,crawled: {
+        type: 'boolean'
+      }
+      ,crawl_timestamp: {
+        type: 'date'
+      }
+      ,depth: {
+        type: 'number'
+      }
+      ,status: {
+        type: 'number'
+      }
+      ,error: {
+        type: 'string'
+      }
+      ,size: {
+        type: 'number'
+      }
+      ,content_type: {
+        type: 'string'
+      }
+      ,encoding: {
+        type: 'string'
+      }
+      ,archive_url: {
+        type: 'string'
+      }
+      ,archive_date_requested: {
+        type: 'string'
+      }
+      ,archive_date_obtained: {
+        type: 'string'
+      }
+    }
 
 
     $scope.$watch('tagCategories', synchronizeTags, true)
@@ -166,7 +215,7 @@ angular.module('hyphe.webentityController', [])
     }
 
     // Functions
-    $scope.loadPages = function(){
+    $scope.loadPages = function(callback){
       $scope.pagesLoading = true
       if (!$scope.loadAllPages) {
         $scope.status = {message: 'Loading pages'}
@@ -180,6 +229,7 @@ angular.module('hyphe.webentityController', [])
           ,token: $scope.pagesToken
         }
         ,function(result){
+          $scope.rawPages = $scope.rawPages.concat(result.pages)
           var pagesBatch = []
           var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested", "archive_permalink"]
           result.pages.forEach(function(page){
@@ -208,10 +258,11 @@ angular.module('hyphe.webentityController', [])
           if ($scope.loadAllPages && $scope.pagesToken) {
             var percent = 99.5 * $scope.pages.length / $scope.webentity.pages_total
             $scope.status = {message: 'Loading pages ' + Math.round(percent) + ' %', progress: percent}
-            $timeout($scope.loadPages, 0)
+            $timeout(function() { $scope.loadPages(callback) }, 0)
           } else {
             $scope.pagesLoading = false
             $scope.status = {}
+            if (callback) callback();
           }
         }
         ,function(){
@@ -219,6 +270,47 @@ angular.module('hyphe.webentityController', [])
           $scope.status = {message: 'Error loading pages', background: 'danger'}
         }
       )
+    }
+
+    function triggerPagesCSVDownload() {
+        // Build Headline
+        var headline = Object.keys($scope.CSVfields)
+        // Build Table Content
+        var tableContent = $scope.rawPages.map(function (page) {
+          page.webentity_name = $scope.webentity.name
+          page.webentity_id = $scope.webentity.id
+          return headline.map(function(field){
+            var value = page[field]
+            let type = $scope.CSVfields[field].type
+            if (type == 'date' && value) {
+              value = new Date(+value).toISOString()
+            } else if (type == 'array of string') {
+              value = value.sort().join(' ')
+            }
+            if (value === null || value === undefined)
+              return ""
+            return value
+          })
+        })
+        // Parsing
+        var fileContent = []
+            ,csvElement = function(txt){
+          txt = ''+txt //cast
+          return '"'+txt.replace(/"/gi, '""')+'"'
+        }
+        fileContent.push(headline.join(','))
+        tableContent.forEach(function (row) {
+          fileContent.push('\n' + row.map(csvElement).join(','))
+        })
+        var blob = new Blob(fileContent, {'type': "text/csv;charset=utf-8"});
+        saveAs(blob, $scope.corpusName + "_webentity-" + $scope.webentity.id + "_pages.csv", true);
+    }
+
+    $scope.downloadPagesCSV = function(){
+      if ($scope.rawPages.length < $scope.webentity.pages_total) {
+        $scope.loadAllPages = true;
+        $scope.loadPages(triggerPagesCSVDownload);
+      } else triggerPagesCSVDownload();
     }
 
     $scope.toggleStartPages = function(page){
