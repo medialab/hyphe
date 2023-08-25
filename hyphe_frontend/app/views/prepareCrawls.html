@@ -105,6 +105,10 @@
                       <md-tooltip md-direction="right">Doomed crawl needs fix :)</md-tooltip>
                       <md-icon md-colors="{'color':'default-warn'}">warning</md-icon>
                     </div>
+                    <div ng-if="obj.summary.diagnostic.redirections && !(obj.webentity.webarchives && obj.webentity.webarchives.option)">
+                      <md-tooltip md-direction="right">Redirections need fixing!</md-tooltip>
+                      <md-icon md-colors="{'color':'default-warn'}">airline_stops</md-icon>
+                    </div>
                   </div>
                   <div>
                     {{obj.webentity.startpages.length}} <span class="text-muted">start page{{obj.webentity.startpages.length | plural}}</span>

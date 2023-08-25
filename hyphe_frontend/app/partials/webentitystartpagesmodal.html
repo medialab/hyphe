@@ -36,13 +36,19 @@
                     title="Lookup {{lookups[url].status}}"
                   >done</md-icon>
                   <md-icon
+                    ng-if="lookups[url].status == 'redirection' && !webentity.webarchives.option"
+                    class="md-avatar-icon md-warn"
+                    title="Lookup {{lookups[url].status}}"
+                    md-colors="{'background': 'default-warn'}"
+                  >airline_stops</md-icon>
+                  <md-icon
                     ng-if="lookups[url].status == 'issue' && !webentity.webarchives.option"
                     class="md-avatar-icon md-warn"
                     title="Lookup {{lookups[url].status}}"
                     md-colors="{'background': 'default-warn'}"
                   >warning</md-icon>
                   <md-icon
-                    ng-if="lookups[url].status == 'issue' && webentity.webarchives.option"
+                    ng-if="(lookups[url].status == 'issue' || lookups[url].status == 'redirection') && webentity.webarchives.option"
                     class="md-avatar-icon md-info"
                     title="Lookup {{lookups[url].status}}"
                     md-colors="{'background': 'default-info'}"
@@ -63,7 +69,7 @@
                     </h3>
                     <p>
                       <span
-                        ng-if="lookups[url].status == 'issue'"
+                        ng-if="lookups[url].status == 'issue' || lookups[url].status == 'redirection'"
                         md-colors="{'color': 'default-warn'}"
                       >
                         <md-tooltip md-direction="left">HTTP code: {{lookups[url].httpStatus}}</md-tooltip>
@@ -131,13 +137,17 @@
                   <span md-colors="{'color':'default-primary'}">
                     At least one page is valid, allowing the crawl to start successfully.
                   </span>
-                  <br>
+                  <br/><br/>
                   <span md-colors="{'color':'default-warn'}">
                     A little warning, though.
                   </span>
                   <span>
                     Some start pages have issues and cannot be crawled.
                     It will not block the crawl but you may want to fix it.
+                  </span>
+                  <span ng-show="startpagesSummary.diagnostic.redirections > 0">
+                    <br/><br/>
+                    You should at least <span md-colors="{'color':'default-warn'}">try and fix the <b>"Redirection"</b> case{{startpagesSummary.diagnostic.redirections | plural}}</span>: simply click on the link to see where the redirection leads and use that URL instead if it makes sense.
                   </span>
                 </p>
               </div>
@@ -153,6 +163,10 @@
                   <br/>
                   <span>
                     You can still try to launch it, though. Miracles happen.
+                  </span>
+                  <span ng-show="startpagesSummary.diagnostic.redirections > 0">
+                    <br/><br/>
+                    But you should at least <span md-colors="{'color':'default-warn'}">try and fix the <b>"Redirection"</b> case{{startpagesSummary.diagnostic.redirections | plural}}</span>: simply click on the link to see where the redirection leads and use that URL instead if it makes sense.
                   </span>
                   <br/><br/>
                   If the page{{ startpages.length | plural }} did exist but disappeared from the web, you can enable "Web archives" in the "Advanced Crawl Options" tab to try and browse this specific entity in the past.

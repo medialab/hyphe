@@ -422,8 +422,9 @@ angular.module('hyphe.preparecrawlsController', [])
         // Diagnostic
         result.diagnostic = {
           ready: ( statusIndex['success'] || 0 ) > 0
+        , redirections: statusIndex['redirection'] + 0
         , doomed: ( statusIndex['success'] || 0 ) == 0
-        , issues: ( statusIndex['issue'] || 0 ) + ( statusIndex['fail'] || 0 ) > 0
+        , issues: ( statusIndex['issue'] || 0 ) + ( statusIndex['fail'] || 0 ) > 0 + ( statusIndex['redirection'] || 0 )
         }
 
       }
@@ -517,11 +518,11 @@ angular.module('hyphe.preparecrawlsController', [])
           api.getWebentity(
             { url: redirectUrl }
             , function(WE){
-                lookup.status = (WE.id === lookup.webentity.id) ? ('success') : ('issue')
+                lookup.status = (WE.id === lookup.webentity.id) ? ('success') : ('redirection')
                 lookup.httpStatus = (WE.id === lookup.webentity.id) ? (200) : (httpStatus)
               }
             , function(data){
-                lookup.status = 'issue'
+                lookup.status = 'redirection'
                 lookup.httpStatus = httpStatus
               }
           )
