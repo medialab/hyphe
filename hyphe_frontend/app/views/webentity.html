@@ -200,7 +200,7 @@
                     <div layout-fill layout="column" layout-align="center center" ng-if="!ego.loaded">
                       <spinner text="'LOADING LINKS'"></spinner>
                     </div>
-                    <div layout-fill layout="column" ng-if="ego.loaded" style="position: relative">
+                    <div layout-fill layout="column" ng-if="ego.loaded" style="position: relative; overflow: hidden">
                       <sigma-network
                           layout-fill
                           network="ego.network "
