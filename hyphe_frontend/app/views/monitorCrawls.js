@@ -625,7 +625,9 @@ angular.module('hyphe.monitorcrawlsController', [])
                   } else if (type == 'array of string') {
                     value = value.sort().join(' ')
                   }
-                  return value;
+                  if (value === null || value === undefined)
+                    return ""
+                  return value
                 })
               })
               // Parsing
