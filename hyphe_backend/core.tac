@@ -404,6 +404,8 @@ class Core(customJSONRPC):
 
     def read_links_from_cache(self, corpus):
         cache_path = os.path.join(config["traph"]["data_path"], "%s_webentitieslinks.json" % corpus)
+        if not self.corpora[corpus]["total_webentities"]:
+            return {}
         try:
             with open(cache_path) as f:
                 return json.load(f, object_hook=lambda x: {(int(k) if k.isdigit() else k): v for k, v in x.items()})
