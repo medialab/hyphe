@@ -94,6 +94,14 @@ a {
   line-height: 14px;
   transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
 }
+.hint-cookies {
+  position: relative;
+  top: 8px;
+}
+
+.ua-input .md-errors-spacer {
+  display: none;
+}
 
 .hint.ng-hide,
 .hint.ng-enter,
@@ -826,6 +834,10 @@ textarea.over-error {
 
 .wesp-modal-removed {
   opacity: 0.2;
+}
+
+.startpagesmodal {
+  max-height: 90%!important;
 }
 
 /* ==========================================================================

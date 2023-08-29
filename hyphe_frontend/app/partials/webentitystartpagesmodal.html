@@ -1,4 +1,4 @@
-<md-dialog aria-label="Mango (Fruit)">
+<md-dialog aria-label="Mango (Fruit)" class="startpagesmodal">
   <form>
     <md-toolbar>
       <div class="md-toolbar-tools">
@@ -9,7 +9,7 @@
         </md-button>
       </div>
     </md-toolbar>
-    <md-dialog-content style="width:640px;max-height:810px; ">
+    <md-dialog-content style="min-width:640px; max-width: 800px;">
 
       <md-tabs md-dynamic-height md-border-bottom>
         <md-tab label="Start pages" ng-disabled="newStartPagesStack.length>0">
@@ -265,7 +265,7 @@
             </div>
 
             <span style="margin: 8px"><span style="color:grey; filter: grayscale(100%);">🕵</span> User-Agent</span>
-            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px">
+            <div layout="column" md-colors="{background: 'default-primary-50'}" style="padding: 8px" class="ua-input">
               <label><small md-colors="{'color': 'default-primary'}">Paste a specific User-Agent you would like this webentity to be crawled with instead of a random commonly used one</small></label>
               <md-input-container flex class="md-block">
                 <textarea
@@ -292,10 +292,10 @@
                 ></textarea>
                 <div
                   ng-show="cookies_error"
-                  class="hint"
+                  class="hint hint-cookies"
                   md-colors="{'color': 'default-warn'}"
                 >
-                  WARNING: {{ cookiesError }}
+                  WARNING: {{ cookies_error }}
                 </div>
               </md-input-container>
             </div>
