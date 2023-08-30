@@ -219,7 +219,8 @@ angular.module('hyphe.webentityController', [])
       $scope.pagesLoading = true
       if (!$scope.loadAllPages)
         $scope.status = {message: 'Loading pages'}
-      else $scope.status = {message: 'Loading pages 0 %', progress: 0}
+      else if (!$scope.status.message)
+        $scope.status = {message: 'Loading pages 0 %', progress: 0}
       $scope.webentity.startpages_lrus = ($scope.webentity.startpages || []).map(utils.URL_to_LRU)
       setTimeout(function() { api.getPaginatedPages({
           webentityId: $scope.webentity.id
