@@ -1135,6 +1135,11 @@ textarea.over-error {
   margin-right: 12px;
 }
 
+.small-spinner .spinner-container {
+  -webkit-transform: scale(0.35) translate(-34px, -76px)!important;
+          transform: scale(0.35) translate(-34px, -76px)!important;
+}
+
 .sk-folding-cube {
   margin: 20px auto;
   width: 40px;
@@ -1167,6 +1172,10 @@ textarea.over-error {
   -webkit-transform-origin: 100% 100%;
       -ms-transform-origin: 100% 100%;
           transform-origin: 100% 100%;
+}
+
+.small-spinner .sk-folding-cube .sk-cube:before {
+  background-color: darkgrey;
 }
 
 .sk-folding-cube .sk-cube2 {

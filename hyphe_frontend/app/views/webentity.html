@@ -490,9 +490,10 @@
                   >
                 </md-input-container>
 
-                <md-button class="md-raised md-mini md-fab md-secondary" ng-click="downloadPagesCSV()" ng-show="webentity.pages_total>=1" style="position: relative; left: 0px; top: -22px; background-color: lightgrey;">
+                <md-button class="md-raised md-mini md-fab md-secondary" ng-click="downloadPagesCSV()" ng-show="webentity.pages_total>=1" style="position: relative; left: 0px; top: -22px; background-color: lightgrey;" ng-disabled="pagesLoading">
                   <md-tooltip md-direction="top">Export all pages metadata as CSV</md-tooltip>
-                  <md-icon>file_download</md-icon>
+                  <md-icon ng-show="!pagesLoading">file_download</md-icon>
+                  <spinner ng-show="pagesLoading" class="small-spinner"></spinner>
                 </md-button>
                 <md-button class="md-raised md-mini md-fab md-secondary" style="position: absolute; right: 16px; top: 225px; background-color: lightgrey" ng-click="pagesOnlyCrawled = !pagesOnlyCrawled">
                   <md-tooltip md-direction="left">Display only crawled pages</md-tooltip>
