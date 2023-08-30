@@ -302,16 +302,23 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.highlightGroup = function(selection) {
           if ($scope.nodeColorMode === '')
             return
+          
+          var keptNodes = {};
           g.forEachNode(function(nid, attrs){
             var val = attrs.status
             if ($scope.nodeColorMode !== '_webentitystatus')
               val = (((attrs.tags || {}).USER || {})[$scope.nodeColorMode] || [""])[0];
-            g.setNodeAttribute(nid, 'color', val === selection ? attrs.color : "rgba(0,0,0, 0.15)")
+            if (val === selection) keptNodes[nid] = true;
+            g.setNodeAttribute(nid, 'color', val === selection ? attrs.color : "#E9E9E9")
+          })
+          g.forEachEdge(function(e, attrs, n1, n2) {
+            g.setEdgeAttribute(e, 'color', keptNodes[n1] || keptNodes[n2] ? attrs.color : "#F9F9F9");
           })
         }
 
         $scope.resetHighlight = function() {
           updateNodeColors();
+          setEdgesToGrey();
         }
 
         // Init
