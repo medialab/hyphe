@@ -822,6 +822,9 @@ textarea.over-error {
   padding: 0px 8px 0px 8px;
 }
 
+.welist-col-name {
+  cursor: pointer;
+}
 
 
 /* ==========================================================================

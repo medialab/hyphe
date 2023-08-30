@@ -233,7 +233,7 @@
                               <md-tooltip md-direction="top">{{obj.webentity.homepage}}</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
-                            <span md-truncate flex>
+                            <span md-truncate flex ng-click="shiftCheck($event, obj)" class="welist-col-name">
                               {{obj.webentity.name || 'Loading'}}
                             </span>
                           </p>
