@@ -20,8 +20,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
       }
       ,link: function($scope, el, attrs) {
         var pageSize = 5000
-        $scope.initPage = true
-        $scope.checkLoadAndUpdateCurrentToken = 0
         $scope.corpusId = corpus.getId()
         $scope.statuses = {in:true, out:false, undecided:true, discovered:false}
         $scope.limitDiscovered = '1+'
@@ -40,62 +38,69 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         , hideLinksFromOUT: true
         }
         $scope.settingsChanged
-
-        $scope.data = {
-          in: {
-            loading: false,
-            loaded: false,
-            token: undefined,
-            page: 0,
-            total: 0,
-            retry: 0,
-            webentities: []
-          },
-          out: {
-            loading: false,
-            loaded: false,
-            token: undefined,
-            page: 0,
-            total: 0,
-            retry: 0,
-            webentities: []
-          },
-          undecided: {
-            loading: false,
-            loaded: false,
-            token: undefined,
-            page: 0,
-            total: 0,
-            retry: 0,
-            webentities: []
-          },
-          discovered: {
-            loading: false,
-            loaded: false,
-            token: undefined,
-            page: 0,
-            total: 0,
-            retry: 0,
-            webentities: []
-          },
-          links: {
-            loading: false,
-            loaded: false,
-            links: []
-          }
-
-        }
         $scope.counts
         $scope.loadingStatus
-        $scope.loading = true
-
         $scope.network
 
         $scope.nodeColorMode = '_webentitystatus'
         $scope.nodeSizeMode = 'indegree'
         $scope.nodeSizeBaseRatio = 1
-        $scope.tagCategories = {}
         $scope.selectedItem = null
+
+        $scope.initData = function() {
+          $scope.initPage = true
+          $scope.checkLoadAndUpdateCurrentToken = 0
+
+          $scope.data = {
+            in: {
+              loading: false,
+              loaded: false,
+              token: undefined,
+              page: 0,
+              total: 0,
+              retry: 0,
+              webentities: []
+            },
+            out: {
+              loading: false,
+              loaded: false,
+              token: undefined,
+              page: 0,
+              total: 0,
+              retry: 0,
+              webentities: []
+            },
+            undecided: {
+              loading: false,
+              loaded: false,
+              token: undefined,
+              page: 0,
+              total: 0,
+              retry: 0,
+              webentities: []
+            },
+            discovered: {
+              loading: false,
+              loaded: false,
+              token: undefined,
+              page: 0,
+              total: 0,
+              retry: 0,
+              webentities: []
+            },
+            links: {
+              loading: false,
+              loaded: false,
+              links: []
+            }
+
+          }
+          $scope.loading = true
+          $scope.tagCategories = {}
+        }
+
+        $scope.initData()
+
 
         $scope.findNode = function(name){
           g.forEachNode(function(node){
@@ -266,6 +271,11 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           }
 
           $scope.settingsChanged = difference
+        }
+
+        $scope.refreshNetwork = function() {
+          $scope.initData()
+          $scope.applySettings()
         }
 
         $scope.downloadNetwork = function() {

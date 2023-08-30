@@ -12,6 +12,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
       ,scope: {
         network: '=',
         downloadNetwork: '=',
+        refreshNetwork: '=',
         suspendLayout: '=',             // Optional. Stops layout when suspendLayout becomes true
         startLayoutOnShow: '=',         // Optional. Starts layout when suspendLayout becomes false
         startLayoutOnLoad: '=',         // Optional. Default: true

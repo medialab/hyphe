@@ -108,6 +108,14 @@
       <md-icon>center_focus_weak</md-icon>
     </md-button>
     <md-button
+      class="md-icon-button md-mini sigma-button"
+      aria-label="Refresh network data"
+      ng-click="refreshNetwork()"
+    >
+      <md-tooltip md-direction="right">Refresh network data</md-tooltip>
+      <md-icon>refresh</md-icon>
+    </md-button>
+    <md-button
       class="md-icon-button md-primary md-mini sigma-button"
       aria-label="Download GEXF file"
       ng-click="downloadNetwork()"
