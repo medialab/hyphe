@@ -18,6 +18,8 @@ angular.module('hyphe.helpController', ['ngSanitize'])
     $scope.currentPage = 'help'
 
     $scope.version = null
+    $scope.version_url = null
+
     $scope.corpusName = corpus.getName(config.get('extraTitle') || '')
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
@@ -43,6 +45,9 @@ angular.module('hyphe.helpController', ['ngSanitize'])
 
     $http({url: "conf/VERSION"}).then(function(res){
       $scope.version = res.data.replace(/[\n\r]/, '').replace(/^(\d)/, 'v$1')
+      if (!/^v\d/.test($scope.version))
+        $scope.version_url = "https://github.com/medialab/hyphe/tree/" + $scope.version
+      else $scope.version_url = "https://github.com/medialab/hyphe/releases/tag/" + $scope.version
     }, function() {})
 
     $scope.$watchGroup(['highlightedEntry', 'definitions'], function (newValues, oldValues) {

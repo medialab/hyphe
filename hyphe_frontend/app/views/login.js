@@ -7,6 +7,7 @@ angular.module('hyphe.loginController', [])
     $scope.currentPage = 'login'
 
     $scope.version = null
+    $scope.version_url = null
 
     $scope.corpusList
     $scope.corpusList_byId = {}
@@ -93,6 +94,9 @@ angular.module('hyphe.loginController', [])
     $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
     $http({url: "conf/VERSION"}).then(function(res){
       $scope.version = res.data.replace(/[\n\r]/, '').replace(/^(\d)/, 'v$1')
+      if (!/^v\d/.test($scope.version))
+        $scope.version_url = "https://github.com/medialab/hyphe/tree/" + $scope.version
+      else $scope.version_url = "https://github.com/medialab/hyphe/releases/tag/" + $scope.version
     }, function() {})
 
     function refresh(){
