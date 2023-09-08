@@ -2,9 +2,11 @@
 
 angular.module('hyphe.loginController', [])
 
-  .controller('Login', ['$scope', 'api', 'utils', '$location', 'corpus', 'config'
-  ,function($scope, api, utils, $location, corpus, config) {
+  .controller('Login', ['$scope', 'api', 'utils', '$location', 'corpus', 'config', '$http'
+  ,function($scope, api, utils, $location, corpus, config, $http) {
     $scope.currentPage = 'login'
+
+    $scope.version = null
 
     $scope.corpusList
     $scope.corpusList_byId = {}
@@ -89,6 +91,9 @@ angular.module('hyphe.loginController', [])
     refresh()
     $scope.loop = setInterval(refresh, 2500)
     $scope.$on('$destroy', function(){ clearInterval($scope.loop) })
+    $http({url: "conf/VERSION"}).then(function(res){
+      $scope.version = res.data.replace(/[\n\r]/, '').replace(/^(\d)/, 'v$1')
+    }, function() {})
 
     function refresh(){
       getStatus()

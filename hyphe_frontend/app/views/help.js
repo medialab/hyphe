@@ -12,9 +12,12 @@ angular.module('hyphe.helpController', ['ngSanitize'])
     $anchorScroll,
     $routeParams,
     $timeout,
-    config
+    config,
+    $http
   ) {
     $scope.currentPage = 'help'
+
+    $scope.version = null
     $scope.corpusName = corpus.getName(config.get('extraTitle') || '')
     $scope.corpusId = corpus.getId()
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
@@ -37,6 +40,10 @@ angular.module('hyphe.helpController', ['ngSanitize'])
         return d
       })
     $scope.highlightedEntry = $routeParams.entry
+
+    $http({url: "conf/VERSION"}).then(function(res){
+      $scope.version = res.data.replace(/[\n\r]/, '').replace(/^(\d)/, 'v$1')
+    }, function() {})
 
     $scope.$watchGroup(['highlightedEntry', 'definitions'], function (newValues, oldValues) {
       $timeout(function () {
