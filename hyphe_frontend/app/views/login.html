@@ -191,24 +191,24 @@
 
     <div  layout="row"  class="credits-list" layout-align="center"  md-colors="{background: 'default-background-100'}">
 
+      <md-list-item ng-if="version" ng-href="https://github.com/medialab/hyphe/tree/{{version}}" target="_blank" aria-label="Hyphe version">
+        <span layout-padding >
+          Hyphe {{version}}
+        </span>
+      </md-list-item>
       <md-list-item ng-href="https://medialab.sciencespo.fr/en" target="_blank" aria-label="médialab website">
         <span layout-padding >
-            médialab
+          médialab
         </span>
       </md-list-item>
-      <md-list-item ng-href="https://dime-shs.sciencespo.fr/en/" target="_blank" aria-label="DIME SHS">
+      <md-list-item  ng-href="https://medialab.sciencespo.fr/tools/" target="_blank" aria-label="médialab Tools">
         <span layout-padding >
-            DIME SHS
-        </span>
-      </md-list-item>
-      <md-list-item  ng-href="http://tools.medialab.sciences-po.fr/" target="_blank" aria-label="médialab Tools">
-        <span layout-padding >
-            Tools
+          Tools
         </span>
       </md-list-item>
       <md-list-item ng-href="https://github.com/medialab/hyphe" target="_blank" aria-label="Hyphe's source code on GitHub">
         <span layout-padding >
-            Source Code
+          Source Code
         </span>
       </md-list-item>
     </div>

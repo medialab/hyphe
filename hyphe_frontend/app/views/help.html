@@ -72,6 +72,11 @@
             <div class="pusher"></div>
           </div>
           <md-list class="credits-list-footer">
+            <md-list-item ng-if="version" ng-href="https://github.com/medialab/hyphe/tree/{{version}}" target="_blank" aria-label="médialab website">
+              <span layout-padding >
+                Hyphe {{version}}
+              </span>
+            </md-list-item>
             <md-list-item ng-href="https://medialab.sciencespo.fr/en" target="_blank" aria-label="médialab website">
               <span layout-padding >
                   médialab
@@ -82,7 +87,7 @@
                 DIME-SHS
               </span>
             </md-list-item>
-            <md-list-item  ng-href="http://tools.medialab.sciences-po.fr/" target="_blank" aria-label="medialab Tools">
+            <md-list-item  ng-href="https://medialab.sciencespo.fr/tools/" target="_blank" aria-label="medialab Tools">
               <span layout-padding >
                 médialab Tools
               </span>
