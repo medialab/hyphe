@@ -14,8 +14,6 @@ RUN buildDeps='gcc libffi-dev libxml2-dev libxslt-dev' \
     && apt-get purge -y --auto-remove $buildDeps \
     && rm -rf /var/lib/apt/lists/* 
 
-COPY ./VERSION /app/VERSION
-
 COPY ./bin /app/bin
 
 COPY ./config /app/config.sample
