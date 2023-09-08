@@ -16,6 +16,8 @@ COPY --from=builder --chown=nginx:nginx /hyphe-frontend/app /frontend/app
 
 WORKDIR /frontend/app
 
+COPY ./VERSION /app/VERSION
+
 COPY ./docker-nginx-vhost.conf /etc/nginx/conf.d/docker-nginx-vhost.template
 
 COPY docker-entrypoint.sh /
