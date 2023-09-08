@@ -155,3 +155,16 @@ class JobsQueue(object):
     def count_waiting_jobs(self, corpus):
         return len([0 for j in self.queue.values() if j["corpus"] == corpus])
 
+    @inlineCallbacks
+    def get_job_log(self, corpus, job_id):
+        url = "%slogs/%s_%s/pages/%s.log" % (self.scrapyd, self.db_name, corpus, job_id)
+        try:
+            log = yield getPage(url)
+        except TimeoutError:
+            logger.msg("WARNING: ScrapyD's monitoring website seems like not answering while calling %s" % url)
+            returnD(None)
+        except Exception as e:
+            logger.msg("WARNING: ScrapyD's monitoring website seems down while calling %s: %s %s" % (url, type(e), e))
+            returnD(None)
+        returnD(log)
+

@@ -75,6 +75,8 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.CRAWLJOB_LIST_GET                           = 'listjobs'
 
+    API.CRAWLJOB_LOG_GET                            = 'crawl.get_job_log'
+
     API.CRAWLJOB_CANCEL                             = 'crawl.cancel'
 
     API.STATUS_GET                                  = 'get_status'
@@ -656,6 +658,15 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.from || null
             ,settings.to || null
             ,settings.light || false
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.getCrawlLog = buildApiCall(
+        API.CRAWLJOB_LOG_GET
+        ,function(settings){
+          return [
+            settings.id
             ,corpus.getId()
           ]}
       )

@@ -800,6 +800,7 @@ class Core(customJSONRPC):
         kwargs = {}
         if light:
             kwargs["projection"] = [
+              "crawljob_id",
               "webentity_id",
               "nb_crawled_pages",
               "nb_crawled_pages_200",
@@ -1325,13 +1326,23 @@ class Crawler(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_job_logs(self, job_id, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` activity logs of a specific crawl with id `job_id`."""
+        """Returns for a `corpus` historic activity logs of a specific crawl with id `job_id`."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         res = yield self.db.list_logs(corpus, job_id)
         if not res:
             returnD(format_error('No log found for job %s.' % job_id))
         returnD(format_result([{'timestamp': log['timestamp'], 'log': log['log']} for log in res]))
+
+    @inlineCallbacks
+    def jsonrpc_get_job_log(self, job_id, corpus=DEFAULT_CORPUS):
+        """Returns for a `corpus` the detailed crawler's logs of a specific crawl with id `job_id`."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        res = yield self.crawlqueue.get_job_log(corpus, job_id)
+        if not res:
+            returnD(format_error('No log found for job %s.' % job_id))
+        returnD(format_result(res))
 
 
 # MEMORYSTRUCTURE's DEDICATED API

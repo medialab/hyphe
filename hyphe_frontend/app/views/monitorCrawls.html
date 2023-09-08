@@ -565,6 +565,11 @@
                   </dd>
                   
                 </dl>
+                <h3 style="margin-bottom:0px" ng-if="crawljobsIndex[focusedJobId].log">DETAILED LOG</h3>
+                <dl class="key-value-pairs" ng-if="crawljobsIndex[focusedJobId].log">
+                  <dd><pre>{{crawljobsIndex[focusedJobId].log}}</pre></dd>
+                </dl>
+
               </md-content>
             </md-tab>
 

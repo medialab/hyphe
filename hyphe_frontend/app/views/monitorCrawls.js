@@ -135,8 +135,20 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     }
 
+    $scope.grabJobLog = function(job){
+      api.getCrawlLog(
+        {id: job.crawljob_id}
+        , function(result){
+          job.log = result
+        }, function(){
+          console.log("No logs found for crawljob " + job);
+        }
+      )
+    }
+
     $scope.focusOnJob = function(job){
       if (!job || !job._id) return
+      $scope.grabJobLog(job)
       $location.search({'id': job._id})
       $scope.focusedJobId = job._id
       $scope.selectedTab = 2
@@ -149,7 +161,7 @@ angular.module('hyphe.monitorcrawlsController', [])
 
       api.abortCrawlJobs(
         {id:job._id}
-        ,function(){
+        , function(){
 
           $scope.status = {}
 
@@ -345,6 +357,9 @@ angular.module('hyphe.monitorcrawlsController', [])
         $scope.crawljobsIndex[job._id] = deepmerge(job, $scope.crawljobsIndex[job._id] || {})
         $scope.crawljobsIndex[job._id].crawl_arguments.archives_start_urls = ($scope.webarchives_permalinks && $scope.crawljobsIndex[job._id].crawl_arguments.start_urls) ? $scope.crawljobsIndex[job._id].crawl_arguments.start_urls.map(function(u) { return utils.getArchivesPermalinks(u, $scope.webarchives_permalinks)}) : null;
       })
+      if ($scope.focusedJobId && !$scope.crawljobsIndex[$scope.focusedJobId].log) {
+        $scope.grabJobLog($scope.crawljobsIndex[$scope.focusedJobId])
+      }
 
     }
 
