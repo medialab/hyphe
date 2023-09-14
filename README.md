@@ -60,6 +60,7 @@ Or, if you do not have git (for instance on a Mac without XCode), you can also d
 #### 3. Configure
 
 Then, copy the default configuration files and edit them to adjust the settings to your needs:
+**WARNING**: do not enclose the values with any kind of quotes 
 
 ```bash
 # use "copy" instead of "cp" under Windows powershell
