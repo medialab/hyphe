@@ -139,7 +139,9 @@ class PagesCrawler(Spider):
 
     def start_requests(self):
         self.log("Starting crawl task - jobid: %s" % self.crawler.settings['JOBID'], logging.INFO)
-        self.log("ARGUMENTS : "+str(self.args), logging.INFO)
+        self.log("ARGUMENTS: ", logging.INFO)
+        for key, value in self.args.items():
+            self.log(" - %s: %s" % (key, value), logging.INFO)
         if self.webarchives:
             self.log("Crawling on Web Archive %s using for prefix %s between %s and %s" % (self.webarchives["option"], self.archiveprefix, self.archivemindate, self.archivemaxdate))
         if self.proxy:
@@ -197,7 +199,7 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
-        self.log("RESPONSE %s (%s): %s" % (response.url, response.status, dict(response.headers)), logging.INFO)
+        self.log("RESPONSE (%s) %s: %s" % (response.status, response.url, dict(response.headers)), logging.INFO)
 
         if self.phantom:
             self.phantom.get(response.url)
