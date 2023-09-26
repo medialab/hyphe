@@ -160,11 +160,12 @@ class JobsQueue(object):
         url = "%slogs/%s_%s/pages/%s.log" % (self.scrapyd, self.db_name, corpus, job_id)
         try:
             log = yield getPage(url)
+            returnD(log)
         except TimeoutError:
             logger.msg("WARNING: ScrapyD's monitoring website seems like not answering while calling %s" % url)
             returnD(None)
         except Exception as e:
-            logger.msg("WARNING: ScrapyD's monitoring website seems down while calling %s: %s %s" % (url, type(e), e))
+            if str(e) != "404 Not Found":
+                logger.msg("WARNING: ScrapyD's monitoring website seems down while calling %s: %s %s" % (url, type(e), e))
             returnD(None)
-        returnD(log)
 

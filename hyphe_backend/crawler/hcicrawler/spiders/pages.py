@@ -2,6 +2,7 @@
 
 import os, time, signal, re
 import json
+import copy
 from hashlib import sha256
 import logging
 from datetime import datetime, timedelta
@@ -513,9 +514,7 @@ class PagesCrawler(Spider):
         return self._loggedRequest(url, **kw)
 
     def _loggedRequest(self, url, **kw):
-        loggedKw = dict(kw)
-        del(loggedKw["callback"])
-        del(loggedKw["errback"])
+        loggedKw = {k: copy.deepcopy(kw[k]) for k in ["meta", "cookies", "method", "headers"] if kw.get(k)}
         del(loggedKw["meta"]["handle_httpstatus_all"])
         if (self.webarchives and self.webarchives["option"] == "dlweb.ina.fr"):
             del(loggedKw["headers"]["X-DLWeb-Token"])
