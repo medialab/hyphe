@@ -196,7 +196,7 @@ class PagesCrawler(Spider):
                         os.remove(fi)
 
     def handle_response(self, response):
-        # self.log("RESPONSE %s: %s" % (response.url, dict(response.headers)), logging.DEBUG)
+        self.log("RESPONSE %s (%s): %s" % (response.url, response.status, dict(response.headers)), logging.INFO)
 
         if self.phantom:
             self.phantom.get(response.url)
@@ -273,7 +273,7 @@ class PagesCrawler(Spider):
                     if match:
                         # Check date obtained fits into a user defined timerange and return 404 otherwise
                         if not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
-                            self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_url, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                            self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_url, match.group(1), self.archivemindate, self.archivemaxdate), logging.WARNING)
                             return self._make_raw_page(response, archive_fail_url=redir_url)
                         if normalize(real_url) == normalize(orig_url):
                             if "depth" in response.meta:
@@ -339,7 +339,7 @@ class PagesCrawler(Spider):
                     return
                 archive_timestamp = archive_timestamp.group(1)
                 if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
-                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.WARNING)
                     skip_page = archive_url
                 # Remove BNF banner
                 clean_body = RE_BNF_ARCHIVES_BANNER.sub("", response.body)
@@ -353,7 +353,7 @@ class PagesCrawler(Spider):
                     return
                 archive_timestamp = datetime.strftime((datetime(1970, 1, 1) + timedelta(seconds=int(archive_timestamp))), "%Y%m%d%H%M%S")
                 if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
-                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.WARNING)
                     skip_page = archive_url
 
             # Specific case of redirections from website returned by archives as JS redirections with code 200
@@ -365,7 +365,7 @@ class PagesCrawler(Spider):
                 # Check date obtained fits into a user defined timerange and return 404 otherwise
                 match = self.archiveregexp.search(redir_location)
                 if match and not (self.archivemindate <= match.group(1) <= self.archivemaxdate):
-                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_location, match.group(1), self.archivemindate, self.archivemaxdate), logging.DEBUG)
+                    self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (redir_location, match.group(1), self.archivemindate, self.archivemaxdate), logging.WARNING)
                     skip_page = redir_location
                 response.headers['Location'] = redir_location
 
@@ -495,22 +495,31 @@ class PagesCrawler(Spider):
                     "X-DLWeb-Browser": "Hyphe crawler"
                 }
                 kw["meta"]["archive_timestamp"] = self.archivedate
-                # self.log("REQUEST %s: %s" % (url, kw), logging.DEBUG)
 
-                return Request(url, **kw)
+                return self._loggedRequest(url, **kw)
             if "archivesinternet.bnf.fr" in self.webarchives["url_prefix"]:
                 kw['headers'] = {
                     "BnF-OSWM-User-Name": "WS-HYPHE_%s_%s" % (HYPHE_PROJECT, self.crawler.settings['JOBID'])
                 }
                 if url.startswith(self.webarchives["url_prefix"]) or redirection:
-                    return Request(url, **kw)
-                return Request("%s/%s/%s" % (self.webarchives["url_prefix"].rstrip('/'), self.archivedate, url), **kw)
+                    return self._loggedRequest(url, **kw)
+                return self._loggedRequest("%s/%s/%s" % (self.webarchives["url_prefix"].rstrip('/'), self.archivedate, url), **kw)
             if url.startswith(self.webarchives["url_prefix"]):
                 kw["meta"]["archive_timestamp"] = self.archiveregexp.search(url).group(1)
-                return Request(url, **kw)
+                return self._loggedRequest(url, **kw)
             else:
                 kw["meta"]["archive_timestamp"] = self.archivedate
-                return Request(self.archiveprefix + url, **kw)
+                return self._loggedRequest(self.archiveprefix + url, **kw)
+        return self._loggedRequest(url, **kw)
+
+    def _loggedRequest(self, url, **kw):
+        loggedKw = dict(kw)
+        del(loggedKw["callback"])
+        del(loggedKw["errback"])
+        del(loggedKw["meta"]["handle_httpstatus_all"])
+        if (self.webarchives and self.webarchives["option"] == "dlweb.ina.fr"):
+            del(loggedKw["headers"]["X-DLWeb-Token"])
+        self.log("REQUEST %s: %s" % (url, loggedKw), logging.INFO)
         return Request(url, **kw)
 
 
