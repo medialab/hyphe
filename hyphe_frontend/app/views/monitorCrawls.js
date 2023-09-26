@@ -21,7 +21,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.headerCustomColor = config.get('headerCustomColor') || '#328dc7';
 
     $scope.selectedTab = 0
-    $scope.focusedJobId
+    $scope.focusedJobId = "last"
 
     $scope.webarchives_permalinks = null
 
@@ -154,6 +154,16 @@ angular.module('hyphe.monitorcrawlsController', [])
       $scope.selectedTab = 2
     }
 
+    $scope.$watch('focusedJobId', function(newVal, oldVal){
+      if (newVal !== oldVal) {
+        if (newVal === "all") {
+          $location.search({'all': true})
+        } else if (newVal === "last") {
+          $location.search({'last': true})
+        }
+      }
+    })
+
     $scope.abortCrawl = function(job){
       $scope.status = {message: 'Aborting crawl job'}
 
@@ -215,7 +225,13 @@ angular.module('hyphe.monitorcrawlsController', [])
         .replace("DATETIME", webarchives_date)
         .replace("DATE:TIME", webarchives_date.replace(/^(....)(..)(..)(..)(..)(..)$/, "$1:$2:$3T$4:$5:$6"))
       updateLastCrawlJobs()
-      if ($location.search().id) {
+      if ($location.search().last) {
+        $scope.focusedJobId = 'last'
+        $scope.selectedTab = 0
+      } else if ($location.search().all) {
+        $scope.focusedJobId = 'all'
+        $scope.selectedTab = 1
+      } else if ($location.search().id) {
         $scope.focusedJobId = $location.search().id
         updateSingleCrawlJobs($location.search().id)
         $scope.selectedTab = 2
@@ -357,10 +373,6 @@ angular.module('hyphe.monitorcrawlsController', [])
         $scope.crawljobsIndex[job._id] = deepmerge(job, $scope.crawljobsIndex[job._id] || {})
         $scope.crawljobsIndex[job._id].crawl_arguments.archives_start_urls = ($scope.webarchives_permalinks && $scope.crawljobsIndex[job._id].crawl_arguments.start_urls) ? $scope.crawljobsIndex[job._id].crawl_arguments.start_urls.map(function(u) { return utils.getArchivesPermalinks(u, $scope.webarchives_permalinks)}) : null;
       })
-      if ($scope.focusedJobId && (!$scope.crawljobsIndex[$scope.focusedJobId].log || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "CRAWLING" || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "PENDING")) {
-        $scope.grabJobLog($scope.crawljobsIndex[$scope.focusedJobId])
-      }
-
     }
 
     function populateWebEntityNames(){
@@ -370,6 +382,9 @@ angular.module('hyphe.monitorcrawlsController', [])
         else job.webentity_name = we.name + (job.previous_webentity_name && job.previous_webentity_name != we.name ? ' (previously '+job.previous_webentity_name+')' : '')
       })
       updateCrawlJobsIndex()
+      if ($scope.focusedJobId !== "all" && $scope.focusedJobId !== "last" && (!$scope.crawljobsIndex[$scope.focusedJobId].log || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "CRAWLING" || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "PENDING")) {
+        $scope.grabJobLog($scope.crawljobsIndex[$scope.focusedJobId])
+      }
     }
 
     function loadWebentities(list, callback) {

@@ -28,7 +28,7 @@
           <md-tabs md-border-bottom flex md-selected="selectedTab">
 
             <!-- Tab: last crawls -->
-            <md-tab label="last crawl jobs">
+            <md-tab label="last crawl jobs" ng-click="focusedJobId = 'last'">
               
               <!-- Loading -->
               <div ng-if="!listLoaded" layout-fill layout="column" layout-align="center center">
@@ -167,7 +167,7 @@
             </md-tab>
  
             <!-- Tab: all crawls -->
-            <md-tab label="all crawl jobs">
+            <md-tab label="all crawl jobs" ng-click="focusedJobId = 'all'">
 
               <!-- Loading -->
               <div ng-if="!dynamicCrawlJobs" layout-fill layout="column" layout-align="center center">
@@ -307,7 +307,7 @@
             </md-tab>
 
             <!-- Tab: focus on a crawl -->
-            <md-tab label="{{crawljobsIndex[focusedJobId].webentity_name || 'Loading'}}" ng-if="focusedJobId">
+            <md-tab label="{{crawljobsIndex[focusedJobId].webentity_name || 'Loading'}}" ng-if="focusedJobId !== 'all' && focusedJobId !== 'last'">
 
               <!-- Loading -->
               <div ng-if="!crawljobsIndex[focusedJobId].webentity_name" layout-fill layout="column" layout-align="center center">
