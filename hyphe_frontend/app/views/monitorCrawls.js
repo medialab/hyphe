@@ -357,7 +357,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         $scope.crawljobsIndex[job._id] = deepmerge(job, $scope.crawljobsIndex[job._id] || {})
         $scope.crawljobsIndex[job._id].crawl_arguments.archives_start_urls = ($scope.webarchives_permalinks && $scope.crawljobsIndex[job._id].crawl_arguments.start_urls) ? $scope.crawljobsIndex[job._id].crawl_arguments.start_urls.map(function(u) { return utils.getArchivesPermalinks(u, $scope.webarchives_permalinks)}) : null;
       })
-      if ($scope.focusedJobId && !$scope.crawljobsIndex[$scope.focusedJobId].log) {
+      if ($scope.focusedJobId && (!$scope.crawljobsIndex[$scope.focusedJobId].log || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "CRAWLING" || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "PENDING")) {
         $scope.grabJobLog($scope.crawljobsIndex[$scope.focusedJobId])
       }
 
