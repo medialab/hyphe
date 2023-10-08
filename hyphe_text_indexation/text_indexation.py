@@ -343,7 +343,7 @@ try:
 
 
     # Create queues
-    task_queue = Queue(NB_INDEXATION_WORKERS)
+    task_queue = Queue(max(1, int(NB_INDEXATION_WORKERS / 2)))
 
     # start workers
     workers = []
@@ -450,7 +450,11 @@ try:
             corpora = sorted(corpora, key=lambda c : last_index_dates[index_name(c)] if index_name(c) in last_index_dates else 0)
 
             # add tasks in queue
+            tasks_per_corpora = int(NB_INDEXATION_WORKERS / len(corpora))
             for c in corpora:
+              count = 0
+              while count < tasks_per_corpora:
+                count += 1
                 if nb_pages_to_index[c] > 0 and not task_queue.full():
                     # create a batch
                     batch_ids = [d['_id'] for d in mongo["hyphe_%s" % c]["pages"].find({
