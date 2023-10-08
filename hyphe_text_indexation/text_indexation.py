@@ -26,6 +26,7 @@ import trafilatura
 from lxml.html import fromstring
 
 
+VERBOSE = False
 
 
 def SIGTERM_handler(signum, frame):
@@ -36,8 +37,11 @@ def SIGTERM_handler(signum, frame):
 
 def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
     logg = logging.getLogger()
-    total = 0
+    if 'trafilatura' in extraction_methods and not VERBOSE:
+        traflogger = logging.getLogger("trafilatura")
+        traflogger.propagate = False
 
+    total = 0
     pages = []
     mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
     try:
@@ -91,7 +95,8 @@ def indexation_task(corpus, batch_uuid, extraction_methods, es, mongo):
                 try:
                     extracts = trafilatura.bare_extraction(html)
                     if not extracts:
-                        logg.exception("Trafilatura error")
+                        if VERBOSE:
+                            logg.error("Trafilatura error")
                         page_to_index["trafilatura"] = None
                         page_to_index["trafilaturaDate"] = None
                         page_to_index["trafilaturaAuthor"] = None
@@ -261,10 +266,10 @@ def indexation_worker(input, logging_queue):
     logg.setLevel(logging.INFO)
     logg.addHandler(logging_handler)
 
-
     for task in iter(input.get, 'STOP'):
         try:
             if task['type'] == "indexation":
+                logg.info('starting task %s %s' % (task['corpus'], task['batch_uuid']))
                 indexation_task(task['corpus'], task['batch_uuid'], task['extraction_methods'], es, mongo)
         except Exception:
             logg.exception("ERROR in task %s for corpus %s" % (task['type'],task['corpus']))
@@ -355,11 +360,11 @@ try:
     throttle = 0.5
     hyphe_corpus_coll = mongo["hyphe"]["corpus"]
     extraction_methods_by_corpus = {}
+    nb_pages_to_index = {}
     while True:
         try:
             # get and init corpus index
             corpora = []
-            nb_pages_to_index = {}
             nb_we_updates = {}
             # retrieve existing indices in ES
             existing_es_indices = es.indices.get(index_name('*'))
@@ -371,15 +376,17 @@ try:
                 mongo_pages_coll = mongo["hyphe_%s" % corpus]["pages"]
 
 
-                nb_pages_to_index[corpus] = mongo_pages_coll.count_documents({
+                new_total = mongo_pages_coll.count_documents({
                     "text_indexation_status": "TO_INDEX",
                     "forgotten": False
                 })
-                logg.info("%s pages to index for %s" % (nb_pages_to_index[corpus], corpus))
+                if new_total != nb_pages_to_index.get(corpus, 0):
+                    nb_pages_to_index[corpus] = new_total
+                    logg.info("%s pages to index for %s" % (nb_pages_to_index[corpus], corpus))
                 nb_we_updates[corpus] = mongo["hyphe_%s" % corpus]["WEupdates"].count_documents({"index_status": "PENDING"})
                 corpora.append(corpus)
                 # check index exists in elasticsearch
-                index_exists =  index_name(corpus) in existing_es_indices
+                index_exists = index_name(corpus) in existing_es_indices
 
                 if not index_exists or first_run:
                     # check extraction methods and adapt mapping with alias
@@ -458,9 +465,10 @@ try:
                     # we don't want putting in the queue to be blocking if queue is full cause this which might limit the possibility to update WEs in parallel of long indexation batchs
                     try:
                         # create task with corpus and batch uuid
+                        logg.info('adding task to queue %s %s' % (c, batch_uuid))
                         task_queue.put({"type": "indexation", "corpus": c, "batch_uuid": batch_uuid, "extraction_methods": extraction_methods_by_corpus[c]}, block=False)
                     except Queue.full:
-                        log.info('indexation queue is full')
+                        logg.info('indexation queue is full')
                         # unflag as in batch if task uncorreclty added to the queue
                         mongo["hyphe_%s" % c]["pages"].update_many({'_id': {'$in': batch_ids}}, {'$set': {'text_indexation_status': 'TO_INDEX'}})
 
@@ -470,6 +478,7 @@ try:
             for c in corpora:
                 mongo_jobs_coll = mongo["hyphe_%s" % c]["jobs"]
                 mongo_pages_coll = mongo["hyphe_%s" % c]["pages"]
+
                 # look for unindexed but finished jobs
                 pending_jobs_ids = set([j['crawljob_id'] for j in mongo_jobs_coll.find({
                     'crawling_status': {"$in":['FINISHED', 'CANCELED', 'RETRIED']},
