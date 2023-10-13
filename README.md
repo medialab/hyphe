@@ -227,6 +227,7 @@ See our [roadmap](doc/roadmap.md)!
 
 
 ### Publications using Hyphe
+* Carlotta Capurro & Marta Severo (2023) Mapping European Digital Heritage Politics: An Empirical Study of Europeana as a Web-based Network, Heritage & Society, DOI: https://www.tandfonline.com/doi/full/10.1080/2159032X.2023.2266801 DOI: 10.1080/2159032X.2023.2266801
 
 * GRUSON-DANIEL, Célya. Mapping contemporary “research on research” and “science studies”: how new methods change the traditional academic landscape and inform public open science policies. 2023.
 
