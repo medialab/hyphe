@@ -251,7 +251,7 @@
                   {{createdList.length | were_was}} created
                 </div>
                 <div style="height: 60px" layout="column" layout-align="center center">
-                  <md-button class="md-raised" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTIT{{createdList.length | y_ies | uppercase}}</md-button>
+                  <md-button class="md-raised md-primary" ng-click="doCrawl(crawlExisting)">CRAWL WEB ENTIT{{createdList.length | y_ies | uppercase}}</md-button>
                 </div>
               </div>
 
@@ -273,7 +273,7 @@
                   <md-checkbox class="md-primary" ng-model="$parent.$parent.crawlExisting" ng-if="createdList.length > 0">
                     Crawl as well
                   </md-checkbox>
-                  <md-button class="md-raised md-primary" ng-if="createdList.length == 0" ng-click="doCrawl(true)">CHECK &amp; CRAWL</md-button>
+                  <md-button class="md-raised md-accent" ng-if="createdList.length == 0" ng-click="doCrawl(true)">CHECK &amp; CRAWL</md-button>
                 </div>
               </div>
 
