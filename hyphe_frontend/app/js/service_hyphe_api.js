@@ -820,7 +820,7 @@ angular.module('hyphe.service_hyphe_api', [])
               window.location.reload();
             }
             if(target !== undefined){
-              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready" && $location.path()!=='/admin') {
+              if(target && target.corpus && target.corpus.corpus_id && target.corpus.status != "ready" && $location.path()!=='/admin' && pseudo_route !== API.CORPUS_LIST_GET) {
                 if (pseudo_route !== API.CORPUS_START) {
                   ns.startCorpus({
                     id: corpus.getId(),
@@ -839,7 +839,7 @@ angular.module('hyphe.service_hyphe_api', [])
                   successCallback(target, response.data[0])
               }
             } else {
-              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready" && $location.path()!=='/admin') {
+              if(response.data[0] && response.data[0].message && response.data[0].message.status && response.data[0].message.status != "ready" && $location.path()!=='/admin' && pseudo_route !== API.CORPUS_LIST_GET) {
                 if (pseudo_route !== API.CORPUS_START) {
                   ns.startCorpus({
                     id: corpus.getId(),
