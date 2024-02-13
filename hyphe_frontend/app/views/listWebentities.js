@@ -293,7 +293,7 @@ angular.module('hyphe.listwebentitiesController', [])
         var webarchives_date = status.corpus.options.webarchives_date.replace(/-/g, "") + "000000"
         $scope.webarchives_permalinks = (status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix || "")
           .replace("DATETIME", webarchives_date)
-          .replace("DATE:TIME", webarchives_date.replace(/^(....)(..)(..)(..)(..)(..)$/, "$1:$2:$3T$4:$5:$6"))
+          .replace("DATE:TIME", webarchives_date.replace(/^(....)(..)(..)(..)(..)(..)$/, "$1-$2-$3T$4:$5:$6"))
         $scope.loadingStatus = false
         $scope.jobsToCome=$timeout(loadStatus, 5000);
         callback && callback();
