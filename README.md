@@ -232,7 +232,9 @@ See our [roadmap](doc/roadmap.md)!
 
 * HERASIMOVICH, Volha, ALZUA-SORZABAL Aurkene, GUERENO-OMIL Basagaitz, ["Online networking behaviour of tourism stakeholders in a multi-destination region: A hyperlink network analysis"](https://www.sciencedirect.com/science/article/pii/S2212571X23000835), Journal of Destination Marketing & Management, Volume 31, 2024, 100844, ISSN 2212-571X, https://doi.org/10.1016/j.jdmm.2023.100844
 
-* Carlotta Capurro & Marta Severo (2023) Mapping European Digital Heritage Politics: An Empirical Study of Europeana as a Web-based Network, Heritage & Society, DOI: https://www.tandfonline.com/doi/full/10.1080/2159032X.2023.2266801 DOI: 10.1080/2159032X.2023.2266801
+* EJSING, Mads, VENG, Adam, PAPAZU, Irina. ["Green politics beyond the state: radicalizing the democratic potentials of climate citizens’ assemblies"](https://link.springer.com/article/10.1007/s10584-023-03550-z). Climatic Change 176, 73 (2023). https://doi.org/10.1007/s10584-023-03550-z
+
+* Carlotta Capurro & Marta Severo (2023) Mapping European Digital Heritage Politics: An Empirical Study of Europeana as a Web-based Network, Heritage & Society, DOI: https://www.tandfonline.com/doi/full/10.1080/2159032X.2023.2266801 https://doi.org/10.1080/2159032X.2023.2266801
 
 * GRUSON-DANIEL, Célya. Mapping contemporary “research on research” and “science studies”: how new methods change the traditional academic landscape and inform public open science policies. 2023.
 
@@ -263,6 +265,8 @@ See our [roadmap](doc/roadmap.md)!
 * LECLERC, Éric. Ville intelligente et e-gouvernance en Inde, cartographier un nouveau paysage urbain. Mappemonde. Revue trimestrielle sur l’image géographique et les formes du territoire, 2020, no 128.
 
 * DOUZET, Frédérick, LIMONIER, Kévin, MIHOUBI, Selma, et al. Cartographier la propagation des contenus russes et chinois sur le Web africain francophone. Hérodote, 2020, no 2-3, p. 77-99.
+
+* HUMALISTO, Niko, VALVE, Helena, AKERMAN Maria. [“Making the Circular Economy Online: A Hyperlink Analysis of the Articulation of Nutrient Recycling in Finland.”](https://www.tandfonline.com/doi/full/10.1080/09644016.2020.1817291) Environmental Politics 30, no. 5 (2021): 833–53. https://doi.org/10.1080/09644016.2020.1817291
 
 * DESBONNET, Johan, GOURMELON, Françoise, et CLARAMUNT, Christophe. Analyser la structure de dispositifs de mise à disposition de données géographiques-Application aux enjeux de suivi et de gestion du trait de côte en France. Revue Internationale de Géomatique, 2019, vol. 29, no 1, p. 57-80.
 
