@@ -101,11 +101,7 @@ You have two options: either collect, or build Hyphe's Docker containers.
 
   ```bash
   docker-compose pull
-  ```
-
-For Mac:
-
-  ```bash
+  # or with newer Docker versions
   docker compose pull
   ```
 
@@ -113,14 +109,10 @@ For Mac:
 
   ```bash
   docker-compose build
-  ```
-
-For Mac:
-
-  ```bash
+  # or with newer Docker versions
   docker compose build
   ```
-
+  
 Pulling should be faster, but it will still take a few minutes to download or build everything either way.
 
 
@@ -130,11 +122,7 @@ Finally, start Hyphe containers with the following command, which will run Hyphe
 
 ```bash
 docker-compose up
-```
-
-For Mac:
-
-```bash
+# or with newer Docker versions
 docker compose up
 ```
 
@@ -142,11 +130,7 @@ Or run the containers as a background daemon (for instance for production on a s
 
 ```bash
 docker-compose up -d
-```
-
-For Mac:
-
-```bash
+# or with newer Docker versions
 docker compose up -d
 ```
 
@@ -155,18 +139,49 @@ Once the logs say "All tests passed. Ready!", you can access your Hyphe install 
 
 #### 6. Stop and monitor Hyphe
 
-To stop containers running in background, use `docker-compose stop` (or `docker-compose down` to also clean relying data).
+To stop containers running in background, use 
 
-You can inspect the logs of the various Docker containers using `docker-compose logs`, or with option `-f` to track latest entries like with `tail`.
+```bash
+docker-compose stop 
+# or with newer Docker versions
+docker compose stop
+```
+
+To also clean relying data, use
+
+```bash
+docker-compose down
+# or with newer Docker versions
+docker compose down
+```
+
+You can inspect the logs of the various Docker containers using 
+
+```bash
+docker-compose logs
+# or with newer Docker versions
+docker compose logs
+```
+
+or with option `-f` to track latest entries like with `tail`.
 
 Whenever you change any configuration file, restart the Docker container to take the changes into account:
 
 ```bash
 docker-compose stop
 docker-compose up -d
+# or with newer Docker versions
+docker compose stop
+docker compose up -d
 ```
 
-Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
+To get more explanations on any extra advanced use of Docker, run
+
+```bash
+docker-compose help
+# or with newer Docker versions
+docker compose help
+```
 
 If you encounter issues with the Docker builds, please report an [issue](https://github.com/medialab/hyphe/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or, if you installed from source, the last commit ID (read from `git log`).
 
@@ -183,6 +198,14 @@ git pull
 docker-compose pull
 # eventually edit your configuration files to use new options
 docker-compose up -d
+
+# or with newer Docker versions
+
+docker compose down
+git pull
+docker compose pull
+# eventually edit your configuration files to use new options
+docker compose up -d
 ```
 
 
