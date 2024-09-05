@@ -5,7 +5,7 @@
 [![SWH](https://archive.softwareheritage.org/badge/swh:1:dir:fd7d09aedcef215682ea25b3f86e21e8dc6dfc09/)](https://archive.softwareheritage.org/swh:1:dir:fd7d09aedcef215682ea25b3f86e21e8dc6dfc09;origin=https://github.com/medialab/hyphe;visit=swh:1:snp:c56e38194ff07b8e86a63533fa3a45b2a8981b51;anchor=swh:1:rev:c4d97afb0ea7d3a43be76724cfd20738da28db24)
 
 
-Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web crawler developped at the [Sciences Po médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (ANR-10-EQPX-19-01)](http://www.sciencespo.fr/dime-shs/).
+Welcome to [Hyphe](http://hyphe.medialab.sciences-po.fr), a research-driven web crawler developed at the [Sciences Po médialab](http://www.medialab.sciences-po.fr/) for the [DIME-SHS Web project (ANR-10-EQPX-19-01)](http://www.sciencespo.fr/dime-shs/).
 
 Hyphe aims at providing a tool to build web corpus by crawling data from the web and generating networks between what we call "web entities", which can be single pages as well as a website, subdomains or parts of it, or even a combination of those.
 
@@ -101,14 +101,18 @@ You have two options: either collect, or build Hyphe's Docker containers.
 
   ```bash
   docker-compose pull
+  # or with newer Docker versions
+  docker compose pull
   ```
 
 + **Alternative: Build** your own images from the source code (mostly for development or if you intend to edit the code, and for some very specific configuration settings):
 
   ```bash
   docker-compose build
+  # or with newer Docker versions
+  docker compose build
   ```
-
+  
 Pulling should be faster, but it will still take a few minutes to download or build everything either way.
 
 
@@ -118,12 +122,16 @@ Finally, start Hyphe containers with the following command, which will run Hyphe
 
 ```bash
 docker-compose up
+# or with newer Docker versions
+docker compose up
 ```
 
 Or run the containers as a background daemon (for instance for production on a server):
 
 ```bash
 docker-compose up -d
+# or with newer Docker versions
+docker compose up -d
 ```
 
 Once the logs say "All tests passed. Ready!", you can access your Hyphe install at http://localhost:80/ (or `http://localhost:<PUBLIC_PORT>/` if you changed the port value in the `.env` configuration file).
@@ -131,18 +139,49 @@ Once the logs say "All tests passed. Ready!", you can access your Hyphe install 
 
 #### 6. Stop and monitor Hyphe
 
-To stop containers running in background, use `docker-compose stop` (or `docker-compose down` to also clean relying data).
+To stop containers running in background, use 
 
-You can inspect the logs of the various Docker containers using `docker-compose logs`, or with option `-f` to track latest entries like with `tail`.
+```bash
+docker-compose stop 
+# or with newer Docker versions
+docker compose stop
+```
+
+To also clean relying data, use
+
+```bash
+docker-compose down
+# or with newer Docker versions
+docker compose down
+```
+
+You can inspect the logs of the various Docker containers using 
+
+```bash
+docker-compose logs
+# or with newer Docker versions
+docker compose logs
+```
+
+or with option `-f` to track latest entries like with `tail`.
 
 Whenever you change any configuration file, restart the Docker container to take the changes into account:
 
 ```bash
 docker-compose stop
 docker-compose up -d
+# or with newer Docker versions
+docker compose stop
+docker compose up -d
 ```
 
-Run `docker-compose help` to get more explanations on any extra advanced use of Docker.
+To get more explanations on any extra advanced use of Docker, run
+
+```bash
+docker-compose help
+# or with newer Docker versions
+docker compose help
+```
 
 If you encounter issues with the Docker builds, please report an [issue](https://github.com/medialab/hyphe/issues) including the "Image ID" of the Docker images you used from the output of `docker images` or, if you installed from source, the last commit ID (read from `git log`).
 
@@ -159,6 +198,14 @@ git pull
 docker-compose pull
 # eventually edit your configuration files to use new options
 docker-compose up -d
+
+# or with newer Docker versions
+
+docker compose down
+git pull
+docker compose pull
+# eventually edit your configuration files to use new options
+docker compose up -d
 ```
 
 
