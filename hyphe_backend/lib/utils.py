@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os, re, types, time, json, hashlib
-from twisted.web.client import getPage as getPageOrig
+from twisted.web.client import Agent
 from twisted.internet.task import deferLater
 from twisted.internet import reactor
 from hyphe_backend.lib.config_hci import load_config, DEFAULT_CORPUS
@@ -16,7 +16,7 @@ def getPage(url, *args, **kwargs):
         url = str(url)
     except:
         pass
-    return getPageOrig(url, *args, **kwargs)
+    return Agent(reactor).request('GET', url, *args, **kwargs)
 
 class Enum(set):
     def __getattr__(self, name):
@@ -61,7 +61,7 @@ def format_success(res):
 
 def format_result(res, nolog=True):
     if not nolog and config['DEBUG'] and len(str(res)) < 1000:
-        print res
+        print(res)
     return format_success(res)
 
 def format_error(error):
@@ -108,7 +108,7 @@ def lightLogVar(v, l=500):
 
 
 def test_bool_arg(boolean):
-    return (isinstance(boolean, bool) and boolean) or (isinstance(boolean, unicode) and str(boolean).lower() == 'true') or (isinstance(boolean, int) and boolean != 0)
+    return (isinstance(boolean, bool) and boolean) or (isinstance(boolean, str) and str(boolean).lower() == 'true') or (isinstance(boolean, int) and boolean != 0)
 
 
 saltfile = os.path.join("config", "salt")

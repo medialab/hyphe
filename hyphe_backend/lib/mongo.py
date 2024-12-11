@@ -237,7 +237,7 @@ class MongoDB(object):
     def add_WEs(self, corpus, new_WEs):
         if not new_WEs:
             returnD(None)
-        yield self.WEs(corpus).insert_many([self.new_WE(weid, prefixes) for weid, prefixes in new_WEs.items()])
+        yield self.WEs(corpus).insert_many([self.new_WE(weid, prefixes) for weid, prefixes in list(new_WEs.items())])
 
     @inlineCallbacks
     def upsert_WE(self, corpus, weid, metas, update_timestamp=True):
@@ -344,7 +344,7 @@ class MongoDB(object):
     def update_jobs(self, corpus, specs, modifs, **kwargs):
         if type(specs) == list:
             specs = {"_id": {"$in": specs}}
-        elif type(specs) in [str, unicode, bytes]:
+        elif type(specs) in [str, bytes]:
             specs = {"_id": specs}
         update = {"$set": modifs}
         if "inc" in kwargs:
@@ -428,7 +428,7 @@ class MongoDB(object):
     def clean_queue(self, corpus, specs, **kwargs):
         if type(specs) == list:
             specs = {"_id": {"$in": [ObjectId(_i) for _i in specs]}}
-        elif type(specs) in [str, unicode, bytes]:
+        elif type(specs) in [str, bytes]:
             specs = {"_id": ObjectId(specs)}
         yield self.queue(corpus).delete_many(specs, **kwargs)
 

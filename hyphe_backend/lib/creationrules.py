@@ -6,7 +6,7 @@ from hyphe_backend.lib.urllru import split_lru_in_stems
 SCHEME = "s:[a-zA-Z]+\\|"
 PORT = "t:[0-9]+\\|"
 HOST = "h:[^\\|]+\\|"
-SPE_HOST = "h:(?:localhost|(?:\\d{1,3}\\.){3}\\d{1,3}|\[[\da-f]*:[\da-f:]*\])\\|"
+SPE_HOST = r"h:(?:localhost|(?:\\d{1,3}\\.){3}\\d{1,3}|\[[\da-f]*:[\da-f:]*\])\\|"
 PATH = "p:[^\\|]+\\|"
 ANY = "[thpqf]:[^\\|]+\\|"
 
@@ -31,7 +31,7 @@ re_regN = re.compile(r"\{(\d+)\}\)$")
 
 def getPreset(name, prefix=None):
     key = name.lower()
-    if key in PRESETS.keys():
+    if key in list(PRESETS.keys()):
         return PRESETS[key]
     prefixN = re_prefixN.match(key)
     if prefixN:
@@ -46,7 +46,7 @@ def getPreset(name, prefix=None):
     return name
 
 def getName(regexp, prefix=None):
-    for k, v in PRESETS.items():
+    for k, v in list(PRESETS.items()):
         if regexp == v:
             return k
     digit = re_regN.search(regexp)
@@ -67,8 +67,8 @@ def getName(regexp, prefix=None):
 
 def testPreset(name):
     """be a string among "domain", "subdomain", "subdomain-<N>", "path-<N>", "page", "prefix+<N>"."""
-    if type(name) not in [str, unicode, bytes]:
+    if type(name) not in [str, bytes]:
         return False
     key = name.lower()
-    return key in PRESETS.keys() or re_prefixN.match(key) or \
+    return key in list(PRESETS.keys()) or re_prefixN.match(key) or \
            re_subdomN.match(key) or re_pathN.match(key)

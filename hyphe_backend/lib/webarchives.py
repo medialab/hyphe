@@ -39,7 +39,7 @@ ARCHIVES_OPTIONS = {
 
 
 def validateOption(value):
-    return type(value) in [str, bytes, unicode] and value.lower() in [x.lower() for x in ARCHIVES_OPTIONS.keys()]
+    return type(value) in [str, bytes] and value.lower() in [x.lower() for x in list(ARCHIVES_OPTIONS.keys())]
 
 
 def validateOptions(values):

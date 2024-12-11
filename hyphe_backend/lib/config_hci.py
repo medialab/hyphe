@@ -22,10 +22,10 @@ def load_config():
         with open(CONFIG_FILE, 'r') as config_file:
             conf = json.load(config_file)
     except IOError as e:
-        print 'ERROR: Could not open %s file : ' % CONFIG_FILE, e
+        print('ERROR: Could not open %s file : ' % CONFIG_FILE, e)
         exit(1)
     except ValueError as e:
-        print 'ERROR: Config file is not valid JSON', e
+        print('ERROR: Config file is not valid JSON', e)
         exit(1)
 
 
@@ -58,7 +58,7 @@ def load_config():
     try:
         check_conf_sanity(conf, GLOBAL_CONF_SCHEMA)
     except Exception as e:
-        print e
+        print(e)
         exit(1)
 
   # Test MongoDB server
@@ -67,9 +67,9 @@ def load_config():
     try:
         test = list(db['%s.logs' % DEFAULT_CORPUS].find())
     except Exception as x:
-        print "ERROR: Cannot connect to mongoDB, please check your server and the configuration in %s" % CONFIG_FILE
+        print("ERROR: Cannot connect to mongoDB, please check your server and the configuration in %s" % CONFIG_FILE)
         if conf['DEBUG']:
-            print x
+            print(x)
         exit(1)
 
   # Turn on Twisted debugging
@@ -78,13 +78,13 @@ def load_config():
 
     return conf
 
-VALID_STARTPAGES_MODES = re.compile(r'(%s)$' % "|".join(['startpages', 'prefixes', 'pages-\d+', 'homepage']))
+VALID_STARTPAGES_MODES = re.compile(r'(%s)$' % "|".join(['startpages', 'prefixes', r'pages-\d+', 'homepage']))
 def validateStartpagesMode(modes):
     """be a string or an array of strings among "prefixes", "startpages" and "pages-<N>" where "<N>" is an int."""
-    if type(modes) in [str, unicode, bytes]:
+    if type(modes) in [str, bytes]:
         modes = [modes]
     for m in modes:
-        if type(m) not in [str, unicode, bytes]:
+        if type(m) not in [str, bytes]:
             return False
         m = m.lower()
         if not VALID_STARTPAGES_MODES.match(m):
@@ -207,7 +207,7 @@ def dict_accessor(access, dico):
     while path:
         curp = path.pop(0)
         if curp not in tmp:
-            raise(TypeError("Default path value missing from global config: %s" % access))
+            raise TypeError("Default path value missing from global config: %s" % access)
         tmp = deepcopy(tmp[curp])
     return tmp
 
@@ -219,7 +219,7 @@ def clean_missing_corpus_options(conf, globalconf):
             else:
                 conf[opt] = schema["default"]
         elif schema["type"] == dict:
-            for f in schema.get("int_fields", []) + schema.get("str_fields", []) + schema.get("extra_fields", {}).keys():
+            for f in schema.get("int_fields", []) + schema.get("str_fields", []) + list(schema.get("extra_fields", {}).keys()):
                 if f not in conf[opt]:
                     conf[opt][f] = dict_accessor(schema["default"][7:], globalconf)[f]
     return conf
@@ -228,30 +228,30 @@ def clean_missing_corpus_options(conf, globalconf):
 error_config = lambda x, ns, nm: Exception("ERROR in %s while reading %s:\n%s" % (nm, "field %s" % ns if ns else "", x))
 
 def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False, globalconf=None):
-    for ns, rules in schema.iteritems():
+    for ns, rules in schema.items():
         if ns not in conf:
             if soft:
                 continue
-            raise(error_config("field %s missing" % ns, "", name))
+            raise error_config("field %s missing" % ns, "", name)
         test_type(conf[ns], rules["type"], ns, name=name, extra_rules=rules, globalconf=globalconf)
         if rules["type"] == dict:
             for f in rules.get("int_fields", []):
                 if f not in conf[ns]:
                     if soft:
                         continue
-                    raise(error_config("int field %s missing" % f, ns, name))
+                    raise error_config("int field %s missing" % f, ns, name)
                 test_type(conf[ns][f], int, f, ns, name=name)
             for f in rules.get("str_fields", []):
                 if f not in conf[ns]:
                     if soft:
                         continue
-                    raise(error_config("string field %s missing" % f, ns, name))
+                    raise error_config("string field %s missing" % f, ns, name)
                 test_type(conf[ns][f], str, f, ns, name=name)
-            for f, otyp in rules.get("extra_fields", {}).iteritems():
+            for f, otyp in rules.get("extra_fields", {}).items():
                 if f not in conf[ns]:
                     if soft:
                         continue
-                    raise(error_config("%s field %s missing" % (otyp, f), ns, name))
+                    raise error_config("%s field %s missing" % (otyp, f), ns, name)
                 test_type(conf[ns][f], otyp, f, ns, name=name)
             if 'keys' in rules:
                 for k in conf[ns]:
@@ -263,41 +263,41 @@ def check_conf_sanity(conf, schema, name=CONFIG_FILE, soft=False, globalconf=Non
 def test_type(obj, otype, ns, ns2="", name=CONFIG_FILE, extra_rules=None, globalconf=None):
     if type(otype) == types.FunctionType:
         if not otype(obj):
-            raise(error_config("field %s should %s" % (ns, otype.__doc__), ns2, name))
+            raise error_config("field %s should %s" % (ns, otype.__doc__), ns2, name)
     elif type(otype) == list:
         if obj not in otype:
-            raise(error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2, name))
+            raise error_config("field %s should be one of %s" % (ns, ", ".join(otype)), ns2, name)
     elif otype == str or otype == "path":
-        if type(obj) not in [str, bytes, unicode]:
-            raise(error_config("field %s should be a string" % ns, ns2, name))
+        if type(obj) not in [bytes, str]:
+            raise error_config("field %s should be a string" % ns, ns2, name)
         if otype == "path":
             try:
                 test_and_make_dir(obj)
             except:
-                raise(error_config("field %s should be a writable directory path" % ns, ns2, name))
+                raise error_config("field %s should be a writable directory path" % ns, ns2, name)
     elif otype == "range":
         if not (type(obj) in (list, tuple) and len(obj) == 2 and type(obj[0]) == int and type(obj[1]) == int):
-            raise(error_config("field %s should be a list of two int values" % ns, ns2, name))
+            raise error_config("field %s should be a list of two int values" % ns, ns2, name)
     elif otype == float:
         if type(obj) not in [float, int]:
-            raise(error_config("field %s should a number" % ns, ns2, name))
+            raise error_config("field %s should a number" % ns, ns2, name)
     elif otype == int:
         if type(obj) != int:
-            raise(error_config("field %s should a number" % ns, ns2, name))
+            raise error_config("field %s should a number" % ns, ns2, name)
         if obj < 0:
-            raise(error_config("field %s should be positive" % ns, ns2, name))
+            raise error_config("field %s should be positive" % ns, ns2, name)
         if extra_rules and "max" in extra_rules:
             maxval = extra_rules["max"]
             if type(maxval) == str and maxval.startswith("global/"):
                 maxval = dict_accessor(maxval[7:], globalconf)
             if obj > maxval:
-                raise(error_config("field %s must be lower than %s" % (ns, maxval), ns2, name))
+                raise error_config("field %s must be lower than %s" % (ns, maxval), ns2, name)
     elif otype != bool and type(obj) != otype:
-        raise(error_config("field %s should be of type %s" % (ns, str(otype)), ns2, name))
+        raise error_config("field %s should be of type %s" % (ns, str(otype)), ns2, name)
     if otype == list:
         for e in obj:
-            if type(e) not in [str, bytes, unicode]:
-                raise(error_config("%s should be a list of strings" % ns, ns2, name))
+            if type(e) not in [bytes, str]:
+                raise error_config("%s should be a list of strings" % ns, ns2, name)
 
 def test_and_make_dir(path):
     try:

@@ -5,8 +5,8 @@
 URL/LRU library to manage, build and clean original URLs and corresponding LRUs
 """
 
-import re, urllib
-from urlparse import urljoin, urlparse
+import re, urllib.request, urllib.parse, urllib.error
+from urllib.parse import urljoin, urlparse
 from .tlds import get_tld_from_host_arr
 
 lruPattern = re.compile("^s:[^|]+(\|t:[^|]+)?(\|h:[^|]+)+")
@@ -20,15 +20,15 @@ special_hosts = re.compile(r'localhost|(\d{1,3}\.){3}\d{1,3}|\[[\da-f]*:[\da-f:]
 
 def uri_decode(text):
     try:
-        return urllib.unquote(text.encode('utf-8')).decode('utf-8')
+        return urllib.parse.unquote(text.encode('utf-8')).decode('utf-8')
     except:
-        return urllib.unquote(text)
+        return urllib.parse.unquote(text)
 
 def uri_encode(text, safechars=''):
     try:
-        return urllib.quote(text.encode('utf-8'), safechars).decode('utf-8')
+        return urllib.parse.quote(text.encode('utf-8'), safechars).decode('utf-8')
     except:
-        return urllib.quote(text, safechars)
+        return urllib.parse.quote(text, safechars)
 
 def uri_recode(text, safechars='', query=False):
     if query:
@@ -173,26 +173,26 @@ def lru_to_url(lru, encode_utf8=True, nocheck=False):
     for stem in lru_list:
         if stem[0] not in stem_types:
             stem_types.append(stem[0])
-    url = [x[1] for x in filter(lambda (k, stem): k == "s", lru_list)][0] + "://"
-    h = [x[1] for x in filter(lambda (k, stem): k == "h", lru_list)]
+    url = [x[1] for x in [k_stem4 for k_stem4 in lru_list if k_stem4[0] == "s"]][0] + "://"
+    h = [x[1] for x in [k_stem5 for k_stem5 in lru_list if k_stem5[0] == "h"]]
     h.reverse()
     url += ".".join(h)
     if "t" in stem_types:
-        port = [x[1] for x in filter(lambda (k, stem): k == "t", lru_list)][0]
+        port = [x[1] for x in [k_stem1 for k_stem1 in lru_list if k_stem1[0] == "t"]][0]
         if port and port != '80' and port != '443':
             url += ":" + port
     if "p" in stem_types:
-        path = "/".join([x[1] for x in filter(lambda (k, stem): k=="p", lru_list)])
+        path = "/".join([x[1] for x in [k_stem for k_stem in lru_list if k_stem[0]=="p"]])
         if path:
             url += "/" + uri_recode(path, '/+')
         if not path and ['p', ''] in lru_list:
             url += "/"
     if "q" in stem_types:
-        query = [x[1] for x in filter(lambda (k, stem): k == "q", lru_list)][0]
+        query = [x[1] for x in [k_stem2 for k_stem2 in lru_list if k_stem2[0] == "q"]][0]
         if query or ['q', ''] in lru_list:
             url += "?" + uri_recode_query(query)
     if "f" in stem_types:
-        fragment = [x[1] for x in filter(lambda (k, stem): k == "f", lru_list)][0]
+        fragment = [x[1] for x in [k_stem3 for k_stem3 in lru_list if k_stem3[0] == "f"]][0]
         if fragment or ['f', ''] in lru_list:
             url += "#" + uri_recode(fragment)
     if encode_utf8:
