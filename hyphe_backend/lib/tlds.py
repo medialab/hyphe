@@ -14,11 +14,10 @@ def add_tld_chunks_to_tree(tld, tree):
     if tld:
         add_tld_chunks_to_tree(tld, tree[chunk])
 
-@inlineCallbacks
-def collect_tlds():
+async def collect_tlds():
     tree = {}
     try:
-        tldlist = yield Agent(reactor).request('GET', MOZ_TLD_LIST)
+        tldlist = await Agent(reactor).request('GET', MOZ_TLD_LIST)
     except: #Fallback local copy
         from os.path import join, realpath, dirname
         with open(join(dirname(realpath(__file__)), "tld_list.txt")) as f:
@@ -27,9 +26,10 @@ def collect_tlds():
         line = line.strip()
         if not line or line.startswith("//"):
             continue
-        chunks = line.decode('utf-8').split('.')
+        print(line)
+        chunks = line.split('.')
         add_tld_chunks_to_tree(chunks, tree)
-    returnD(tree)
+    return(tree)
 
 def _get_tld_from_host_arr(host_arr, tldtree, tld=""):
     chunk = host_arr.pop()
@@ -60,11 +60,9 @@ def update_lru_with_tld(lru, tldtree):
     return lru.replace(tldlru, "h:%s|" % tld, 1)
 
 if __name__== "__main__":
+    @inlineCallbacks
     def test():
-        res = collect_tlds()
-        res.addCallback(process)
-    def process(res):
-        tldlist, tldtree = res
+        tldtree = yield collect_tlds()
         print("TLDs first level: %s\n" % len(list(tldtree.keys())))
         print("TEST extracting TLDs from hosts:")
         for url, tld in [
@@ -110,6 +108,4 @@ if __name__== "__main__":
                 return
 
         print("\nALL GOOD!")
-        reactor.stop()
     test()
-    reactor.run()

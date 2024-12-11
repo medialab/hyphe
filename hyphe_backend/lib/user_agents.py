@@ -8,6 +8,7 @@ import os
 import sys
 import random
 import requests
+import json
 
 class UserAgentsList(object):
 
@@ -23,10 +24,13 @@ class UserAgentsList(object):
 
     def download_latest(self):
         try:
-            json_list = requests.get("https://www.useragents.me/api").json()
+            useragent_text = requests.get("https://www.useragents.me").text
+            useragent_list = useragent_text.split('<textarea class="form-control" rows="8">')[1]
+            useragent_list = useragent_list.split('</textarea>')[0]
+            json_list = json.loads(useragent_list)
             self.list = [
                 ua["ua"]
-                for ua in json_list.get("data")
+                for ua in json_list
                 if not "Trident" in ua["ua"] or "MSIE " in ua["ua"]
             ]
         except Exception as e:

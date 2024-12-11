@@ -3,11 +3,11 @@ click
 pystache==0.5.4
 progressbar2
 service_identity
-urllib3>=1.26.9,<2
+urllib3==2.2.3
 hyphe-traph>=2.1.0,<3
 incremental==24.7.2
 msgpack==1.1.0
-requests==2.27.1
+requests==2.32.3
 Scrapy==1.6.0
 scrapyd-client==1.2.0a1
 selenium==2.42.1
