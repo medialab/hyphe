@@ -4,7 +4,7 @@
 from json import loads as loadjson
 from os import environ
 from random import randint
-from urllib import urlencode
+from urllib.parse import urlencode
 from twisted.python import log as logger
 from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
@@ -31,7 +31,7 @@ class JobsQueue(object):
         alljobs = yield DeferredList(dl, consumeErrors=True)
         for bl, res in alljobs:
             if not bl:
-                print "ERROR collecting old crawljobs for a corpus", res
+                print("ERROR collecting old crawljobs for a corpus", res)
             corpus, jobs = res
             for job in jobs:
                 self.queue[job["_id"]] = {
@@ -87,7 +87,7 @@ class JobsQueue(object):
         if action.startswith('list'):
             method = "GET"
             if arguments:
-                args = [str(k)+'='+str(v) for (k, v) in arguments.iteritems()]
+                args = [str(k)+'='+str(v) for (k, v) in arguments.items()]
                 url += '?' + '&'.join(args)
                 arguments = None
         elif arguments:

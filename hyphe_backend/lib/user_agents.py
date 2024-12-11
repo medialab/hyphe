@@ -30,22 +30,22 @@ class UserAgentsList(object):
                 if not "Trident" in ua["ua"] or "MSIE " in ua["ua"]
             ]
         except Exception as e:
-            print "WARNING: could not download latest UserAgents list from https://www.useragents.me ; will use a local cached list: %s - %s" % (type(e), e)
+            print("WARNING: could not download latest UserAgents list from https://www.useragents.me ; will use a local cached list: %s - %s" % (type(e), e))
 
     def read_cache(self):
         try:
             with open(self.cache) as f:
                 self.list = f.read().splitlines()
         except Exception as e:
-            print "ERROR: could not read cached list of user agents in file %s: %s - %s" % (self.cache, type(e), e)
+            print("ERROR: could not read cached list of user agents in file %s: %s - %s" % (self.cache, type(e), e))
 
     def write_cache(self):
         try:
             with open(self.cache, "w") as user_agents_file:
                 for user_agent in self.list:
-                    print >> user_agents_file, user_agent
+                    print(user_agent, file=user_agents_file)
         except Exception as e:
-            print "ERROR: could not write list of user agents in cache file %s: %s - %s" % (self.cache, type(e), e)
+            print("ERROR: could not write list of user agents in cache file %s: %s - %s" % (self.cache, type(e), e))
 
     def get_random(self):
         """Returns a random user agent not including IE or Trident ones"""
