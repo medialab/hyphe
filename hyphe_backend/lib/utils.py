@@ -25,7 +25,7 @@ class Accumulator(Protocol):
 
     def connectionLost(self, reason):
         if reason.check(ResponseDone):
-            self.finished.callback(self.data)
+            self.finished.callback(self.data.decode('utf-8'))
         else:
             self.finished.errback(reason)
 
@@ -49,7 +49,7 @@ def getPage(url, *args, method=b'GET', **kwargs):
         return finished
 
     d.addCallback(handleResponse)
-    return d.decode('utf-8')
+    return d
 
 class Enum(set):
     def __getattr__(self, name):
