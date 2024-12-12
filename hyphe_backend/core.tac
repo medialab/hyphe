@@ -1160,7 +1160,7 @@ class Crawler(customJSONRPC):
             returnD(format_result("Please start or create this corpus first"))
         # Write corpus TLDs for use in scrapyd egg
         with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
-            print >> tlds_file, "TLDS_TREE =", self.corpora[corpus].get("tlds", _tlds)
+            print("TLDS_TREE =", self.corpora[corpus].get("tlds", _tlds), file=tlds_file)
         output = subprocess.Popen([sys.executable, 'deploy.py', corpus], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='hyphe_backend/crawler', env=os.environ).communicate()[0]
         res = yield self.crawlqueue.send_scrapy_query("listprojects")
         if is_error(res) or "projects" not in res or corpus_project(corpus) not in res['projects']:
@@ -1400,11 +1400,11 @@ class Memory_Structure(customJSONRPC):
             res['pages_' + key] = links.get(WE['_id'], {}).get('pages_' + key, 0)
         res['homepage'] = WE["homepage"] if WE["homepage"] else homepage if homepage else None
         res['tags'] = {}
-        for tag, values in WE["tags"].iteritems():
+        for tag, values in WE["tags"].items():
             if test_bool_arg(semilight) and tag != 'USER':
                 continue
             res['tags'][tag] = {}
-            for key, val in values.iteritems():
+            for key, val in values.items():
                 res['tags'][tag][key] = list(val)
         if test_bool_arg(semilight):
             return res
@@ -1572,7 +1572,7 @@ class Memory_Structure(customJSONRPC):
         new = False
         if res["result"]["created_webentities"]:
             new = True
-            weid, prefixes = res["result"]["created_webentities"].items()[0]
+            weid, prefixes = next(res["result"]["created_webentities"].items())
             yield self.db.add_WE(corpus, weid, prefixes)
         res = yield self.return_new_webentity(lru, new, 'page', source_url=url, corpus=corpus)
         returnD(format_result(res))
@@ -1655,7 +1655,7 @@ class Memory_Structure(customJSONRPC):
         weid = yield self.traphs.call(corpus, "create_webentity", lru_prefixes)
         if is_error(weid):
             returnD(weid)
-        weid = weid["result"]["created_webentities"].keys()[0]
+        weid = next(weid["result"]["created_webentities"].keys())
         if not tags:
             tags = {}
         if tags:
@@ -2454,7 +2454,7 @@ class Memory_Structure(customJSONRPC):
             res["next_page"] = page + 1
         returnD(format_result(res))
 
-    format_field = lambda _,x: x.upper() if type(x) in [str, unicode] else x
+    format_field = lambda _,x: x.upper() if type(x) is str else x
     @inlineCallbacks
     def paginate_webentities(self, WEs, count, page, light=False, semilight=False, light_for_csv=False, sort=None, weights=None, corpus=DEFAULT_CORPUS):
         jobs = None
@@ -2528,12 +2528,12 @@ class Memory_Structure(customJSONRPC):
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
         query = {}
-        if type(allFieldsKeywords) is unicode:
+        if type(allFieldsKeywords) is str:
             allFieldsKeywords = [allFieldsKeywords]
         if not (type(allFieldsKeywords) is list and type(fieldKeywords) is list):
             returnD(format_error("ERROR: Both arguments must be lists."))
         for k in allFieldsKeywords:
-            if not (k and type(k) in [str, unicode]):
+            if not (k and type(k) is str):
                 returnD(format_error("ERROR: allFieldsKeywords must be a list of strings."))
             if _exactSearch:
                 if not "$text" in query:
@@ -2545,7 +2545,7 @@ class Memory_Structure(customJSONRPC):
                     query["$and"] = []
                 query["$and"].append({"$or": [{f: regexp} for f in ["name", "prefixes", "startpages", "homepage"]]})
         for kv in fieldKeywords:
-            if type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) in [str, unicode]:
+            if type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) is str and type(kv[1]) is str:
                 if "$and" not in query:
                     query["$and"] = []
                 exactSearch = _exactSearch or kv[0] == "status"
@@ -2556,7 +2556,7 @@ class Memory_Structure(customJSONRPC):
                     query["$and"].append({"$or": [{kv[0]: v if exactSearch else self.escape_regexp(v)} for v in kv[1].split(" ")]})
                 else:
                     query["$and"].append({kv[0]: kv[1] if exactSearch else self.escape_regexp(kv[1])})
-            elif type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) in [str, unicode] and type(kv[1]) is list and len(kv[1]) == 2 and type(kv[1][0]) in [int, float] and type(kv[1][1]) in [int, float]:
+            elif type(kv) is list and len(kv) == 2 and kv[0] and kv[1] and type(kv[0]) is str and type(kv[1]) is list and len(kv[1]) == 2 and type(kv[1][0]) in [int, float] and type(kv[1][1]) in [int, float]:
                 indegree_filter = kv[1]
             else:
                 returnD(format_error('ERROR: fieldKeywords must be a list of two-string-elements lists or ["indegree", [min_int, max_int]]. %s' % fieldKeywords))
@@ -2844,7 +2844,7 @@ class Memory_Structure(customJSONRPC):
         namespace = self._cleanupTagsKey(namespace)
         tags = self.corpora[corpus]['tags']
         if namespace:
-            if namespace not in tags.keys():
+            if namespace not in list(tags.keys()):
                 return format_result({})
             return format_result(tags[namespace])
         return format_result(tags)
@@ -2853,7 +2853,7 @@ class Memory_Structure(customJSONRPC):
         """Returns for a `corpus` a list of all existing namespaces of the webentities tags."""
         if not self.parent.corpus_ready(corpus):
             return self.parent.corpus_error(corpus)
-        return format_result(self.corpora[corpus]['tags'].keys())
+        return format_result(list(self.corpora[corpus]['tags'].keys()))
 
     def jsonrpc_get_tag_categories(self, namespace=None, corpus=DEFAULT_CORPUS):
         """Returns for a `corpus` a list of all existing categories of the webentities tags. Optionally limits to a specific `namespace`."""
@@ -2906,7 +2906,7 @@ class Memory_Structure(customJSONRPC):
 
         if include_metas:
             res['status'] = data['status']
-            res['crawl_timestamp'] = unicode(data['timestamp'])
+            res['crawl_timestamp'] = str(data['timestamp'])
             res['depth'] = data['depth']
             res['content_type'] = data.get('content_type')
             res['size'] = data['size']
@@ -2921,7 +2921,7 @@ class Memory_Structure(customJSONRPC):
                 if body_as_plain_text:
                     res['body'] = data['body'].decode('zip')
                 else:
-                    res['body'] = unicode(base64.b64encode(data['body']))
+                    res['body'] = str(base64.b64encode(data['body']))
             except:
                 logger.msg("Could not decode/encode zipped body of page %s from mongo: %s" % (res['url'], data['body']), system="WARNING - %s" % corpus)
                 res['body'] = ""
@@ -2938,7 +2938,7 @@ class Memory_Structure(customJSONRPC):
         if is_error(pages):
             return pages
 
-        return [self.format_page(page, linked=linked, data=index.get(unicode(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body, body_as_plain_text=body_as_plain_text) for page in pages]
+        return [self.format_page(page, linked=linked, data=index.get(str(page['lru'])) if index is not None else None, include_metas=include_metas, include_body=include_body, body_as_plain_text=body_as_plain_text) for page in pages]
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
@@ -3154,7 +3154,7 @@ class Memory_Structure(customJSONRPC):
             for target, sources in self.corpora[corpus]["webentities_links"].items():
                 if webentity_id in sources:
                     linked[target] = sources[webentity_id]
-        WEs = yield self.db.get_WEs(corpus, {"_id": {"$in": linked.keys()}})
+        WEs = yield self.db.get_WEs(corpus, {"_id": {"$in": list(linked.keys())}})
         res = yield self.paginate_webentities(WEs, count=count, page=page, sort=["-weight", "name"], light=light, semilight=semilight, weights=linked, corpus=corpus)
         returnD(res)
 
@@ -3321,7 +3321,7 @@ class Memory_Structure(customJSONRPC):
         res = yield self.jsonrpc_simulate_creationrules_for_lrus(pageLRU, corpus)
         if is_error(res):
             returnD(res)
-        returnD(format_result({url: res['result'].values()[0]}))
+        returnD(format_result({url: next(res['result'].values())}))
 
     @inlineCallbacks
     def jsonrpc_simulate_creationrules_for_lrus(self, pageLRUs, corpus=DEFAULT_CORPUS):
@@ -3378,8 +3378,8 @@ class Memory_Structure(customJSONRPC):
 try:
     core = Core()
 except Exception as x:
-    print "ERROR: Cannot start API, something should probably not have been pushed..."
-    print type(x), x
+    print("ERROR: Cannot start API, something should probably not have been pushed...")
+    print(type(x), x)
     exit(1)
 
 def test_start(cor, corpus):
