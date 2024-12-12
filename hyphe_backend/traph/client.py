@@ -261,7 +261,7 @@ class TraphProcessProtocol(ProcessProtocol):
 
     def childDataReceived(self, childFD, data):
         data = data.strip()
-        if childFD == 1 and data == "READY":
+        if childFD == 1 and data == b"READY":
             try:
                 self.connectClient()
             except ConnectError as e:
