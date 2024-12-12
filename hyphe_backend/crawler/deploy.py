@@ -5,7 +5,6 @@ import os, sys, time
 from inspect import getsourcefile
 import subprocess, json, pystache
 from shutil import copyfile
-from contextlib import nested
 
 def strToBool(string):
     if string in ["true", "True", "yes", "y", "1"]:
@@ -22,15 +21,15 @@ for arg in [a for a in sys.argv[1:] if a.strip()]:
 
 # Copy config.json from root to scrapy deployment dir
 if verbose:
-    print "Copying config.json from root directory to hyphe_backend/crawler for scrapy deployment..."
+    print("Copying config.json from root directory to hyphe_backend/crawler for scrapy deployment...")
 try:
     if not os.path.exists("config"):
         os.makedirs("config")
     copyfile("../../config/config.json", "config/config.json")
 except IOError as e:
-    print "Could not open either source or destination config.json file"
-    print "config.json", "crawler/config.json"
-    print e
+    print("Could not open either source or destination config.json file")
+    print("config.json", "crawler/config.json")
+    print(e)
     exit()
 
 from hyphe_backend.lib import config_hci
@@ -53,22 +52,22 @@ if corpus_conf:
     if "obey_robots" in corpus_conf:
         config["mongo-scrapy"]["obey_robots"] = corpus_conf["obey_robots"]
 else:
-    print "WARNING: trying to deploy a crawler for a corpus project missing in DB"
+    print("WARNING: trying to deploy a crawler for a corpus project missing in DB")
 # Copy Hyphe libraries from HCI lib/
-for f in ["urllru", "webarchives", "tlds"]:
-    if verbose:
-        print "Importing %s.py library from HCI hyphe_backend/lib to hcicrawler..." % f
-    try:
-        copyfile("../lib/%s.py" % f, "hcicrawler/%s.py" % f)
-    except IOError as e:
-        print "Could not open either source or destination %s.py file" % f
-        print "lib/%s.py", "crawler/hcicrawler/%s.py" % f
-        print e
-        exit()
+#for f in ["urllru", "webarchives", "tlds"]:
+#    if verbose:
+#        print("Importing %s.py library from HCI hyphe_backend/lib to hcicrawler..." % f)
+#    try:
+#        copyfile("../lib/%s.py" % f, "hcicrawler/%s.py" % f)
+#    except IOError as e:
+#        print("Could not open either source or destination %s.py file" % f)
+#        print("lib/%s.py", "crawler/hcicrawler/%s.py" % f)
+#        print(e)
+#        exit()
 
 # Render the settings py from template with mongo/scrapy config from config.json
 if verbose:
-    print "Rendering settings.py with mongo-scrapy config values from config.json..."
+    print("Rendering settings.py with mongo-scrapy config values from config.json...")
 try:
     curpath = os.path.abspath(getsourcefile(lambda _: None))
     config['mongo-scrapy']['hyphePath'] = os.path.sep.join(curpath.split(os.path.sep)[:-3])
@@ -80,42 +79,42 @@ try:
     config["mongo-scrapy"]["webarchives_password"] = os.environ.get('HYPHE_WEBARCHIVES_PASSWORD', config["webarchives"].get("password", ""))
     for _to in ["", "idle_", "ajax_"]:
         config['mongo-scrapy']['phantom_%stimeout' % _to] = config['phantom']['%stimeout' % _to]
-    with nested(open("hcicrawler/settings-template.py", "r"), open("hcicrawler/settings.py", "w")) as (template, generated):
+    with open("hcicrawler/settings-template.py", "r") as template, open("hcicrawler/settings.py", "w") as generated:
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:
-    print "Could not open either crawler/hcicrawler/settings-template.py file or crawler/hcicrawler/settings.py"
-    print e
+    print("Could not open either crawler/hcicrawler/settings-template.py file or crawler/hcicrawler/settings.py")
+    print(e)
     exit()
 
 # Render the scrapy cfg from template with scrapy config from config.json
 if verbose:
-    print "Rendering scrapy.cfg with scrapy config values from config.json..."
+    print("Rendering scrapy.cfg with scrapy config values from config.json...")
 try:
-    with nested(open("scrapy-template.cfg", "r"), open("scrapy.cfg", "w")) as (template, generated):
+    with open("scrapy-template.cfg", "r") as template, open("scrapy.cfg", "w") as generated:
         config["mongo-scrapy"]["host"] = os.environ.get('HYPHE_CRAWLER_HOST', config["mongo-scrapy"]["host"])
         generated.write(pystache.render(template.read(), config['mongo-scrapy']))
 except IOError as e:
-    print "Could not open either crawler/scrapy-template.cfg template file or crawler/scrapy.cfg"
-    print e
+    print("Could not open either crawler/scrapy-template.cfg template file or crawler/scrapy.cfg")
+    print(e)
     exit()
 
 # Deploy the egg
 if verbose:
-    print "Sending HCI's scrapy egg to scrapyd server..."
+    print("Sending HCI's scrapy egg to scrapyd server...")
 
 p = subprocess.Popen(['scrapyd-deploy', '--version', time.strftime('%Y%m%d-%H%M%S', time.gmtime(time.time()))], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 output, errors = p.communicate()
 try:
     output = json.loads(output)
     if output['status'] != "ok":
-        print "There was a problem sending the scrapy egg."
-        print output["message"].replace("\\n", "\n")
-        print errors
+        print("There was a problem sending the scrapy egg.")
+        print(output["message"].replace("\\n", "\n"))
+        print(errors)
         exit()
 except ValueError:
-    print "There was a problem sending the scrapy egg."
-    print output
-    print errors
+    print("There was a problem sending the scrapy egg.")
+    print(output)
+    print(errors)
     exit()
 if verbose:
-    print "The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port']
+    print("The egg was successfully sent to scrapyd server", config['mongo-scrapy']['host'], "on port", config['mongo-scrapy']['scrapy_port'])

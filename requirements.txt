@@ -1,6 +1,6 @@
 Automat==24.8.1
 click
-pystache==0.5.4
+pystache==0.6.6
 progressbar2
 service_identity
 urllib3==2.2.3
