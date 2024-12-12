@@ -375,7 +375,7 @@ class TraphClientProtocol(LineOnlyReceiver):
     def lineReceived(self, data):
         self.corpus.lastcall = time()
         try:
-            msg = msgpack.unpackb(data)
+            msg = msgpack.unpackb(data, strict_map_key=False)
             if config["DEBUG"]:
                 exec_time = time() - self.start_query
                 if exec_time > 1:
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     #reactor.callLater(1, factory.corpora[corpus].call, "TEST")
     #reactor.callLater(2, factory.corpora[corpus].call, "clear")
     reactor.callLater(1, factory.corpora[corpus].call, "count_links")
-    #reactor.callLater(3, factory.corpora[corpus].call, "add_page", "s:http|h:fr|h:scpo|p:bib|")
+    reactor.callLater(3, factory.corpora[corpus].call, "add_page", "s:http|h:fr|h:scpo|p:bib|p:éléphant|")
     reactor.callLater(1, factory.corpora[corpus].call, "get_webentities_inlinks_iter", include_auto=False)
     reactor.callLater(2, factory.corpora[corpus].call, "metrics")
     reactor.callLater(2, factory.corpora[corpus].call, "get_webentity_most_linked_pages", 1, [], 5)
