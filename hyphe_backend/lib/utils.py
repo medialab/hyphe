@@ -2,21 +2,54 @@
 # -*- coding: utf-8 -*-
 
 import os, re, types, time, json, hashlib
-from twisted.web.client import Agent
+from io import BytesIO
+from twisted.web.client import Agent, FileBodyProducer
+from twisted.web._newclient import ResponseDone
 from twisted.internet.task import deferLater
 from twisted.internet import reactor
+from twisted.internet.defer import Deferred
+from twisted.internet.protocol import Protocol
 from hyphe_backend.lib.config_hci import load_config, DEFAULT_CORPUS
 config = load_config()
 if not config:
     exit()
 
+
+class Accumulator(Protocol):
+    def __init__(self, finished):
+        self.finished = finished
+        self.data = b''
+
+    def dataReceived(self, val):
+        self.data += val
+
+    def connectionLost(self, reason):
+        if reason.check(ResponseDone):
+            self.finished.callback(self.data)
+        else:
+            self.finished.errback(reason)
+
 # Handle Twisted 16+ now refusing unicode urls
-def getPage(url, *args, **kwargs):
+def getPage(url, *args, method=b'GET', **kwargs):
     try:
-        url = str(url)
+        url = url.encode()
     except:
         pass
-    return Agent(reactor).request('GET', url, *args, **kwargs)
+    body = kwargs.pop('postdata') if 'postdata' in kwargs else None
+    if body:
+        kwargs['bodyProducer'] =  FileBodyProducer(BytesIO(body.encode()))
+    timeout = None
+    if 'timeout' in kwargs:
+        timeout = kwargs.pop('timeout')
+    d = Agent(reactor, connectTimeout=timeout).request(method, url, *args, **kwargs)
+
+    def handleResponse(response):
+        finished = Deferred()
+        response.deliverBody(Accumulator(finished))
+        return finished
+
+    d.addCallback(handleResponse)
+    return d.decode('utf-8')
 
 class Enum(set):
     def __getattr__(self, name):

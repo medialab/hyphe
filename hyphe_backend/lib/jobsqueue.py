@@ -82,10 +82,10 @@ class JobsQueue(object):
     @inlineCallbacks
     def send_scrapy_query(self, action, arguments=None):
         url = "%s%s.json" % (self.scrapyd, action)
-        method = "POST"
+        method = b"POST"
         headers = None
         if action.startswith('list'):
-            method = "GET"
+            method = b"GET"
             if arguments:
                 args = [str(k)+'='+str(v) for (k, v) in arguments.items()]
                 url += '?' + '&'.join(args)
