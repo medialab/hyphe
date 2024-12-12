@@ -64,7 +64,7 @@ grep 'def jsonrpc_\|accessible jsonrpc\|^        """\|^  #' hyphe_backend/core.t
  sed 's/\\n\s*/\n /g'                                                       |
  grep -v '^  + _`$'                                                         |
  sed 's/\([^\\]\), /\1\n  + _`/g'                                           |
- sed 's/\\,/,/g'                                                            |
+ sed 's/\\\+,/,/g'                                                            |
  sed 's/^  + \(_`[a-z_]\+_*\)$/  + \1`_ (mandatory)/i'                      |
  sed 's/=\("*.*"*\)$/`_ (optional, default: `\1`)/'                         |
  grep -v '^  + _`_'                                                         |

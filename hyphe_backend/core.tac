@@ -13,8 +13,6 @@ from random import randint
 from datetime import datetime
 from collections import defaultdict
 
-from warnings import filterwarnings
-filterwarnings(action='ignore', message="Python 2 is no longer supported by the Python core team")
 import logging
 logging.basicConfig()
 
@@ -28,8 +26,7 @@ from twisted.internet.task import LoopingCall
 from twisted.internet.defer import DeferredList, inlineCallbacks, returnValue as returnD
 from twisted.internet.error import DNSLookupError, ConnectionRefusedError
 from twisted.web.http_headers import Headers
-from twisted.web.client import Agent, ProxyAgent, HTTPClientFactory, _HTTP11ClientFactory
-HTTPClientFactory.noisy = False
+from twisted.web.client import Agent, ProxyAgent, _HTTP11ClientFactory
 _HTTP11ClientFactory.noisy = False
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from hyphe_backend.traph.client import TraphFactory
@@ -603,7 +600,7 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_destroy_corpus(self, corpus=DEFAULT_CORPUS, _quiet=False):
-        """Backups\, resets\, then definitely deletes a `corpus` and anything associated with it."""
+        """Backups\\, resets\\, then definitely deletes a `corpus` and anything associated with it."""
         if corpus in self.destroying:
             returnD(format_result("Corpus already being destroyed, patience..."))
         self.destroying[corpus] = True
@@ -923,7 +920,7 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_propose_webentity_startpages(self, webentity_id, startmode="default", categories=False, save_startpages=False, corpus=DEFAULT_CORPUS):
-        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages"\, "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to True. Will save them into the webentity if `save_startpages` is True."""
+        """Returns a list of suggested startpages to crawl an existing WebEntity defined by its `webentity_id` using the "default" `startmode` defined for the `corpus` or one or an array of either the WebEntity's preset "startpages"\\, "homepage" or "prefixes" or <N> most seen "pages-<N>". Returns them categorised by type of source if "categories" is set to True. Will save them into the webentity if `save_startpages` is True."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         WE = yield self.db.get_WE(corpus, webentity_id)
@@ -934,7 +931,7 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_crawl_webentity(self, webentity_id, depth=0, phantom_crawl=False, status="IN", proxy=None, cookies_string=None, user_agent=None, phantom_timeouts={}, webarchives={}, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\, see details in `propose_webentity_startpages`)."""
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr".\nWill use the WebEntity's startpages if it has any or use otherwise the `corpus`' "default" `startmode` heuristic as defined in `propose_webentity_startpages` (use `crawl_webentity_with_startmode` to apply a different heuristic\\, see details in `propose_webentity_startpages`)."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
         try:
@@ -954,7 +951,7 @@ class Core(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_crawl_webentity_with_startmode(self, webentity_id, depth=0, phantom_crawl=False, status="IN", startmode="default", proxy=None, cookies_string=None, user_agent=None, phantom_timeouts={}, webarchives={}, save_startpages=False, corpus=DEFAULT_CORPUS):
-        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
+        """Schedules a crawl for a `corpus` for an existing WebEntity defined by its `webentity_id` with a specific crawl `depth [int]`.\nOptionally use PhantomJS by setting `phantom_crawl` to "true" and adjust specific `phantom_timeouts` as a json object with possible keys `timeout`/`ajax_timeout`/`idle_timeout`.\nSets simultaneously the WebEntity's status to "IN" or optionally to another valid `status` ("undecided"/"out"/"discovered").\nOptionally add a HTTP `proxy` specified as "domain_or_IP:port".\nAlso optionally add known `cookies_string` with auth rights to a protected website and/or specific `user_agent`.\nOptionally define the `startmode` strategy differently to the `corpus` "default one (see details in `propose_webentity_startpages`).\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.corpus_ready(corpus):
             returnD(self.corpus_error(corpus))
 
@@ -1224,7 +1221,7 @@ class Crawler(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_start(self, webentity_id, starts, follow_prefixes, nofollow_prefixes, follow_redirects=None, depth=0, phantom_crawl=False, phantom_timeouts={}, download_delay=config['mongo-scrapy']['download_delay'], proxy=None, cookies_string=None, user_agent=None, webarchives={}, corpus=DEFAULT_CORPUS, _autostarts=[]):
-        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- an HTTP `proxy` specified as "domain_or_IP:port"\n- a known `cookies_string` with auth rights to a protected website\n- a specific `user_agent`.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
+        """Starts a crawl for a `corpus` defining finely the crawl options (mainly for debug purposes):\n- a `webentity_id` associated with the crawl a list of `starts` urls to start from\n- a list of `follow_prefixes` to know which links to follow\n- a list of `nofollow_prefixes` to know which links to avoid\n- a `depth` corresponding to the maximum number of clicks done from the start pages\n- `phantom_crawl` set to "true" to use PhantomJS for this crawl and optional `phantom_timeouts` as an object with keys among `timeout`/`ajax_timeout`/`idle_timeout`\n- a `download_delay` corresponding to the time in seconds spent between two requests by the crawler.\n- an HTTP `proxy` specified as "domain_or_IP:port"\n- a known `cookies_string` with auth rights to a protected website\n- a specific `user_agent`.\nOptionally use some `webarchives` by defining a json object with keys `date`/`days_range`/`option`\\, the latter being one of ""/"web.archive.org"/"archivesinternet.bnf.fr"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if not phantom_crawl and urls_match_domainlist(starts, self.corpora[corpus]["options"]['phantom']['whitelist_domains']):
@@ -1800,7 +1797,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_basic_edit_webentity(self, webentity_id, name=None, status=None, homepage=None, corpus=DEFAULT_CORPUS):
-        """Changes for a `corpus` at once the `name`\, `status` and `homepage` of a WebEntity defined by `webentity_id`."""
+        """Changes for a `corpus` at once the `name`\\, `status` and `homepage` of a WebEntity defined by `webentity_id`."""
         res = {}
         WE = None
         if name:
@@ -2495,7 +2492,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentities(self, list_ids=[], sort=None, count=100, page=0, light=False, semilight=False, light_for_csv=False, corpus=DEFAULT_CORPUS, _weights=None):
-        """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids`.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` is -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include\:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\, "name"]` will order by maximum indegree first then by alphabetic order of names;\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
+        """Returns for a `corpus` all existing WebEntities or only the WebEntities whose id is among `list_ids`.\nResults will be paginated with a total number of returned results of `count` and `page` the number of the desired page of results. Returns all results at once if `list_ids` is provided or `count` is -1 ; otherwise results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\nOther possible options include\:\n- order the results with `sort` by inputting a field or list of fields as named in the WebEntities returned objects; optionally prefix a sort field with a "-" to revert the sorting on it; for instance: `["-indegree"\\, "name"]` will order by maximum indegree first then by alphabetic order of names;\n- set `light` or `semilight` or `light_for_csv` to "true" to collect lighter data with less WebEntities fields."""
         page, count = self._checkPageCount(page, count)
         if page is None:
             returnD(format_error("page and count arguments must be integers"))
@@ -2520,7 +2517,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_search_webentities(self, allFieldsKeywords=[], fieldKeywords=[], sort=None, count=100, page=0, light=False, semilight=True, corpus=DEFAULT_CORPUS, _exactSearch=False):
-        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page\, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\, "lru prefixes"\, "startpages" & "homepage"). For instance `["hyphe"\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (notes: this does not work with undirected_degree and outdegree ; only exact values will be matched when querying on field status field). For instance: `[["name"\, "hyphe"]\, ["indegree"\, [3\, 1000]]]`\n- see description of `sort`\, `light` and `semilight` in `get_webentities` above."""
+        """Returns for a `corpus` all WebEntities matching a specific search using the `allFieldsKeywords` and `fieldKeywords` arguments.\nReturns all results at once if `count` == -1 ; otherwise results will be paginated with `count` results per page\\, using `page` as index of the desired page. Results will include metadata on the request including the total number of results and a `token` to be reused to collect the other pages via `get_webentities_page`.\n- `allFieldsKeywords` should be a string or list of strings to search in all textual fields of the WebEntities ("name"\\, "lru prefixes"\\, "startpages" & "homepage"). For instance `["hyphe"\\, "www"]`\n- `fieldKeywords` should be a list of 2-elements arrays giving first the field to search into then the searched value or optionally for the field "indegree" an array of a minimum and maximum values to search into (notes: this does not work with undirected_degree and outdegree ; only exact values will be matched when querying on field status field). For instance: `[["name"\\, "hyphe"]\\, ["indegree"\\, [3\\, 1000]]]`\n- see description of `sort`\\, `light` and `semilight` in `get_webentities` above."""
         indegree_filter = False
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
@@ -2690,7 +2687,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentities_page(self, pagination_token, n_page, idNamesOnly=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`. Returns only an array of [id\, name] arrays if `idNamesOnly` is true."""
+        """Returns for a `corpus` the page number `n_page` of WebEntities corresponding to the results of a previous query ran using any of the `get_webentities` or `search_webentities` methods using the returned `pagination_token`. Returns only an array of [id\\, name] arrays if `idNamesOnly` is true."""
         try:
             page = int(n_page)
         except:
@@ -2942,7 +2939,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pages(self, webentity_id, onlyCrawled=True, corpus=DEFAULT_CORPUS):
-        """Warning: this method can be very slow on webentities with many pages\, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
+        """Warning: this method can be very slow on webentities with many pages\\, privilege paginate_webentity_pages whenever possible. Returns for a `corpus` all indexed Pages fitting within the WebEntity defined by `webentity_id`. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         onlyCrawled = test_bool_arg(onlyCrawled)
@@ -2969,7 +2966,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_paginate_webentity_pages(self, webentity_id, count=5000, pagination_token=None, onlyCrawled=False, include_page_metas=False, include_page_body=False, body_as_plain_text=False, corpus=DEFAULT_CORPUS):
-        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\, body size\, content_type\, encoding\, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true"); setting body_as_plain_text to "true" decodes and unzip these to return them as plain text."""
+        """Returns for a `corpus` `count` indexed Pages alphabetically ordered fitting within the WebEntity defined by `webentity_id` and returns a `pagination_token` to reuse to collect the following pages. Optionally limits the results to Pages which were actually crawled setting `onlyCrawled` to "true". Also optionally returns complete page metadata (http status\\, body size\\, content_type\\, encoding\\, crawl timestamp\ and crawl depth) when `include_page_metas` is set to "true". Additionally returns the page's zipped body encoded in base64 when `include_page_body` is "true" (only possible when Hyphe is configured with `store_crawled_html_content` to "true"); setting body_as_plain_text to "true" decodes and unzip these to return them as plain text."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         if include_page_body and not config["mongo-scrapy"]["store_crawled_html_content"]:
@@ -3083,7 +3080,7 @@ class Memory_Structure(customJSONRPC):
 
     @inlineCallbacks
     def jsonrpc_get_webentity_pagelinks_network(self, webentity_id=None, include_external_links=False, corpus=DEFAULT_CORPUS):
-        """Warning: this method can be very slow on webentities with many pages or links\, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true". Will not return much of anything if the corpus was configured with `ignore_internal_links` set to "true"."""
+        """Warning: this method can be very slow on webentities with many pages or links\\, privilege paginate_webentity_pagelinks_network whenever possible. Returns for a `corpus` the list of all internal NodeLinks of a WebEntity defined by `webentity_id`. Optionally add external NodeLinks (the frontier) by setting `include_external_links` to "true". Will not return much of anything if the corpus was configured with `ignore_internal_links` set to "true"."""
         if not self.parent.corpus_ready(corpus):
             returnD(self.parent.corpus_error(corpus))
         s = time.time()
