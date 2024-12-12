@@ -4,7 +4,7 @@ pystache==0.5.4
 progressbar2
 service_identity
 urllib3==2.2.3
-hyphe-traph>=2.1.0,<3
+hyphe-traph>=3,<4
 incremental==24.7.2
 msgpack==1.1.0
 requests==2.32.3

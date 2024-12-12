@@ -113,14 +113,14 @@ class TraphProtocol(LineOnlyReceiver):
         return self.returnResult(res, query["method"])
 
     def lineLengthExceeded(self, line):
-        print >> sys.stderr, "WARNING line length exceeded server side %s (max %s)" % (len(line), self.MAX_LENGTH)
+        print("WARNING line length exceeded server side %s (max %s)" % (len(line), self.MAX_LENGTH), file=sys.stderr)
 
 
 class TraphServerFactory(Factory):
 
-    default_WECR = '(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|(h:[^\\|]+\\|)|h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\])\\|))'
+    default_WECR = b'(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|(h:[^\\|]+\\|)|h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\])\\|))'
     WECRs = {
-      's:http|h:com|h:world|': '(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|(h:[^\\|]+\\|)+|h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\])\\|)(p:[^\\|]+\\|){1})'
+      's:http|h:com|h:world|': b'(s:[a-zA-Z]+\\|(t:[0-9]+\\|)?(h:[^\\|]+\\|(h:[^\\|]+\\|)+|h:(localhost|(\\d{1,3}\\.){3}\\d{1,3}|\\[[\\da-f]*:[\\da-f:]*\\])\\|)(p:[^\\|]+\\|){1})'
     }
 
     def __init__(self, corpus, traph_dir="traph-data", default_WECR=None, WECRs=None):
@@ -136,7 +136,7 @@ class TraphServerFactory(Factory):
 
     def ready(self):
         # stdin message received by childprocess to know when traph is ready
-        print "READY"
+        print("READY")
 
     def buildProtocol(self, addr):
         return TraphProtocol(self.traph)
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
     @server_listening_deferred.addErrback
     def server_listening_failed(failure):
-        print failure.value
+        print(failure.value)
         reactor.stop()
 
     @server_listening_deferred.addCallback
