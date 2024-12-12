@@ -1156,7 +1156,7 @@ class Crawler(customJSONRPC):
         if corpus not in self.corpora:
             returnD(format_result("Please start or create this corpus first"))
         # Write corpus TLDs for use in scrapyd egg
-        with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "wb") as tlds_file:
+        with open(os.path.join("hyphe_backend", "crawler", "hcicrawler", "tlds_tree.py"), "w") as tlds_file:
             print("TLDS_TREE =", self.corpora[corpus].get("tlds", _tlds), file=tlds_file)
         output = subprocess.Popen([sys.executable, 'deploy.py', corpus], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='hyphe_backend/crawler', env=os.environ).communicate()[0]
         res = yield self.crawlqueue.send_scrapy_query("listprojects")

@@ -269,7 +269,7 @@ class TraphProcessProtocol(ProcessProtocol):
                 self.stop()
                 self.corpus.checkAndRemovePID()
         else:
-            self.corpus.log('Traph process received "%s"' % data, childFD == 2 and "RuntimeWarning" not in data and "DeprecationWarning" not in data)
+            self.corpus.log(b'Traph process received "%s"' % data, childFD == 2 and b"RuntimeWarning" not in data and b"DeprecationWarning" not in data)
 
     def childConnectionLost(self, childFD):
         pass
