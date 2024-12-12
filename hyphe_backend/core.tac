@@ -1771,11 +1771,11 @@ class Memory_Structure(customJSONRPC):
             func = getattr(self, "jsonrpc_%s" % command)
         except Exception as e:
             returnD(format_error("ERROR: %s is not a valid store command" % command))
-        async = True
-        if "async" in kwargs:
-            async = test_bool_arg(kwargs.pop("async"))
+        asyncr = True
+        if "asyncr" in kwargs:
+            asyncr = test_bool_arg(kwargs.pop("asyncr"))
         kwargs["corpus"] = corpus
-        if async:
+        if asyncr:
             results = yield DeferredList([func(webentity_id, *args, **kwargs) for webentity_id in webentity_ids], consumeErrors=True)
         else:
             results = []
@@ -2106,7 +2106,7 @@ class Memory_Structure(customJSONRPC):
 
     def jsonrpc_merge_webentities_into_another(self, old_webentity_ids, good_webentity_id, include_tags=False, include_home_and_startpages_as_startpages=False, corpus=DEFAULT_CORPUS):
         """Assembles for a `corpus` a bunch of WebEntities by deleting WebEntities defined by a list of `old_webentity_ids` and adding all of their LRU prefixes to the one defined by `good_webentity_id`. Optionally set `include_tags` and/or `include_home_and_startpages_as_startpages` to "true" to also add the tags and/or startpages to the merged resulting WebEntity."""
-        return self.batch_webentities_edit("merge_webentity_into_another", old_webentity_ids, corpus, good_webentity_id, include_tags=include_tags, include_home_and_startpages_as_startpages=include_home_and_startpages_as_startpages, async=False)
+        return self.batch_webentities_edit("merge_webentity_into_another", old_webentity_ids, corpus, good_webentity_id, include_tags=include_tags, include_home_and_startpages_as_startpages=include_home_and_startpages_as_startpages, asyncr=False)
 
     @inlineCallbacks
     def jsonrpc_delete_webentity(self, webentity_id, corpus=DEFAULT_CORPUS):

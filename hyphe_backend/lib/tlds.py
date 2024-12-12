@@ -26,7 +26,6 @@ async def collect_tlds():
         line = line.strip()
         if not line or line.startswith("//"):
             continue
-        print(line)
         chunks = line.split('.')
         add_tld_chunks_to_tree(chunks, tree)
     return(tree)
