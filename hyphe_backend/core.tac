@@ -18,6 +18,7 @@ logging.basicConfig()
 
 from twisted.python import log as logger
 from twisted.python.logfile import LogFile
+from twisted.python.failure import Failure
 from twisted.internet import reactor
 from twisted.web import server
 from twisted.application.internet import TCPServer
@@ -3401,7 +3402,7 @@ def test_destroyed(res, cor, corpus):
     stop_tests(None, cor, corpus)
 @inlineCallbacks
 def stop_tests(res, cor, corpus, msg=None):
-    if is_error(res) or str(type(res)) == "<type 'instance'>":
+    if is_error(res) or str(type(res)) == "<type 'instance'>" or type(res) == Failure:
         if msg:
             logger.msg("%s: %s" % (corpus, msg), system="ERROR - tests")
         if type(res) == dict:
