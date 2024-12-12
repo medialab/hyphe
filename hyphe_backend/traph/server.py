@@ -2,8 +2,6 @@ import os, sys, json, msgpack
 from time import time
 from types import GeneratorType
 from traph import Traph, TraphException, TraphWriteReport, TraphIteratorState
-from warnings import filterwarnings
-filterwarnings(action='ignore', message="Python 2 is no longer supported by the Python core team")
 from twisted.internet import reactor
 from twisted.internet.protocol import Factory
 from twisted.internet.endpoints import UNIXServerEndpoint
