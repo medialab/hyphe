@@ -7,7 +7,7 @@ __Notes:__
 
 The following installation instructions have been tested under Ubuntu 16.04.3 LTS. It should be possible to adapt these commands to older or more recent Ubuntu versions and diverse Debian and CentOS distributions (using `yum` instead of `apt` where necessary and so on).
 
-[MongoDB Community Edition (v3)](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
+[MongoDB Community Edition (v3.6, the last free software version)](http://www.mongodb.org/) (a NoSQL database server), [ScrapyD](http://scrapyd.readthedocs.org/en/latest/) (a crawler framework server) and Python 2.7 are required for the backend to work.
 
 
 ## 0) Get global requirements
@@ -16,7 +16,7 @@ First, install possible missing required basics using apt/aptitude:
 
 ```bash
 sudo apt-get update
-sudo apt-get install git curl apache2 build-essential gcc musl-dev python2.7-dev python-pip libxml2-dev libxslt1-dev openssl libssl-dev libffi-dev
+sudo apt-get install git curl build-essential gcc musl-dev libxml2-dev libxslt1-dev openssl libssl-dev libffi-dev
 ```
 
 Or, with yum under CentOS/RedHat like distributions, the packages names can be slightly different and some extra commands might be required:
@@ -42,85 +42,47 @@ cd hyphe
 ```
 
 
-## 2) Install [MongoDB v3](http://www.mongodb.org/)
+## 2) Install [MongoDB v3.6](http://www.mongodb.org/)
 
-As they are usually very old, we recommend not to use the MongoDB packages shipped within distributions official repositories.
-
-Rather follow official installation instructions: [https://docs.mongodb.com/v3.6/](https://docs.mongodb.com/v3.6/). Search the link for "MongoDB Community Edition" for your distribution, look for the documentation for version 3, and follow the instructions.
-
-For instance for Ubuntu 18.04:
+Hyphe relies on the latest open source version of MongoDB community edition, which needs now to be installed using Docker:
 
 ```bash
-wget -qO - https://www.mongodb.org/static/pgp/server-3.6.asc | sudo apt-key add -
-echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-sudo service mongod restart
+docker pull mongo:3.6
 ```
 
-In order to avoid very rare issues with crazy long urls found by the crawler on the web, the following setting should be set onto mongo globally:
+Then when developing, you'll need to run your MongoDB Docker image in a dedicated terminal with the following command:
 
 ```bash
-mongo --eval "db.getSiblingDB('admin').runCommand( { setParameter: 1, failIndexKeyTooLong: false } )"
+docker run --rm -p 27017:27017 -v mongo-data:/data/db --name mongo-hyphe mongo:3.6 mongod --smallfiles --bind_ip 0.0.0.0 --setParameter failIndexKeyTooLong=false
 ```
 
-For development and administrative use, you can also optionally install one of the following projects to easily access and manage MongoDB's databases:
-- [RockMongo](http://rockmongo.com/wiki/installation?lang=en_us): a PHP web admin interface
+For development and administrative use, you can also optionally install the following project to easily access and manage MongoDB's databases:
 - [RoboMongo](http://robomongo.org/): a shell-centric GUI
+
+
+
+## TODO : Install pyenv
+
 
 
 ## 3) Install [ScrapyD](http://scrapyd.readthedocs.org/en/latest/)
 
-Unfortunately, ScrapingHub does not provide anymore official repository packages for ScrapyD so it needs to be installed manually (cf [https://github.com/scrapy/scrapyd/issues/258](https://github.com/scrapy/scrapyd/issues/258)).
-
-- Start by installing Scrapy and ScrapyD via pip (fixed versions are required for compatibility with Hyphe):
+Hyphe uses an old version of ScrapyD which is not packaged so we will install it locally in a dedicated pyenv environment.
 
 ```bash
-sudo pip install Scrapy==1.6.0
-sudo pip install scrapyd==1.2.0
+mkdir scrapyd
+pyenv install 2.7.18
+pyenv virtualenv 2.7.18 scrapyd
+pyenv local scrapyd
+pip install -r hyphe_backend/crawler/requirements-scrapyd.txt
+ln -s ../hyphe_backend/crawler/scrapyd.config scrapyd.conf
 ```
 
-- Install Hyphe's config for ScrapyD:
+Then when developing, you'll need to run your ScrapyD instance in a dedicated terminal as well with the following commands:
 
-```bash
-sudo mkdir -p /etc/scrapyd
-sudo ln -s `pwd`/hyphe_backend/crawler/scrapyd.config /etc/scrapyd/scrapyd.conf
 ```
-
-- Create a `scrapy` user to run the service:
-
-```bash
-sudo adduser --system --home /var/lib/scrapyd --gecos "scrapy" --no-create-home --disabled-password --quiet scrapy
-```
-
-- Create ScrapyD's directories (adapt these to the directories defined in scrapyd.config if you changed them) and setup their rights for the `scrapy` user:
-
-```bash
-sudo mkdir -p /var/log/scrapyd
-sudo mkdir -p /var/lib/scrapyd/eggs
-sudo mkdir -p /var/lib/scrapyd/dbs
-sudo mkdir -p /var/lib/scrapyd/items
-sudo chown scrapy:nogroup /var/log/scrapyd /var/lib/scrapyd /var/lib/scrapyd/eggs /var/lib/scrapyd/dbs /var/lib/scrapyd/items
-```
-
-- Install globally the python dependencies required by Hyphe's Scrapy spider so that ScrapyD can use them:
-
-```bash
-cat hyphe_backend/crawler/requirements-scrapyd.txt | sudo xargs -n 1 -L 1 pip install
-```
-
-- Start ScrapyD manually:
-
-__Disclaimer:__ The following method is ugly. ScrapyD should ideally rather be installed as a SystemD service (or, depending on your distribution, SysVinit or Upstart) which would be way better. You're very welcome to propose a proper reproducible alternative if you manage to make it work! :) (hints [here](http://scrapy-docs.yawik.org/build/html/install/scrapy.html) and [there](https://github.com/scrapy/scrapyd/issues/217) and from [Twisted's doc](http://twistedmatrix.com/documents/current/core/howto/systemd.html))
-
-```bash
-sudo nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
-```
-
-And if you want it to always start when your machine boots, you can (again, very ugly instead of a service) set it as a `@reboot` cronjob by running `sudo crontab -e` and add the following line within:
-
-```cronjob
-@reboot         nohup scrapyd -u scrapy -g --pidfile /var/run/scrapyd.pid -l /var/log/scrapyd/scrapyd.log &
+cd scrapyd
+scrapyd
 ```
 
 You can test whether ScrapyD is properly installed and running by querying [http://localhost:6800/listprojects.json](http://localhost:6800/listprojects.json). If everything is normal, you should see something like this:
@@ -132,22 +94,15 @@ You can test whether ScrapyD is properly installed and running by querying [http
 
 ## 4) Setup Hyphe's backend Python virtual environment
 
-We recommend using virtualenv with virtualenvwrapper:
+We recommend using pyenv:
 
 ```bash
-# Install VirtualEnv & Wrapper
-sudo pip install virtualenv
-sudo pip install virtualenvwrapper
-source virtualenvwrapper.sh
-
-# Create Hyphe's VirtualEnv & install dependencies
-mkvirtualenv hyphe-traph
-add2virtualenv $(pwd)
+# Install VirtualEnv
+pyenv virtualenv 2.7.18 hyphe
+pyenv local hyphe
 cat requirements.txt | xargs -n 1 -L 1 pip install
-deactivate
+pwd > ~/.pyenv/versions/hyphe/lib/python2.7/site-packages/hyphe.pth
 ```
-
-**Warning:** the virtualenv's name (`hyphe-traph`) matters. Do not change it, or edit the value within the starter script `bin/hyphe`.
 
 
 ## 5) Build Hyphe's frontend
@@ -167,7 +122,7 @@ cd ..
 
 ### 6.1) Setup the backend
 
-- Copy and adapt the sample `config.json.example` to `config.json` in the `config` directory:
+- Copy and adapt the sample from the `config` directory `config.json.example` to `config.json`:
 
 ```bash
 sed "s|##HYPHEPATH##|"`pwd`"|" config/config.json.example > config/config.json
@@ -186,6 +141,11 @@ sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_front
 
 
 ### 6.3) Serve everything with Apache
+
+Or with anything else, just serve statically the hyphe_frontend/app directory with any web server, for instance with 
+
+python -m SimpleHTTPServer 8000
+
 
 The backend core API relies on a Twisted web server serving on a dedicated port (defined as `core_api_port` in `config.json` just before). For external access, proxy redirection is handled by Apache.
 
@@ -236,10 +196,10 @@ If you encounter issues here or would like to serve Hyphe on the web, please [se
 
 ## 7) Run Hyphe!
 
-To start, stop or restart the server's daemon, run (with the proper rights, so __no__ `sudo` if you installed as your user!):
+To start the server's daemon, run the following:
 
 ```bash
-bin/hyphe <start|restart|stop> [--nologs]
+python hyphe_backend/core.tac
 ```
 
 You should now be able to enjoy Hyphe at [http://localhost/hyphe](http://localhost/hyphe)!
