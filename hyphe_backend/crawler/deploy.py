@@ -54,16 +54,16 @@ if corpus_conf:
 else:
     print("WARNING: trying to deploy a crawler for a corpus project missing in DB")
 # Copy Hyphe libraries from HCI lib/
-#for f in ["urllru", "webarchives", "tlds"]:
-#    if verbose:
-#        print("Importing %s.py library from HCI hyphe_backend/lib to hcicrawler..." % f)
-#    try:
-#        copyfile("../lib/%s.py" % f, "hcicrawler/%s.py" % f)
-#    except IOError as e:
-#        print("Could not open either source or destination %s.py file" % f)
-#        print("lib/%s.py", "crawler/hcicrawler/%s.py" % f)
-#        print(e)
-#        exit()
+for f in ["urllru", "webarchives", "tlds"]:
+   if verbose:
+       print("Importing %s.py library from HCI hyphe_backend/lib to hcicrawler..." % f)
+   try:
+       copyfile("../lib/%s.py" % f, "hcicrawler/%s.py" % f)
+   except IOError as e:
+       print("Could not open either source or destination %s.py file" % f)
+       print("lib/%s.py", "crawler/hcicrawler/%s.py" % f)
+       print(e)
+       exit()
 
 # Render the settings py from template with mongo/scrapy config from config.json
 if verbose:

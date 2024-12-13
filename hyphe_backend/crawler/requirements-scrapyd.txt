@@ -12,3 +12,4 @@ queuelib==1.4.2
 txmongo==23.0.0
 ural==0.32.0
 tld==0.12.1
+six==1.17.0
