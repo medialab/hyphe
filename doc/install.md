@@ -71,10 +71,11 @@ Hyphe uses an old version of ScrapyD which is not packaged so we will install it
 
 ```bash
 mkdir scrapyd
-pyenv install 2.7.18
-pyenv virtualenv 2.7.18 scrapyd
+pyenv install 3.12.4
+pyenv virtualenv 3.12.4 scrapyd
+cd scrapyd
 pyenv local scrapyd
-pip install -r hyphe_backend/crawler/requirements-scrapyd.txt
+pip install -r ../hyphe_backend/crawler/requirements-scrapyd.txt
 ln -s ../hyphe_backend/crawler/scrapyd.config scrapyd.conf
 ```
 
@@ -142,7 +143,7 @@ sed "s|##WEBPATH##|hyphe|" hyphe_frontend/app/conf/conf_default.js > hyphe_front
 
 ### 6.3) Serve everything with Apache
 
-Or with anything else, just serve statically the hyphe_frontend/app directory with any web server, for instance with 
+Or with anything else, just serve statically the hyphe_frontend/app directory with any web server, for instance with
 
 python -m SimpleHTTPServer 8000
 

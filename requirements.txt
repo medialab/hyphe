@@ -8,8 +8,8 @@ hyphe-traph>=3,<4
 incremental==24.7.2
 msgpack==1.1.0
 requests==2.32.3
-Scrapy==1.6.0
-scrapyd-client==1.2.0a1
+Scrapy==2.12.0
+scrapyd-client==2.0.0
 selenium==2.42.1
 typing==3.10.0.0
 typing_extensions==4.12.2
