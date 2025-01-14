@@ -369,7 +369,7 @@ class Core(customJSONRPC):
         self.init_corpus(corpus)
         yield self.db.init_corpus_indexes(corpus)
         yield self.store.jsonrpc_get_webentity_creationrules(corpus=corpus)
-        wecrs = dict((cr["prefix"], cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
+        wecrs = dict((cr["prefix"].decode(), cr["regexp"]) for cr in self.corpora[corpus]["creation_rules"] if cr["prefix"] != "DEFAULT_WEBENTITY_CREATION_RULE")
         res = self.traphs.start_corpus(corpus, quiet=_quiet, keepalive=corpus_conf['options']['keepalive'], default_WECR=getWECR(corpus_conf['options']['defaultCreationRule']), WECRs=wecrs)
         if not res:
             del(self.corpora[corpus]["starting"])
