@@ -173,6 +173,34 @@ class TraphCorpus(object):
         return True
 
     def call(self, method, *args, **kwargs):
+
+        # TODO PY3
+        # handle cases of traph input/ouputs that need to be converted to bytes
+        # Or actually, probably do that instead in the server.py to let each process handle it separately (returnResult + lineReceived)
+        #
+
+        # add_page
+        # add_prefix_to_webentity
+        # add_webentity_creation_rule
+        # clear
+        # create_webentity
+        # delete_webentity
+        # get_potential_prefix
+        # get_webentities_inlinks
+        # get_webentity_by_prefix
+        # get_webentity_child_webentities
+        # get_webentity_"+("crawled_" if onlyCrawled else "")+"pages
+        # get_webentity_most_linked_pages
+        # get_webentity_pagelinks
+        # get_webentity_parent_webentities
+        # index_batch_crawl
+        # paginate_webentity_pagelinks
+        # paginate_webentity_pages
+        # remove_prefix_from_webentity
+        # remove_webentity_creation_rule
+        # retrieve_webentity
+
+
         return self.client.sendMessage(method, *args, **kwargs)
 
     @inlineCallbacks
