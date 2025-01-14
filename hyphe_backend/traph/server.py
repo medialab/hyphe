@@ -129,7 +129,7 @@ class TraphServerFactory(Factory):
         if default_WECR:
             default_WECR = default_WECR.encode()
         if WECRs:
-            WECRs = [WECR.encode() for WECR in WECRs]
+            WECRs = {key.encode(): val.encode() for key, val in WECRs.items()}
         self.traph = Traph(
           folder=os.path.join(self.traph_dir, corpus),
           default_webentity_creation_rule=default_WECR or self.default_WECR,
