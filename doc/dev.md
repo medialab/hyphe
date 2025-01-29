@@ -2,6 +2,10 @@
 
 ## Architecture
 
+<p align="center">
+    <img src="https://github.com/medialab/hyphe/blob/master/doc/architecture.png?raw=true" alt="architecture" width="600px">
+</p>
+
 Hyphe relies on the following main components/directories:
 
 - [`hyphe-traph`](https://github.com/medialab/hyphe-traph): a dedicated database designed for WebEntities & WebEntityLinks handling
