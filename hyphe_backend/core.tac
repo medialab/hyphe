@@ -1082,6 +1082,8 @@ class Core(customJSONRPC):
                 method = "GET"
             headers = {'Accept': ['*/*'],
                       'User-Agent': [self.user_agents_list.get_random()]}
+            if config['DEBUG'] > 2:
+                logger.msg("Try lookup %s %s %s (via proxy: %s)" % (method, url, tryout, use_proxy), system="DEBUG - %s" % corpus)
             response = yield agent.request(method, url, Headers(headers), None)
         except (DNSLookupError, ConnectionRefusedError) as e:
             if use_proxy and (proxy_host in str(e) or type(e) == ConnectionRefusedError):
@@ -1109,12 +1111,14 @@ class Core(customJSONRPC):
             res['message'] = "Cannot process url %s : %s %s." % (url, type(e), e)
         if 'message' in res:
             returnD(res)
+        if config['DEBUG'] > 2:
+            logger.msg(response.code, response.__dict__, response.request.original.__dict__, system="DEBUGFNDOIFJDIO")
         if response.code == 200 or url in " ".join(response.headers._rawHeaders.get('location', "")):
             response.code = 200
         elif url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders.get('server', [""])[0]:
             response.code = 301
         # BNF Archives return 301 when using HEAD queries so do not consider it as error
-        elif use_proxy and not ("archivesinternet.bnf.fr" in proxy_host and 300 <= response.code < 400) and \
+        elif not (use_proxy and "archivesinternet.bnf.fr" in proxy_host and 300 <= response.code < 400) and \
           not (deadline and deadline < time.time()) and \
           not (url.startswith("https") and response.code/100 == 4) and \
           (use_proxy or response.code in [403, 405, 500, 501, 503]) and \
