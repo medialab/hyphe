@@ -72,13 +72,13 @@ if __name__== "__main__":
         res = collect_tlds()
         res.addCallback(process)
     def process(res):
-        tldlist, tldtree = res
+        tldtree = res
         print "TLDs first level: %s\n" % len(tldtree.keys())
         print "TEST extracting TLDs from hosts:"
         for url, tld in [
             ("blogs.lemonde.paris", "paris"),               # 1st level TLD
             ("axel.brighton.ac.uk", "ac.uk"),               # 2nd level TLD
-            ("m.fr.blogspot.com.au", "blogspot.com.au"),    # 3rd level TLD
+            ("m.fr.sth.ac.at", "sth.ac.at"),    # 3rd level TLD
             ("house.www.city.kawasaki.jp", "kawasaki.jp"),  # * case
             ("help.www.kawasaki.jp", "www.kawasaki.jp"),    # ! case
             (u"help.www.福岡.jp", u"福岡.jp"),              # utf8 case
@@ -92,7 +92,7 @@ if __name__== "__main__":
                 print url, "->", urltld
                 assert(tld == urltld)
             except:
-                print "ERROR extracting TLD!"
+                print "ERROR extracting TLD! Found %s for %s when expected %s" % (urltld, url, tld)
                 reactor.stop()
                 return
 
@@ -100,7 +100,7 @@ if __name__== "__main__":
         for lru, gd in [
 ("s:http|h:info|h:anyquestions|h:www|p:nosfinanceslocales-fr-pour-une-meilleure-transparence-financiere-de-nos-communes|p:|", "s:http|h:info|h:anyquestions|h:www|p:nosfinanceslocales-fr-pour-une-meilleure-transparence-financiere-de-nos-communes|p:|"), # 1st level TLD: no change
 ("s:http|h:uk|h:co|h:brighton|h:alex|p:en|p:index.php|p:|", "s:http|h:co.uk|h:brighton|h:alex|p:en|p:index.php|p:|"), # 2nd level TLD
-("s:http|h:au|h:com|h:blogspot|h:www|h:medialab|p:en|q:index.php|f:#sdfsd|", "s:http|h:blogspot.com.au|h:www|h:medialab|p:en|q:index.php|f:#sdfsd|"), # 3rd level TLD
+("s:http|h:at|h:ac|h:sth|h:fr|h:m|p:en|q:index.php|f:#sdfsd|", "s:http|h:sth.ac.at|h:fr|h:m|p:en|q:index.php|f:#sdfsd|"), # 3rd level TLD
 ("s:https|h:jp|h:kawasaki|h:city|h:www|h:house|p:en|q:index.php|", "s:https|h:kawasaki.jp|h:city|h:www|h:house|p:en|q:index.php|"), # * case
 ("s:https|h:jp|h:kawasaki|h:www|h:help|p:en|q:index.php|", "s:https|h:www.kawasaki.jp|h:help|p:en|q:index.php|"), # ! case
 (u"s:https|h:jp|h:福岡|h:www|h:help|p:en|p:index.html|", u"s:https|h:福岡.jp|h:www|h:help|p:en|p:index.html|"),        # utf8 case
@@ -113,7 +113,7 @@ if __name__== "__main__":
                 print lru, "->", gdlru
                 assert(gd == gdlru)
             except Exception as e:
-                print "ERROR updating LRU!\n%s: %s" % (type(e), e)
+                print "ERROR updating LRU!\n Returned %s for %s when expected %s" % (gdlru, lru, gd)
                 reactor.stop()
                 return
 
