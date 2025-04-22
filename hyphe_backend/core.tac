@@ -1112,7 +1112,7 @@ class Core(customJSONRPC):
         if 'message' in res:
             returnD(res)
         if config['DEBUG'] > 2:
-            logger.msg(response.code, response.__dict__, response.request.original.__dict__, system="DEBUGFNDOIFJDIO")
+            logger.msg(response.code, response.__dict__, response.request.original.__dict__, system="DEBUG - %s" % corpus)
         if response.code == 200 or url in " ".join(response.headers._rawHeaders.get('location', "")):
             response.code = 200
         elif url.startswith("http:") and tryout == 4 and response.code == 403 and "IIS" in response.headers._rawHeaders.get('server', [""])[0]:

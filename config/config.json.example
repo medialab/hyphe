@@ -53,6 +53,7 @@
   },
   "discoverPrefixes": [
     "fb.me", "l.facebook.com", "facebook.com/l.php", "www.facebook.com/l.php",
+    "skyrock.com/r",
     "goo.gl", "feedproxy.google.com",
     "t.co", "lnkd.in", "youtu.be",
     "bit.ly", "bitly.com", "tinyurl.com",
