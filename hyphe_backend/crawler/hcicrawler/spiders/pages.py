@@ -520,7 +520,7 @@ class PagesCrawler(Spider):
         del(loggedKw["meta"]["handle_httpstatus_all"])
         if (self.webarchives and self.webarchives["option"] == "dlweb.ina.fr"):
             del(loggedKw["headers"]["X-DLWeb-Token"])
-        self.log("REQUEST %s: %s" % (url, loggedKw), logging.INFO)
+        self.log("REQUEST %s: %s" % (url.decode("utf-8") if type(url) != unicode else url, loggedKw), logging.INFO)
         return Request(url, **kw)
 
 
