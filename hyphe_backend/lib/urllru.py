@@ -214,6 +214,7 @@ def safe_lrus_to_urls(lrus):
 def url_clean_and_convert(url, tldtree={}, lru_encode_utf8=True):
     url = url_clean(url)
     lru = url_to_lru_clean(url, tldtree, lru_encode_utf8)
+    url = lru_to_url(lru)
     return url, lru
 
 def lru_clean_and_convert(lru, url_encode_utf8=True):

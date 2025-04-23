@@ -1648,6 +1648,7 @@ class Memory_Structure(customJSONRPC):
             list_lrus = [list_lrus]
         lru_prefixes_set = set()
         for lru in list_lrus:
+            lru = urllru.lru_clean(lru)
             for l in [lru] if not lruVariations else urllru.lru_variations(lru):
                 lru_prefixes_set.add(l)
             if not name:
