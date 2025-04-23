@@ -5,6 +5,8 @@ from txmongo import MongoConnection, connection as mongo_connection
 mongo_connection._Connection.noisy = False
 from txmongo.filter import sort as mongosort, ASCENDING
 
+from ural import should_resolve
+
 from hcicrawler.urllru import url_to_lru_clean, has_prefix
 from hcicrawler.tlds_tree import TLDS_TREE
 from hcicrawler.resolver import ResolverAgent
@@ -80,7 +82,7 @@ class ResolveLinks(object):
     def process_item(self, item, spider):
         lrulinks = []
         for url, lru in item.get("lrulinks", []):
-            if self._should_resolve(lru, spider):
+            if should_resolve(url) or self._should_resolve(lru, spider):
                 if url in spider.resolved_links:
                     lru = spider.resolved_links[url]
                 else:

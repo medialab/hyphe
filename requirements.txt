@@ -18,5 +18,5 @@ txJSON-RPC==0.5
 jsonrpclib
 pymongo==3.8
 txmongo>=18,<=19
-ural==0.32.0
+ural==1.5.0
 tld==0.12.1
