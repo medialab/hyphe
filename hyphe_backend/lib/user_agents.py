@@ -9,6 +9,9 @@ import sys
 import random
 import requests
 
+#SOURCE_URL = "https://www.useragents.me/api"
+SOURCE_URL = "https://raw.githubusercontent.com/CallocGD/user-agents-list/refs/heads/main/user-agents/user-agents.json"
+
 class UserAgentsList(object):
 
     def __init__(self, agents_list=[], cache_file=None, read_cache=True):
@@ -23,14 +26,14 @@ class UserAgentsList(object):
 
     def download_latest(self):
         try:
-            json_list = requests.get("https://www.useragents.me/api").json()
+            json_list = requests.get(SOURCE_URL).json()
             self.list = [
-                ua["ua"]
-                for ua in json_list.get("data")
-                if not "Trident" in ua["ua"] or "MSIE " in ua["ua"]
+                ua
+                for ua in json_list.get("desktop")
+                if not "Trident" in ua or "MSIE " in ua
             ]
         except Exception as e:
-            print "WARNING: could not download latest UserAgents list from https://www.useragents.me ; will use a local cached list: %s - %s" % (type(e), e)
+            print "WARNING: could not download latest UserAgents list from %s ; will use a local cached list: %s - %s" % (SOURCE_URL, type(e), e)
 
     def read_cache(self):
         try:
