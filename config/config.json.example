@@ -49,7 +49,8 @@
     "wordpress.com": "subdomain",
     "vimeo.com/user": "path-2",
     "dailymotion.com/user": "path-2",
-    "youtube.com/user": "path-2"
+    "youtube.com/user": "path-2",
+    "skyrock.com": "subdomain"
   },
   "discoverPrefixes": [
     "fb.me", "l.facebook.com", "facebook.com/l.php", "www.facebook.com/l.php",
