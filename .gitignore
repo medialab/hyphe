@@ -13,6 +13,7 @@ pip-log.txt
 install.log
 archives/
 log/
+scrapyd
 traph-data/
 traph-sockets/
 hyphe_backend/crawler/build

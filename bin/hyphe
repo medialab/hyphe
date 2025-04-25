@@ -1,5 +1,6 @@
 #!/bin/bash
 # Bash service to start, stop or restart Hyphe's backend server
+# DEPRECATED
 
 USAGE="$0 <start|stop|restart> [--nologs]"
 HCIVENV=hyphe-traph
