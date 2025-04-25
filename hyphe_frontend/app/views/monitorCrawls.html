@@ -217,6 +217,12 @@
                     >
                       <span><md-tooltip md-direction="top">Pages crawled successfully</md-tooltip>PC ✓</span>
                     </div>
+                    <div class="md-secondary crawljobs-col-crre"
+                      md-colors="{'color': (sort == 'nb_crawled_pages_3xx') ? ('default-accent') : ('default-primary')}"
+                      ng-click="toggleSort('nb_crawled_pages_3xx')"
+                    >
+                      <span><md-tooltip md-direction="top">Redirecting pages crawled </md-tooltip>PC ↗</span>
+                    </div>
                     <div class="md-secondary crawljobs-col-crer"
                       md-colors="{'color': (sort == 'nb_crawled_pages_error') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_crawled_pages_error')"
@@ -294,6 +300,7 @@
                         <div class="md-secondary crawljobs-col-inde">{{job.nb_pages_indexed}}</div>
                         <!--<div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>-->
                         <div class="md-secondary crawljobs-col-crok">{{job.nb_crawled_pages_200}}</div>
+                        <div class="md-secondary crawljobs-col-crre">{{job.nb_crawled_pages_3xx}}</div>
                         <div class="md-secondary crawljobs-col-crer">{{job.nb_crawled_pages_error}}</div>
                         <div class="md-secondary crawljobs-col-disp">{{job.nb_pages}}</div>
                         <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
@@ -464,6 +471,9 @@
 
                   <dt>Crawled pages successfully</dt>
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_200}}</dd>
+
+                  <dt>Crawled pages redirecting</dt>
+                  <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_3xx}}</dd>
 
                   <dt>Crawled pages with an error</dt>
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_error}}</dd>

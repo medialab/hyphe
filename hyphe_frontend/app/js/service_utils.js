@@ -684,7 +684,7 @@ angular.module('hyphe.service_utils', [])
         job.globalStatus = 'INDEXING ' + job.indexing_status
       }
       job.nb_pages_indexed = job.nb_crawled_pages - job.nb_unindexed_pages
-      job.nb_crawled_pages_error = job.nb_crawled_pages - job.nb_crawled_pages_200
+      job.nb_crawled_pages_error = job.nb_crawled_pages - job.nb_crawled_pages_200 - job.nb_crawled_pages_3xx
       job.duration = (job.finished_at || new Date().getTime()) - job.scheduled_at
       return job
     }

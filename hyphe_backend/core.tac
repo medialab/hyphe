@@ -825,6 +825,7 @@ class Core(customJSONRPC):
               "webentity_id",
               "nb_crawled_pages",
               "nb_crawled_pages_200",
+              "nb_crawled_pages_3xx",
               "nb_unindexed_pages",
               "nb_pages",
               "nb_links",
@@ -2213,10 +2214,12 @@ class Memory_Structure(customJSONRPC):
         crawled_pages_left = yield self.db.count_queue(corpus, job['crawljob_id'])
         tot_crawled_pages = yield self.db.count_pages(corpus, job['crawljob_id'])
         success_crawled_pages = yield self.db.count_pages_by_code(corpus, job['crawljob_id'], 200)
+        redirect_crawled_pages = yield self.db.count_redirected_pages(corpus, job['crawljob_id'])
         if job['_id'] != 'unknown':
             update = {
                 'nb_crawled_pages': tot_crawled_pages,
                 'nb_crawled_pages_200': success_crawled_pages,
+                'nb_crawled_pages_3xx': redirect_crawled_pages,
                 'nb_unindexed_pages': crawled_pages_left,
                 'indexing_status': indexing_statuses.BATCH_FINISHED
             }
