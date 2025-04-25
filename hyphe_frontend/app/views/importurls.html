@@ -96,6 +96,17 @@
                   </md-select>
                 </md-input-container>
 
+                <md-checkbox ng-model="$parent.loadTags" aria-label="" ng-click="settingsTouched = true" class="md-primary">
+                  Import columns as tags
+                </md-checkbox>
+
+                <md-input-container ng-show="$parent.loadTags">
+                  <label>Columns to add to webentities as tags</label>
+                  <md-select ng-model="$parent.tagsColumns" multiple ng-click="$parent.settingsTouched = true">
+                    <md-option ng-repeat="col in columns" ng-value="col">{{col.name}}</md-option>
+                  </md-select>
+                </md-input-container>
+
                 <div layout="column" layout-align="center center">
                   <md-button class="md-raised md-primary" href="#/project/{{corpusId}}/definewebentities">
                     DEFINE WEB ENTIT{{table.length | y_ies | uppercase}}

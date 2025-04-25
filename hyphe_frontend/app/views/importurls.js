@@ -19,8 +19,10 @@ angular.module('hyphe.importurlsController', [])
     $scope.selectedColumn
     $scope.textPreview = []
     $scope.headline = true
+    $scope.loadTags = false
+    $scope.tagsColumns = []
     $scope.previewMaxRow = 5
-    $scope.previewMaxCol = 3
+    $scope.previewMaxCol = 5
     $scope.differedLoading = false
 
     $scope.settingsTouched = false
@@ -34,6 +36,10 @@ angular.module('hyphe.importurlsController', [])
     $scope.$watch('selectedColumn', function() {
       if (!$scope.table) return;
       store.set('parsedUrls_colId', $scope.table[0].indexOf($scope.selectedColumn.name))
+    })
+    $scope.$watch('tagsColumns', function() {
+      if (!$scope.table) return;
+      store.set('parsedUrls_tagsIds', $scope.tagsColumns.map(n => $scope.table[0].indexOf(n.name)))
     })
 
     // This trick to turn around a bug about textarea initialization
@@ -161,6 +167,7 @@ angular.module('hyphe.importurlsController', [])
 
         // Store these settings
         store.set('parsedUrls_colId', selectedColumnId)
+        store.set('parsedUrls_tagsIds', [])
       }
     })
   
@@ -198,7 +205,7 @@ angular.module('hyphe.importurlsController', [])
         }
         ,onload: function(evt){
           var target = evt.target || evt.srcElement
-          $scope.dataText = target.result
+          $scope.dataText = target.result.trim()
           $scope.status = {}
           $scope.justImported = true
           $scope.$apply()

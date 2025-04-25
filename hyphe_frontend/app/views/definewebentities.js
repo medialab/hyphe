@@ -29,6 +29,7 @@ angular.module('hyphe.definewebentitiesController', [])
 
     $scope.available_archives = store.get('available_archives')
     $scope.default_archives_date = store.get('default_archives_date')
+    $scope.tagsToAdd = false
 
     // Build the basic list of web entities
     var list
@@ -45,14 +46,20 @@ angular.module('hyphe.definewebentitiesController', [])
           })
       } else if(store.get('parsedUrls_type') == 'table') {
         var colId = store.get('parsedUrls_colId')
+        ,tagsIds = store.get('parsedUrls_tagsIds')
         ,table = store.get('parsedUrls')
+
+        if (tagsIds.length) $scope.tagsToAdd = true
         
         // Table headline
-        $scope.headline = table.shift().filter(function(d,i){return i != colId})
+        $scope.headline = table.shift()
         
         list = table.map(function(row, i){
           var meta = {}
-          table[0].forEach(function(colName, j){
+          , tags = {}
+          $scope.headline.forEach(function(colName, j){
+            if (~tagsIds.indexOf(j) && row[j])
+              tags[colName] = row[j]
             if(j != colId)
               meta[colName] = row[j]
           })
@@ -60,7 +67,8 @@ angular.module('hyphe.definewebentitiesController', [])
             id: i
             ,url: row[colId]
             ,row: row.filter(function(d,i){return i != colId})
-            ,meta:meta
+            ,meta: meta
+            ,tags: tags
           }
         })
       }
@@ -73,6 +81,7 @@ angular.module('hyphe.definewebentitiesController', [])
       store.remove('parsedUrls')
       store.remove('parsedUrls_type')
       store.remove('parsedUrls_colId')
+      store.remove('parsedUrls_tagsIds')
 
       // Build the list
       bootstrapUrlList(list)
@@ -220,8 +229,34 @@ angular.module('hyphe.definewebentitiesController', [])
                 ,url: obj.url
               }
               , function() { // Success
-                console.log('STARTPAGE ADDED')
-                obj.status = 'existing'
+                console.log('STARTPAGE ADDED', obj.url)
+
+                // Add the eventual tags to the existing WebEntity's
+                if ($scope.tagsToAdd && obj.tags !== {}) queriesBatcher.addQuery(
+                   api.addTags
+                  , {
+                     webentityId: webentityFound.id
+                    ,tags: obj.tags
+                  }
+                  , function() { // Success
+                    console.log('TAGS ADDED', obj.tags)
+                    obj.status = 'existing'
+                  }
+                  ,function (data, status, headers, config) { // Error
+                    obj.status = 'error'
+                    console.log('[row '+(obj.id+1)+'] Error while adding tags: '+obj.tags+' to webentity', webentityFound, data, 'status', status, 'headers', headers, config)
+                    if(data && data[0] && data[0].code == 'fail'){
+                      obj.infoMessage = data[0].message
+                    }
+                  }
+                  ,{
+                    label: obj.lru
+                    ,before: function(){
+                      obj.status = 'pending'
+                    }
+                  }
+                )
+                else obj.status = 'existing'
               }
               ,function (data, status, headers, config) { // Error
                 obj.status = 'error'
@@ -293,10 +328,11 @@ angular.module('hyphe.definewebentitiesController', [])
                     prefixes: obj.prefixes
                     ,name: utils.nameLRU(utils.LRU_truncate(obj.lru, obj.truePrefixLength + !obj.tldLength))
                     ,startPages: [obj.url].concat(obj.extraUrls)
+                    ,tags: obj.tags
                   }
                 }
               ,function(we){                        // Success callback
-                console.log('CREATED')
+                  console.log('WE CREATED', we)
                   obj.status = 'created'
                   obj.webentity = we
                 }

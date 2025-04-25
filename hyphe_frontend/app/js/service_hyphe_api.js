@@ -54,6 +54,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.WEBENTITY_LIST_TAG_VALUE_REMOVE             = 'store.rm_webentities_tag_value'
 
     API.WEBENTITY_TAG_VALUE_ADD                     = 'store.add_webentity_tag_value'
+    API.WEBENTITY_TAGS_ADD                          = 'store.add_webentity_tags'
     API.WEBENTITY_TAG_VALUE_REMOVE                  = 'store.rm_webentity_tag_value'
     API.WEBENTITY_TAG_LIST_GET                      = 'store.get_tags'
     API.WEBENTITY_TAG_NAMESPACE_LIST_GET            = 'store.get_tag_namespaces'
@@ -218,7 +219,7 @@ angular.module('hyphe.service_hyphe_api', [])
               ,startpages: settings.startPages || []    // Start pages
     // Automatically include LRU variations (http/https www/nowww)
               ,lruVariations: settings.lruVariations || false
-              ,tags: settings.tags || {}
+              ,tags: settings.tags && settings.tags != {} ? {"USER": settings.tags} : {}
               ,corpus: corpus.getId()
             }}
       )
@@ -727,6 +728,17 @@ angular.module('hyphe.service_hyphe_api', [])
             ,settings.namespace || 'USER'
             ,settings.category || 'FREETAGS'
             ,settings.value || ''
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.addTags = buildApiCall(
+        API.WEBENTITY_TAGS_ADD
+        ,function(settings){
+          return [
+            settings.webentityId
+            ,settings.namespace || 'USER'
+            ,settings.tags || {}
             ,corpus.getId()
           ]}
       )

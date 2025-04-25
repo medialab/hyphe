@@ -158,6 +158,15 @@
                     </div>
                   </div>
 
+                  <!-- Imported tags from CSV -->
+                  <div
+                    ng-if="obj.tags != {}"
+                    style="position: absolute; right: 8px"
+                    layout="row"
+                  >
+                    <span ng-repeat="(cat, val) in obj.tags" class="define-entity-tag"><md-icon class="ng-scope material-icons" role="img" aria-label="local_offer">local_offer</md-icon> {{cat}}: {{val}}</span>
+                  </div>
+
                 </div>
 
                 <div class="define-entity-row-remove" layout="column" layout-align="start end">
@@ -267,7 +276,7 @@
                   {{existingList.length}} web entit{{existingList.length | y_ies}}
                   <br/>
                   which already existed<br/>
-                  {{existingList.length | were_was}} completed with startpages
+                  {{existingList.length | were_was}} completed with startpages<span ng-show="tagsToAdd" > &amp; tags</span>
                 </div>
                 <div style="height: 60px" layout="column" layout-align="center center">
                   <md-checkbox class="md-primary" ng-model="$parent.$parent.crawlExisting" ng-if="createdList.length > 0">
