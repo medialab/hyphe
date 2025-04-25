@@ -34,7 +34,7 @@ _HTTP11ClientFactory.noisy = False
 from twisted.internet.endpoints import TCP4ClientEndpoint
 from hyphe_backend.traph.client import TraphFactory
 from hyphe_backend.lib import urllru
-from hyphe_backend.lib.utils import *
+from hyphe_backend.lib.utils import *       # This includes global config
 from hyphe_backend.lib.config_hci import test_and_make_dir, check_conf_sanity, clean_missing_corpus_options, CORPUS_CONF_SCHEMA, DEFAULT_CORPUS, TEST_CORPUS
 from hyphe_backend.lib.creationrules import getPreset as getWECR
 from hyphe_backend.lib.webarchives import ARCHIVES_OPTIONS
@@ -58,7 +58,7 @@ class Core(customJSONRPC):
     def __init__(self):
         customJSONRPC.__init__(self, config['OPEN_CORS_API'], config['DEBUG'])
         self.db = MongoDB(config['mongo-scrapy'])
-        self.traphs = TraphFactory(data_dir=config["traph"]["data_path"])
+        self.traphs = TraphFactory(config)
         self.corpora = {}
         self.existing_corpora = set([])
         self.destroying = {}

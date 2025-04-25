@@ -12,8 +12,6 @@ from twisted.internet.protocol import ProcessProtocol, Factory
 from twisted.internet.endpoints import UNIXClientEndpoint
 from twisted.protocols.basic import LineOnlyReceiver
 from hyphe_backend.lib.utils import deferredSleep, lightLogVar
-from hyphe_backend.lib import config_hci
-config = config_hci.load_config()
 
 class TraphFactory(object):
 
@@ -25,8 +23,9 @@ class TraphFactory(object):
     sockets_dir = "traph-sockets"
 
     # TODO reset default chatty to False when fixed problem starting traph with it
-    def __init__(self, data_dir="traph-data", max_corpus=0, chatty=True):
-        self.data_dir = data_dir
+    def __init__(self, conf, max_corpus=0, chatty=True):
+        self.debug = conf.get("DEBUG", 0)
+        self.data_dir = conf.get("traph", {}).get("data_path", "traph-data")
         self.max_corpus = max_corpus
         self.chatty = chatty
         self.corpora = {}
@@ -78,7 +77,7 @@ class TraphFactory(object):
 
     def start_corpus(self, name, quiet=False, **kwargs):
         if self.test_corpus(name) or self.status_corpus(name) == "started":
-            if config["DEBUG"]:
+            if self.debug:
                 self.log(name, "Traph already started", quiet=quiet)
             return True
         if name in self.corpora:
@@ -95,7 +94,7 @@ class TraphFactory(object):
     @inlineCallbacks
     def stop_corpus(self, name, quiet=False):
         if self.stopped_corpus(name):
-            if config["DEBUG"]:
+            if self.debug:
                 self.log(name, "Traph already stopped", quiet=quiet)
             returnD(False)
         if name in self.corpora:
@@ -320,6 +319,7 @@ class TraphClientProtocol(LineOnlyReceiver):
 
     def __init__(self, corpus, max_successive_non_iterated_calls=10):
         self.corpus = corpus
+        self.debug = corpus.factory.debug
         self.deferred = None
         self.queue = Queue()
         self.iteratorQueue = Queue()
@@ -354,7 +354,7 @@ class TraphClientProtocol(LineOnlyReceiver):
             queue = self.iteratorQueue
         else: queue = self.queue
         self.deferred, method, args, kwargs = queue.get_nowait()
-        if config["DEBUG"] and (method != "iterate_previous_query" or config["DEBUG"] == 2):
+        if self.debug and (method != "iterate_previous_query" or self.debug == 2):
             self.corpus.log("Traph client query: %s %s %s" % (method, lightLogVar(args), lightLogVar(kwargs)))
         self.last_query = {
           "method": method,
@@ -376,11 +376,11 @@ class TraphClientProtocol(LineOnlyReceiver):
         self.corpus.lastcall = time()
         try:
             msg = msgpack.unpackb(data)
-            if config["DEBUG"]:
+            if self.debug:
                 exec_time = time() - self.start_query
                 if exec_time > 1:
                     self.corpus.log("WARNING: query took a long time! (%ss) %s %s %s" % (exec_time, self.last_query["method"], lightLogVar(self.last_query["args"]), lightLogVar(self.last_query["kwargs"])))
-            if config["DEBUG"] == 2:
+            if self.debug == 2:
                 self.corpus.log("Traph server answer: %s" % lightLogVar(msg))
             if "iterator" in msg:
                 return self.reiterateMessage(self.deferred, msg["iterator"])
@@ -396,11 +396,13 @@ class TraphClientProtocol(LineOnlyReceiver):
 
 
 if __name__ == "__main__":
-    corpus = "test"
+    from hyphe_backend.lib.config_hci import load_config
+    config = load_config()
     config["DEBUG"] = 2
+    corpus = "test"
 
     log.startLogging(sys.stdout)
-    factory = TraphFactory(chatty=True)
+    factory = TraphFactory(config, chatty=True)
     factory.start_corpus(corpus, keepalive=3)
 
     #reactor.callLater(1, factory.corpora[corpus].call, "TEST")
