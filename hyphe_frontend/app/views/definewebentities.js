@@ -28,6 +28,7 @@ angular.module('hyphe.definewebentitiesController', [])
     $scope.retryConflicted = true
 
     $scope.available_archives = store.get('available_archives')
+    $scope.default_archives_date = store.get('default_archives_date')
 
     // Build the basic list of web entities
     var list
@@ -458,6 +459,10 @@ angular.module('hyphe.definewebentitiesController', [])
                   date: obj.url.replace(/^http.*\/(\d{4})(\d\d)(\d\d)\d+(?:[a-z_*]*)\/http.*$/, "$1-$2-$3")
                 }
                 obj.url = obj.url.replace(prefix, "").replace(httpVariant, "").replace(/^\/?\d+(?:[a-z_*]*)\/http/, "http")
+                if ((new Date(obj.webarchives.date)).toDateString() == 'Invalid Date') {
+                  console.log("WARNING: wrong date format found in WebArchive URL " + obj.url + " : " + obj.webarchives.date + "\nUsing default archive date value instead: " + $scope.default_archives_date)
+                  obj.webarchives.date = $scope.default_archives_date
+                }
                 break
               }
             }

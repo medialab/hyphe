@@ -48,6 +48,8 @@ angular.module('hyphe.importurlsController', [])
     api.globalStatus({}, function(status){
       $scope.available_archives = status.hyphe.available_archives
       store.set('available_archives', status.hyphe.available_archives)
+      var options = status.corpus.options
+      store.set('default_archives_date', options.webarchives_option ? options.webarchives_date : (new Date()).toISOString().slice(0, 10))
     })
 
     function updatePreview() {
