@@ -18,6 +18,21 @@ angular.module('hyphe.settingsController', [])
     $scope.saving = false
     $scope.date_error = ""
 
+    $scope.rename = function(){
+      var newName = prompt("Please enter your choice of new name for the corpus:")
+      console.log(newName)
+      if (!newName)
+        return
+      api.renameCorpus({
+           name: newName
+          ,id: $scope.corpusId
+        }, function(){
+          $scope.corpusName = corpus.setName(newName, config.get('extraTitle') || '')
+        }, function(data){
+          $scope.status = {message: "Error renaming corpus: " + data[0]['message'], background:'danger'}
+        }
+      )
+    }
 
     $scope.destroy = function(){
       if (confirm('Are you sure you want to PERMANENTLY destroy this corpus?')) {

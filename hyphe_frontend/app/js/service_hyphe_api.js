@@ -90,6 +90,7 @@ angular.module('hyphe.service_hyphe_api', [])
     API.CORPUS_CREATE                               = 'create_corpus'
     API.CORPUS_START                                = 'start_corpus'
     API.CORPUS_STOP                                 = 'stop_corpus'
+    API.CORPUS_RENAME                               = 'rename_corpus'
     API.CORPUS_RESET                                = 'reinitialize'
     API.CORPUS_DESTROY                              = 'destroy_corpus'
     API.CORPUS_BACKUP                               = 'backup_corpus'
@@ -642,14 +643,24 @@ angular.module('hyphe.service_hyphe_api', [])
           }
       )
 
-      ns.triggerLinks = buildApiCall(
-          API.CORPUS_TRIGGER_LINKS
-          ,function (settings) {
-              return [
-                  settings.id
-              ]
+    ns.renameCorpus = buildApiCall(
+        API.CORPUS_RENAME
+        ,function(settings){
+            return [
+               settings.name
+              ,settings.id
+            ]
           }
       )
+
+    ns.triggerLinks = buildApiCall(
+        API.CORPUS_TRIGGER_LINKS
+        ,function (settings) {
+            return [
+                settings.id
+            ]
+        }
+    )
 
     ns.getCrawlJobs = buildApiCall(
         API.CRAWLJOB_LIST_GET

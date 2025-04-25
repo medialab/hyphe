@@ -571,6 +571,27 @@ class Core(customJSONRPC):
         returnD(format_result('pong'))
 
     @inlineCallbacks
+    def jsonrpc_rename_corpus(self, newName, corpus=DEFAULT_CORPUS):
+        """Changes the display name of a corpus to `newName`. Will not change the corpus id."""
+
+        # Check the corpus exists
+        exists = yield self.db.get_corpus(corpus, projection=[])
+        if not exists:
+            returnD(format_error('There is no corpus with id "%s".' % corpus))
+
+        # Forbid same corpus name as existing
+        existing = yield self.db.get_corpus_by_name(newName, projection=[])
+        if existing:
+            returnD(format_error('There already is a corpus named "%s".' % newName.encode("utf-8")))
+
+        yield self.db.update_corpus(corpus, {"name": newName})
+
+        if corpus in self.corpora:
+            self.corpora[corpus]['name'] = newName
+
+        returnD(format_result("Corpus %s was updated with new name \"%s\"." % (corpus, newName)))
+
+    @inlineCallbacks
     def jsonrpc_reinitialize(self, corpus=DEFAULT_CORPUS, _noloop=False, _quiet=False, _nobackup=False, _restart=False):
         """Resets completely a `corpus` by cancelling all crawls and emptying the Traph and Mongo data."""
         if not self.corpus_ready(corpus) and self.traphs.status_corpus(corpus, simplify=True) != "starting":

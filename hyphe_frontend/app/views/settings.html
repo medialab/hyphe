@@ -55,6 +55,18 @@
               <md-icon>clear</md-icon>
               Cancel
             </md-button>
+
+            <md-button
+              class="md-raised md-primary"
+              style="text-align: right"
+              ng-click="rename()"
+              ng-show="!corpusSettingsEditMode"
+              ng-disabled="saving"
+            >
+              <md-icon>edit</md-icon>
+              RENAME CORPUS
+            </md-button>
+
             <md-button
               class="md-raised md-warn"
               ng-click="resetCorpus()"
@@ -66,7 +78,7 @@
 
             <md-button
               class="md-warn"
-              style="text-align: right "
+              style="text-align: right"
               ng-click="destroy()"
               ng-show="!corpusSettingsEditMode"
               ng-disabled="saving"

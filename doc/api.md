@@ -39,6 +39,7 @@ The API will always answer as such:
     * __`get_corpus_tlds`__
     * __`backup_corpus`__
     * __`ping`__
+    * __`rename_corpus`__
     * __`reinitialize`__
     * __`destroy_corpus`__
     * __`force_destroy_corpus`__
@@ -208,6 +209,13 @@ The API will always answer as such:
   + _`timeout`_ (optional, default: `3`)
 
  Tests during `timeout` seconds whether an existing `corpus` is started. Returns "pong" on success or the corpus status otherwise.
+
+
+- __`rename_corpus`:__
+  + _`newName`_ (mandatory)
+  + _`corpus`_ (optional, default: `"--hyphe--"`)
+
+ Changes the display name of a corpus to `newName`. Will not change the corpus id.
 
 
 - __`reinitialize`:__

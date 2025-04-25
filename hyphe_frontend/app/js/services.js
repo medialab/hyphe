@@ -159,6 +159,7 @@ angular.module('hyphe.services', [])
         document.querySelector("title").textContent = (extraTitle ? extraTitle + " " : "") + ns.baseTitle + name
       ns.storage[ns.storageKeys.name] = name
       ns.name = name
+      return name;
     }
     ns.getName = function(extraTitle){
       var name
