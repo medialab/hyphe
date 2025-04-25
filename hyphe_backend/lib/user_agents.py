@@ -14,24 +14,42 @@ SOURCE_URL = "https://raw.githubusercontent.com/CallocGD/user-agents-list/refs/h
 
 class UserAgentsList(object):
 
-    def __init__(self, agents_list=[], cache_file=None, read_cache=True):
+    def __init__(self, config={}, agents_list=[], cache_file=None, read_cache=True):
         self.list = agents_list
         self.cache = cache_file or os.path.join(os.path.dirname(__file__), "user_agents.txt")
 
+        proxies = {}
+        if config and "mongo-scrapy" in config:
+            proxy = config["mongo-scrapy"].get("proxy_host", "")
+            port = config["mongo-scrapy"].get("proxy_port", "")
+            if proxy and port:
+                proxy = "%s:%s" % (proxy.rstrip("/"), port)
+            if proxy:
+                proxies = {
+                    "http": proxy,
+                    "https": proxy
+                }
+
         # Initiate with latest list of UserAgents or fallback with local list
         if not self.list:
-            self.download_latest()
+            self.download_latest(proxies=proxies)
         if not self.list:
             self.read_cache()
 
-    def download_latest(self):
+    def download_latest(self, proxies={}):
         try:
-            json_list = requests.get(SOURCE_URL).json()
+            json_list = requests.get(SOURCE_URL, proxies=proxies, timeout=(5, 15)).json()
             self.list = [
                 ua
                 for ua in json_list.get("desktop")
                 if not "Trident" in ua or "MSIE " in ua
             ]
+        except requests.exceptions.ConnectTimeout as e:
+            if proxies:
+                print "WARNING: could not connect to proxy %s to download latest UserAgents list; will retry without proxy" % (proxies["http"])
+                self.download_latest()
+            else:
+                print "WARNING: could not download latest UserAgents list from %s ; will use a local cached list: %s - %s" % (SOURCE_URL, type(e), e)
         except Exception as e:
             print "WARNING: could not download latest UserAgents list from %s ; will use a local cached list: %s - %s" % (SOURCE_URL, type(e), e)
 

@@ -62,7 +62,7 @@ class Core(customJSONRPC):
         self.corpora = {}
         self.existing_corpora = set([])
         self.destroying = {}
-        self.user_agents_list = UserAgentsList()
+        self.user_agents_list = UserAgentsList(config=config)
         self.crawler = Crawler(self)
         self.store = Memory_Structure(self)
         reactor.callLater(0, self.jsonrpc_list_corpus)
