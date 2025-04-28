@@ -5,7 +5,7 @@ progressbar2
 service_identity
 virtualenvwrapper
 urllib3>=1.26.9,<2
-hyphe-traph>=2.1.0,<3
+hyphe-traph>=2.2.0,<3
 incremental==21.3.0
 msgpack-python>=0.3
 requests==2.27.1
