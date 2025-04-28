@@ -193,7 +193,7 @@
               class="md-primary md-raised"
               ng-click="createWebEntities()"
               ng-show="list.length"
-            >CREATE WEB ENTIT{{list.length | y_ies | uppercase}}</md-button>
+            >CREATE WEB ENTIT{{list.length | y_ies | uppercase}}{{ tagsToAdd ? " &amp; ADD TAGS" : "" }}</md-button>
           </div>
 
           <!-- Post diagnostic -->
