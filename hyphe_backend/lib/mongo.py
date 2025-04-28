@@ -331,7 +331,8 @@ class MongoDB(object):
           "scheduled_at": None,
           "started_at": None,
           "crawled_at": None,
-          "finished_at": None
+          "finished_at": None,
+          "reviewed": False
         })
         returnD(_id)
 

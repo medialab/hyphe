@@ -78,6 +78,8 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.CRAWLJOB_LOG_GET                            = 'crawl.get_job_log'
 
+    API.CRAWLJOB_REVIEW_STATUS_SET                  = 'crawl.set_job_review_status'
+
     API.CRAWLJOB_CANCEL                             = 'crawl.cancel'
 
     API.STATUS_GET                                  = 'get_status'
@@ -679,6 +681,16 @@ angular.module('hyphe.service_hyphe_api', [])
         ,function(settings){
           return [
             settings.id
+            ,corpus.getId()
+          ]}
+      )
+
+    ns.setCrawlReviewStatus = buildApiCall(
+        API.CRAWLJOB_REVIEW_STATUS_SET
+        ,function(settings){
+          return [
+            settings.id
+            ,settings.status
             ,corpus.getId()
           ]}
       )

@@ -838,7 +838,8 @@ class Core(customJSONRPC):
               "scheduled_at",
               "started_at",
               "crawled_at",
-              "finished_at"
+              "finished_at",
+              "reviewed"
             ]
         jobs = yield self.db.list_jobs(corpus, query, **kwargs)
         returnD(format_result(list(jobs)))
@@ -1369,6 +1370,21 @@ class Crawler(customJSONRPC):
         if not res:
             returnD(format_error('No log found for job %s.' % job_id))
         returnD(format_result(res))
+
+    @inlineCallbacks
+    def jsonrpc_set_job_review_status(self, job_id, status, corpus=DEFAULT_CORPUS):
+        """Sets for a `corpus` the reviewing `status` of a specific crawl with id `job_id` as true or false."""
+        if not self.parent.corpus_ready(corpus):
+            returnD(self.parent.corpus_error(corpus))
+        if isinstance(status, str):
+            status = (status.lower() == 'true')
+        if status not in [False, True]:
+            returnD(format_error('status must be set as a boolean'))
+        existing = yield self.db.list_jobs(corpus, {"_id": job_id})
+        if not existing:
+            returnD(format_error("No job found with id %s" % job_id))
+        yield self.db.update_jobs(corpus, job_id, {"reviewed": status})
+        returnD(format_result("Job %s review status set to %s" % (job_id, status)))
 
 
 # MEMORYSTRUCTURE's DEDICATED API

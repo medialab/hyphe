@@ -737,6 +737,13 @@ textarea.over-error {
   width: 80px;
 }
 
+.crawljobs-col-revw {
+  padding: 0px 12px 0px 0px;
+  font-size: 0.8em;
+  width: 40px;
+  text-align: center;
+}
+
 .list-all-crawls .md-secondary {
   outline-style: none;
 }
@@ -746,6 +753,10 @@ textarea.over-error {
   top: 130px;
   right: 0px;
   z-index: 10;
+}
+
+.crawl-actions button md-icon {
+  margin-top: -4px;
 }
 
 /* ==========================================================================

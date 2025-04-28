@@ -124,6 +124,9 @@ angular.module('hyphe.monitorcrawlsController', [])
       ,durationTotal: {
         type: 'number'
       }
+      ,reviewed: {
+        type: 'boolean'
+      }
       ,follow_prefixes: {
         type: 'array of string'
       }
@@ -142,6 +145,20 @@ angular.module('hyphe.monitorcrawlsController', [])
           job.log = result
         }, function(){
           console.log("No logs found for crawljob " + job);
+        }
+      )
+    }
+
+    $scope.review = function(job){
+      api.setCrawlReviewStatus({
+           id: job._id
+          ,status: !job.reviewed
+        }
+        , function(result){
+          job.reviewed = !job.reviewed
+        }, function(){
+          console.log("Error setting job's reviewing status");
+          $scope.status = {message: "Error setting crawl job's review status", background:'danger'}
         }
       )
     }
