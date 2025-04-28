@@ -10,16 +10,32 @@
         <div ng-show="corpusStatus">
 
           <!-- Welcome message when empty -->
-          <div ng-hide="corpusStatus.corpus.traph.webentities.total" class="page-header">
+          <div ng-hide="corpusStatus.corpus.traph.webentities.total" class="page-header md-body-1">
             <h1>
               Welcome to your Hyphe corpus!
             </h1>
-            <p class="md-body-1">
-              Start defining the first <span hyphe-glossary="web entities"></span> of your corpus by <a href="#/project/{{corpusId}}/importurls">importing urls</a> to <span hyphe-glossary="crawl"></span>.
-            </p>
-            <p class="md-body-1">
-            Advanced users : you should first check the <a href="#/project/{{corpusId}}/settings">SETTINGS</a> tab, and change it before loading any <span hyphe-glossary="crawl"></span>. No modifications will be allowed after the first <span hyphe-glossary="crawl"></span>.
-            </p>
+            <p>Hyphe is a <span hyphe-glossary="web crawler"></span> built for social scientists researchers needs in order to iteratively create maps of subsets of the world wide web concerned with a specific issue. It is aimed at building a corpus of web <span hyphe-glossary="pages"></span> relevant to your inquiry, annotate them and visualize their relations to grasp how the issue is present on the web and how the actors are connected through <span hyphe-glossary="hyperlinks"></span>.</p>
+ 
+            <p>Hyphe allows to finely define the web actors, or "<span hyphe-glossary="web entities"></span>", as groups of webpages that all begin with specific <span hyphe-glossary="web entity prefixes"></span> (beginnings of <span hyphe-glossary="url"></span>, in order to precisely apprehend the online presence of specific individuals, organizations, etc. relevant to your inquiry.</p>
+ 
+            <p>As a result of running <span hyphe-glossary="crawls"></span> of these webentities, Hyphe then allows you to qualitatively - and collectively - review and categorize the webentities of your inquiry and choose whether they should be included IN the corpus or excluded OUT of it. When a webentity is set IN the corpus, Hyphe will encourage you to also crawl it, in order to identify within its webpages new links towards other potentially relevant webentities to be reviewed within the <a href="#/project/{{corpusId}}/prospect">PROSPECT page</a>.</p>
+
+            <h3>How should I work?</h3>
+ 
+            <p>A typical workflow with Hyphe could look like that:</p>
+ 
+            <ol>
+              <li>you first define a few <span hyphe-glossary="websites"></sppan> of individuals, organizations, actors, etc. relevant to your inquiry using the <a href="#/project/{{corpusId}}/importurls">IMPORT page</a>, adjust their prefixes definition and start crawls for each one of them;</li>
+              <li>you can monitor the advancement and status of each crawl within the <a href="#/project/{{corpusId}}/monitorCrawls">CRAWL page</a>;</li>
+              <li>each crawled webentity will reveal new webentities under the DISCOVERED status which you can decide to include (IN), exclude (OUT) or leave temporarily UNDECIDED from within the <a href="#/project/{{corpusId}}/prospect">PROSPECT page</a>, resulting in potentially starting new crawls;</li>
+              <li>wait for the new crawls to proceed and explore the <a href="#/project/{{corpusId}}/prospect">PROSPECT page</a> again, until satisfied with the corpus composition (typically, define a minimum cited threshold, for instance 3 or 4, and keep running such crawl &amp; prospect cycles until you've reviewed each webentity cited at least that many times by other entities already crawled);</li>
+              <li>each webentity, whether IN, OUT, DISCOVERED or UNDECIDED is explorable under the <a href="#/project/{{corpusId}}/listWebentities">WEBENTITIES page</a> and all their metadata can be downloaded using the <a href="#/project/{{corpusId}}/export">EXPORT page</a>;</li>
+              <li>once your corpus is stabilized and your mapping seems comprehensive enough to start analyzing their relations, you can use the <a href="#/project/{{corpusId}}/manageTags">TAGS page</a> to categorize your webentities using key:value tags;</li>
+              <li>the network of links identified between all crawled and discovered webentities is explorable and exportable at all times under the <a href="#/project/{{corpusId}}/network">NETWORK page</a>.</li>
+            </ol>
+
+            <p class="md-body-1">Now start by defining and crawling the first <span hyphe-glossary="web entities"></span> of your corpus by <a href="#/project/{{corpusId}}/importurls">importing urls</a> manually or from a CSV spreadsheet file.</p>
+            <p class="md-body-1"><u>Advanced users:</u> you can first check the <a href="#/project/{{corpusId}}/settings">SETTINGS page</a> in order to change some specific options before defining any webentity and running any crawl. No modifications will be allowed after the first crawl.</p>
           </div>
 
           <!-- Header when corpus not empty -->
