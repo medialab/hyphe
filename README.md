@@ -263,6 +263,10 @@ See our [roadmap](doc/roadmap.md)!
 
 * (FR) A blogpost detailing an example of corpus building with Hyphe: [Le web du secteur de l'hydrogène](https://www.cellie.fr/2018/11/21/le-graphe-un-pan-de-la-dataviz-exploitable-pour-cartographier-et-explorer-un-secteur-dactivite-2/) par Mathieu Boyer (2018)
 
+* (FR) An example of corpus published online which was built with Hyphe in order to map the communities of free software and free culture in France in 2023: [https://medialab.github.io/communautes-libres-graph/](https://medialab.github.io/communautes-libres-graph/)
+
+* (FR) An example of corpus published online which was built with Hyphe in order to map the communities of conspiracy websites in France in 2023: [https://www.conspiracywatch.info/conspiracymap/](https://www.conspiracywatch.info/conspiracymap/)
+
 
 ### Publications about Hyphe
 
