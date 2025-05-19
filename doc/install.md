@@ -69,7 +69,7 @@ Then when developing, you'll need to run your MongoDB Docker image in a dedicate
 docker run --rm -p 27017:27017 -v mongo-data:/data/db --name mongo-hyphe mongo:3.6 mongod --smallfiles --bind_ip 0.0.0.0 --setParameter failIndexKeyTooLong=false
 ```
 
-You can also try to install it manually using the [archived Linux build](https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.23.tgz) or find old packages for your distribution.
+You can also try to install it manually using the [latest Linux build](https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.23.tgz) (or its [archived version](https://web.archive.org/web/20250519164450/https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-3.6.23.tgz)) or find old packages for your distribution.
 
 For instance for Ubuntu:
 
