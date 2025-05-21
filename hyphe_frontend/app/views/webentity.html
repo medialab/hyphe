@@ -358,7 +358,7 @@
                             <div>
                               {{job.nb_crawled_pages_200}} page{{job.nb_crawled_pages_200 | plural}} crawled
                               <small ng-if="job.nb_crawled_pages - job.nb_crawled_pages_200">
-                                (+{{job.nb_crawled_pages - job.nb_crawled_pages_200 - job.nb_crawled_pages_3xx}} error{{job.nb_crawled_pages - job.nb_crawled_pages_200 - job.nb_crawled_pages_3xx | plural}})
+                                (+{{job.nb_crawled_pages - job.nb_crawled_pages_200 - (job.nb_crawled_pages_3xx || 0)}} error{{job.nb_crawled_pages - job.nb_crawled_pages_200 - (job.nb_crawled_pages_3xx || 0) | plural}})
                               </small>
                             </div>
                             <div ng-show="job.nb_unindexed_pages">
