@@ -27,6 +27,7 @@
     "facebook.com": "path-1",
     "instagram.com": "path-1",
     "tiktok.com": "path-1",
+    "bsky.app/profile": "path-2",
     "github.com": "path-1",
     "reddit.com/r": "path-2",
     "facebook.com/pages": "path-2",
