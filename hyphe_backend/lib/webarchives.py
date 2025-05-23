@@ -23,7 +23,7 @@ ARCHIVES_OPTIONS = {
     "dlweb.ina.fr": {
         "label": "DLWeb.INA.fr",
         "description": "crawl France's official web medias archives maintained by INA",
-        "permalinks_prefix": "http://dlweb.ina.fr/dlweb.dlweb/:version.dlweb/DATE:TIME/SOURCEURL",
+        "permalinks_prefix": "http://dlweb.ina.fr/dlweb.dlweb/DATE:TIME/SOURCEURL",
         "proxy": "dlweb.ina.fr:82",
         "min_date": "1996-01-01"
     },
