@@ -23,6 +23,7 @@
   "defaultStartpagesMode": ["homepage", "prefixes", "pages-5"],
   "defaultCreationRule": "domain",
   "creationRules": {
+    "x.com": "path-1",
     "twitter.com": "path-1",
     "facebook.com": "path-1",
     "instagram.com": "path-1",
