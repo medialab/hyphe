@@ -27,6 +27,8 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         $scope.tooBig = false
         $scope.loaded = false
         $scope.layout
+        $scope.layoutDuration = 30000
+        $scope.layoutExtinction = null
 
         $scope.stateOnSuspendLayout = ($scope.startLayoutOnLoad === undefined || $scope.startLayoutOnLoad)
 
@@ -63,6 +65,10 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         }
 
         $scope.stopLayout = function(){
+          if ($scope.layoutExtinction) {
+            $timeout.cancel($scope.layoutExtinction)
+            $scope.layoutExtinction = null
+          }
           if ($scope.layout === undefined) { return }
           $scope.layout.stop()
         }
@@ -70,6 +76,9 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         $scope.startLayout = function(){
           if ($scope.layout === undefined) { return }
           $scope.layout.start()
+          $scope.layoutExtinction = $timeout(function(){
+            $scope.stopLayout();
+          }, $scope.layoutDuration);
         }
 
         // These functions will be initialized at Sigma creation
@@ -128,7 +137,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
               ($scope.startLayoutOnLoad || $scope.startLayoutOnLoad === undefined)
               && (!$scope.suspendLayout || $scope.suspendLayout === undefined)
             ) {
-              $scope.layout.start()
+              $scope.startLayout()
             }
 
             updateMouseEvents()
