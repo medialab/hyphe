@@ -66,7 +66,7 @@ def validateArchiveDate(dt):
     return True
 
 RE_ARCHIVE_REDIRECT = r'function go\(\) \{.*document.location.href = "(%s/[^"]*)".*<p class="code shift red">Got an HTTP (\d+) response at crawl time</p>.*<p class="code">Redirecting to...</p>'
-RE_BNF_ARCHIVES_PERMALINK = re.compile(r'<input id="permalink" class="BANNER_PERMALIEN_LINK_CUSTOMED" value="([^"]+)"')
+RE_BNF_ARCHIVES_PERMALINK = re.compile(r'<input[\s\r\n]+id="permalink"[\s\r\n]+class="BANNER_PERMALIEN_LINK_CUSTOMED"[\s\r\n]+value="([^"]+)"', re.DOTALL)
 RE_BNF_ARCHIVES_BANNER = re.compile(r'<!--[\r\n]+\s+FILE ARCHIVED ON .*<!--[\r\n]+\s+END.*?-->', re.DOTALL)
 RE_WEB_ARCHIVES_BANNER = re.compile(r'<!-- BEGIN WAYBACK TOOLBAR INSERT.*<!-- END WAYBACK TOOLBAR INSERT -->', re.DOTALL)
 
