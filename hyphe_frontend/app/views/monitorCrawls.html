@@ -208,6 +208,7 @@
                       md-colors="{'color': (sort == 'globalStatus') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('globalStatus')"
                     >Status</div>
+                    <div class="md-secondary crawljobs-col-action"> </div>
                     <div class="md-secondary crawljobs-col-inde"
                       md-colors="{'color': (sort == 'nb_pages_indexed') ? ('default-accent') : ('default-primary')}"
                       ng-click="toggleSort('nb_pages_indexed')"
@@ -310,6 +311,32 @@
                           </div>
                         </div>
                         <div class="md-secondary crawljobs-col-stat">{{job.globalStatus}}</div>
+                        <div class="md-secondary crawljob-col-action crawl-list-action">
+                          <span
+                            ng-if="job.crawling_status == 'RUNNING' || job.crawling_status == 'PENDING'"
+                            class="md-raised md-warn crawl-list-action"
+                            ng-click="abortCrawl(job, job.webentity_name)"
+                          >
+                            <md-icon>cancel</md-icon>
+                            <md-tooltip>Stop this crawl</md-tooltip>
+                          </span>
+                          <span
+                            ng-if="job.crawling_status == 'FINISHED' && job.indexing_status != 'FINISHED'"
+                            class="md-raised md-warn crawl-list-action"
+                            ng-click="abortCrawl(job, job.webentity_name)"
+                          >
+                            <md-icon>clear</md-icon>
+                            <md-tooltip>Stop indexing pages from that crawl</md-tooltip>
+                          </span>
+                          <span
+                            ng-if="job.crawling_status == 'CANCELED' || job.indexing_status == 'FINISHED' || job.indexing_status == 'CANCELED'"
+                            class="md-raised md-primary crawl-list-action"
+                            ng-click="reCrawl(job)"
+                          >
+                            <md-icon>replay</md-icon>
+                            <md-tooltip>Restart an identical crawl job</md-tooltip>
+                          </span>
+                        </div>
                         <div class="md-secondary crawljobs-col-inde">{{job.nb_pages_indexed}}</div>
                         <!--<div class="md-secondary crawljobs-col-craw">{{job.nb_crawled_pages}}</div>-->
                         <div class="md-secondary crawljobs-col-crok">{{job.nb_crawled_pages_200}}</div>
@@ -319,12 +346,13 @@
                         <div class="md-secondary crawljobs-col-disl">{{job.nb_links}}</div>
                         <div class="md-secondary crawljobs-col-sche"><span><md-tooltip md-direction="top">{{job.created_at|date}}</md-tooltip>{{job.created_at|prettyDate}}</span></div> 
                         <div class="md-secondary crawljobs-col-dura"><div ng-if="job.finished_at - job.created_at > 0">{{job.duration|duration}}</div></div>
-                        <div class="md-secondary crawljobs-col-revw" style="z-index: 1000">
+                        <div class="md-secondary crawljobs-col-revw crawl-list-action">
                           &nbsp;&nbsp;&nbsp;&nbsp;<md-icon
                             style="margin-top: -4px"
+                            ng-if="job.crawling_status == 'CANCELED' || job.indexing_status == 'FINISHED' || job.indexing_status == 'CANCELED'"
                             ng-class="{'md-warn': !job.reviewed, 'md-primary': job.reviewed}"
                             ng-click="review(job)"
-                          >{{ !!job.reviewed ? 'check' : 'cancel' }}</md-icon>
+                          >{{ !!job.reviewed ? 'check' : 'check_box_outline_blank' }}</md-icon>
                         </div>
                       </md-list-item>
                     </md-list>
@@ -404,7 +432,7 @@
                   >
                     <md-icon>replay</md-icon>
                     RECRAWL
-                    <md-tooltip>Launch an identical crawl job</md-tooltip>
+                    <md-tooltip>Restart an identical crawl job</md-tooltip>
                   </md-button>
 
                   <md-button
@@ -414,7 +442,7 @@
                     ng-class="{'md-warn': !crawljobsIndex[focusedJobId].reviewed}"
                   >
                     REVIEWED?
-                    <md-icon>{{ !!crawljobsIndex[focusedJobId].reviewed ? 'check' : 'cancel' }}</md-icon>
+                    <md-icon>{{ !!crawljobsIndex[focusedJobId].reviewed ? 'check' : 'check_box_outline_blank' }}</md-icon>
                     <md-tooltip>Set as {{ !!crawljobsIndex[focusedJobId].reviewed ? 'non-' : '' }}reviewed</md-tooltip>
                   </md-button>
                 </div>

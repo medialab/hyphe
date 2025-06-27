@@ -707,7 +707,13 @@ textarea.over-error {
 .crawljobs-col-stat {
   padding: 0px 8px 0px 8px;
   font-size: 0.8em;
-  width: 80px;
+  width: 90px;
+  text-align: center;
+}
+
+.crawljobs-col-action {
+  font-size: 0.8em;
+  width: 30px;
 }
 
 .crawljobs-col-inde,
@@ -742,6 +748,11 @@ textarea.over-error {
   font-size: 0.8em;
   width: 40px;
   text-align: center;
+}
+
+.crawl-list-action {
+  z-index: 1000;
+  float: right;
 }
 
 .list-all-crawls .md-secondary {

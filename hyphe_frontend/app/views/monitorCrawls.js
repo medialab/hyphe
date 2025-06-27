@@ -182,16 +182,20 @@ angular.module('hyphe.monitorcrawlsController', [])
       }
     })
 
-    $scope.abortCrawl = function(job){
-      $scope.status = {message: 'Aborting crawl job'}
+    $scope.abortCrawl = function(job, confirmation){
 
-      job.crawling_status = 'CANCELED'
+      if (confirmation && !confirm("Are you sure you want to cancel this crawl on " + confirmation + "?"))
+        return;
+
+      $scope.status = {message: 'Aborting crawl job'}
 
       api.abortCrawlJobs(
         {id:job._id}
         , function(){
 
           $scope.status = {}
+          job.globalStatus = 'CANCELED'
+          job.crawling_status = 'CANCELED'
 
         }, function(){
           $scope.status = {message: 'Error aborting crawl job', background:'danger'}
