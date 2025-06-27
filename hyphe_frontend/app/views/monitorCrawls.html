@@ -457,7 +457,7 @@
                   <dd>{{crawljobsIndex[focusedJobId]._id}}</dd>
 
                   <dt>Scrapy ID</dt>
-                  <dd>{{crawljobsIndex[focusedJobId].crawljob_id}}</dd>
+                  <dd>{{crawljobsIndex[focusedJobId].crawljob_id}}&nbsp;</dd>
 
                   <dt>Web entity ID</dt>
                   <dd>{{crawljobsIndex[focusedJobId].webentity_id}}</dd>
@@ -532,7 +532,7 @@
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_200}}</dd>
 
                   <dt>Crawled pages redirecting</dt>
-                  <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_3xx || ""}}</dd>
+                  <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_3xx || 0}}</dd>
 
                   <dt>Crawled pages with an error</dt>
                   <dd>{{crawljobsIndex[focusedJobId].nb_crawled_pages_error}}</dd>

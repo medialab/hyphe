@@ -61,13 +61,13 @@ angular.module('hyphe.preparecrawlsController', [])
 
     window.onbeforeunload = function(){
       if($scope.list.length && !$scope.allowLeave) {
-        return "you still have web entities to start crawling. Do you really want to leave this page?"
+        return "WARNING! You still have web entities to start crawling. Do you really want to leave this page?"
       }
     }
 
     $scope.$on('$locationChangeStart', function(event, newUrl) {
       if ($scope.list.length && !$scope.allowLeave) {
-        var answer = confirm("you still have web entities to start crawling. Do you really want to leave this page?")
+        var answer = confirm("WARNING! You still have web entities to start crawling. Do you really want to leave this page?")
         if (!answer) {
           return event.preventDefault();
         } else {
