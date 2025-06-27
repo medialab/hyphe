@@ -82,6 +82,8 @@ angular.module('hyphe.service_hyphe_api', [])
 
     API.CRAWLJOB_CANCEL                             = 'crawl.cancel'
 
+    API.ALL_CRAWLJOBS_CANCEL                        = 'crawl.cancel_all'
+
     API.STATUS_GET                                  = 'get_status'
 
     API.URL_LOOKUP                                  = 'lookup_httpstatus'
@@ -694,6 +696,15 @@ angular.module('hyphe.service_hyphe_api', [])
             ,corpus.getId()
           ]}
       )
+
+    ns.abortAllCrawlJobs = buildApiCall(
+        API.ALL_CRAWLJOBS_CANCEL
+        ,function(settings){
+          return [
+            corpus.getId()
+          ]}
+      )
+
 
     ns.abortCrawlJobs = buildApiCall(
         API.CRAWLJOB_CANCEL

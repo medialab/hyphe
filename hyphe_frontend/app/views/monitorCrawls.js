@@ -29,6 +29,7 @@ angular.module('hyphe.monitorcrawlsController', [])
     $scope.crawljobsIndex = {}
     $scope.lastCrawlJobs = []
     $scope.dynamicCrawlJobs // Virtual repeat
+    $scope.ongoingCrawls = false
     $scope.sort = null
 
     $scope.webentityIndex = {}
@@ -194,6 +195,33 @@ angular.module('hyphe.monitorcrawlsController', [])
 
         }, function(){
           $scope.status = {message: 'Error aborting crawl job', background:'danger'}
+        }
+      )
+    }
+
+    $scope.abortAllCrawls = function(){
+
+      if (!confirm("Are you sure you want to cancel all running and pending crawls?"))
+        return;
+
+      $scope.status = {message: 'Aborting all crawl jobs'}
+
+      api.abortAllCrawlJobs(
+        {}
+        , function(result){
+
+          $scope.crawlJobs.forEach(job => {
+            if (~result.indexOf(job.crawljob_id) || ~result.indexOf(job._id)) {
+              job.globalStatus = 'CANCELED'
+              job.crawling_status = 'CANCELED'
+            }
+          })
+          $scope.dynamicCrawlJobs = getDynamicCrawlJobs()
+
+          $scope.status = {}
+
+        }, function(){
+          $scope.status = {message: 'Error aborting all crawl job', background: 'danger'}
         }
       )
     }
@@ -544,6 +572,8 @@ angular.module('hyphe.monitorcrawlsController', [])
       DynamicCrawlJobs.prototype.fetchNumItems_ = function() {
         this.numItems = $scope.crawlJobs.length
       }
+
+      $scope.ongoingCrawls = $scope.crawlJobs.some(x =>x.globalStatus == 'CRAWLING' || x.globalStatus == 'WAITING' || x.globalStatus == 'INDEXING' || x.globalStatus == 'PENDING')
 
       return new DynamicCrawlJobs()
     }
