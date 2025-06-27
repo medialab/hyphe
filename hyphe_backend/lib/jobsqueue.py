@@ -148,9 +148,12 @@ class JobsQueue(object):
                 del(self.queue[job_id])
 
     def cancel_corpus_jobs(self, corpus):
+        canceled_ids = []
         for _id, job in self.queue.items():
             if job["corpus"] == corpus:
                 del(self.queue[_id])
+                canceled_ids.append(_id)
+        return canceled_ids
 
     def count_waiting_jobs(self, corpus):
         return len([0 for j in self.queue.values() if j["corpus"] == corpus])
