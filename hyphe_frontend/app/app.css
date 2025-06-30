@@ -505,6 +505,32 @@ tags-input .tags .tag-item {
   margin: 6px;
 }
 
+.tag-autocomplete-input {
+  width: 100%;
+  display: flex;
+}
+
+.tag-autocomplete-input md-chips, .tag-autocomplete-input md-input-container {
+  width: calc(100% - 70px);
+  float: left;
+}
+
+.tag-autocomplete-input button {
+  width: 50px;
+  float: right;
+}
+
+.tag-selection .tag-autocomplete-input md-chips-wrap {
+  width: 213px!important;
+}
+
+md-input-container.new-category {
+  min-width: 208px!important;
+}
+
+.tag-selection .tag-autocomplete-input md-chips-wrap input {
+  font-size: 16px!important;
+}
 
 
 /* ==========================================================================

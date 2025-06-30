@@ -387,30 +387,33 @@
                           <!-- Tag categories -->
                           <div ng-repeat="tagCat in tagCategories | toSortedKeysArray" ng-if="tagCat != 'FREETAGS'" class="category-{{tagCat | slugify}}">
                             <div class="md-title">{{tagCat}}</div>
-                            <md-chips
-                              ng-model="tagCategories[tagCat]"
-                              readonly="tagsPendingQueries>0 || (tagCategories[tagCat] && tagCategories[tagCat].length > 0)"
-                              md-removable="tagsPendingQueries <= 0"
-                              md-max-chips="1"
-                            >
-                              <md-autocomplete
-                                md-selected-item="selectedItem"
-                                md-search-text="searchText"
-                                md-items="tag in autoComplete(searchText, tagCat)"
-                                md-item-text="tag"
-                                md-min-length=0
-                                placeholder="Set tag"
+                            <div class="tag-autocomplete-input">
+                              <md-chips
+                                ng-model="tagCategories[tagCat]"
+                                readonly="tagsPendingQueries>0 || (tagCategories[tagCat] && tagCategories[tagCat].length > 0)"
+                                md-removable="tagsPendingQueries <= 0"
+                                md-max-chips="1"
                               >
-                                <span md-highlight-text="searchText">{{tag}}</span>
-                              </md-autocomplete>
-                            </md-chips>
+                                <md-autocomplete
+                                  md-selected-item="selectedItem"
+                                  md-search-text="searchText"
+                                  md-items="tag in autoComplete(searchText, tagCat)"
+                                  md-item-text="tag"
+                                  md-min-length=0
+                                  placeholder="Set tag"
+                                >
+                                  <span md-highlight-text="searchText">{{tag}}</span>
+                                </md-autocomplete>
+                              </md-chips>
+                              <md-button class="md-primary" ng-click="saveTag(tagCat)" ng-show="!tagCategories[tagCat].length">Add</md-button>
+                            </div>
                             <br>
                           </div>
 
                           <div
                             layout="row"
                             md-colors="{'background': 'default-background-100'}"
-                            style="padding: 8px"
+                            style="padding: 8px 0 8px 8px"
                           >
                             <md-input-container flex>
                               <label>New category</label>
@@ -427,22 +430,24 @@
                             md-colors="{'background': 'default-background-300'}"
                             style="padding: 8px; margin-top: 16px"
                           >
-                          <div class="md-title">Field notes</div>
-                          <md-chips
-                            ng-model="tagCategories.FREETAGS"
-                            readonly="tagsPendingQueries>0"
-                            md-removable="tagsPendingQueries<=0"
-                          >
-                            <md-autocomplete
-                              md-selected-item="selectedItem"
-                              md-search-text="searchText"
-                              md-items="t in []"
-                              md-item-text="note"
-                              placeholder="Add note..."
+                            <div class="md-title">Field notes</div>
+                            <md-chips
+                              class="category-freetags"
+                              ng-model="tagCategories.FREETAGS"
+                              readonly="tagsPendingQueries>0"
+                              md-removable="tagsPendingQueries<=0"
                             >
-                              <span md-highlight-text="searchText">{{tag}}</span>
-                            </md-autocomplete>
-                          </md-chips>
+                              <md-autocomplete
+                                md-selected-item="selectedItem"
+                                md-search-text="searchText"
+                                md-items="t in []"
+                                md-item-text="note"
+                                placeholder="Add note..."
+                              >
+                                <span md-highlight-text="searchText">{{tag}}</span>
+                              </md-autocomplete>
+                            </md-chips>
+                            <md-button class="md-primary" style="float: right" ng-click="saveTag('freetags')">Add</md-button>
                           </div>
                         </div>
                       </div>

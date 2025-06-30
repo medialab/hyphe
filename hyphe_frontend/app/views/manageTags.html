@@ -347,9 +347,10 @@
                   <div
                     layout="row"
                     md-colors="{'background': 'default-background-100'}"
-                    style="padding: 8px"
+                    style="padding: 8px 0 8px 8px"
+                    class="tag-autocomplete-input"
                   >
-                    <md-input-container flex>
+                    <md-input-container class="new-category" flex>
                       <label>New category</label>
                       <input ng-model="$parent.$parent.newCategory" ng-press-enter="saveNewCategory()">
                     </md-input-container>

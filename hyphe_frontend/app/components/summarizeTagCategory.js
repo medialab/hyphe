@@ -72,6 +72,14 @@ angular.module('hyphe.summarizeTagCatComponent', [])
             }
           })
         }
+
+        $scope.saveTag = function(category){
+          var slugCat = category.replace(/[^a-z0-9]/i, '_')
+          $timeout(function(){
+            document.querySelector(".category-"+slugCat+" input").dispatchEvent(new KeyboardEvent('keydown', {keyCode: 13}))
+          }, 0)
+        }
+        
       }
     }
   })

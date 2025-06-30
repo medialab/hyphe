@@ -1,56 +1,64 @@
-<div layout="row" style="margin-bottom: 32px;">
-	<!-- Free tags -->
-	<md-chips
-		ng-if="tagCat == 'FREETAGS'"
-		flex
-    ng-model="values"
-    readonly="false"
-    md-removable="true"
-    md-transform-chip="transformChip($chip)"
-    md-on-add="addValue($chip, true)"
-    md-on-remove="removeValue($chip)"
-  >
-    <md-autocomplete
-      md-selected-item="selectedItem"
-      md-search-text="searchText"
-      md-items="tag in autoComplete(searchText, tagCat)"
-      md-item-text="tag"
-      placeholder="Add tag..."
-      md-min-length=0
+<div layout="row" class="tag-selection">
+  <!-- Free tags -->
+  <div ng-if="tagCat == 'FREETAGS'" style="width: 100%">
+    <md-chips
+      flex
+      class="category-freetags"
+      ng-model="values"
+      readonly="false"
+      md-removable="true"
+      md-transform-chip="transformChip($chip)"
+      md-on-add="addValue($chip, true)"
+      md-on-remove="removeValue($chip)"
     >
-      <span md-highlight-text="searchText">{{tag}}</span>
-    </md-autocomplete>
-    <md-chip-template>
-      {{$chip.value}}
-      <em md-colors="{'color':'default-primary'}" style="margin: 0px 4px">{{$chip.count}}</em>
-    </md-chip-template>
-  </md-chips>
+      <md-autocomplete
+        md-selected-item="selectedItem"
+        md-search-text="searchText"
+        md-items="tag in autoComplete(searchText, tagCat)"
+        md-item-text="tag"
+        placeholder="Add note..."
+      >
+        <span md-highlight-text="searchText">{{tag}}</span>
+      </md-autocomplete>
+      <md-chip-template>
+        {{$chip.value}}
+        <em md-colors="{'color':'default-primary'}" style="margin: 0px 4px">{{$chip.count}}</em>
+      </md-chip-template>
+    </md-chips>
+    <md-button class="md-primary" style="float: right; margin-right: -30px;" ng-click="saveTag('freetags')">Add</md-button>
+  </div>
 
-	<!-- NON Free tags -->
-	<md-chips
-		ng-if="tagCat != 'FREETAGS'"
-		flex
-    ng-model="values"
-    readonly="undefinedValues == 0"
-    md-removable="true"
-    md-transform-chip="transformChip($chip)"
-    md-on-add="addValue($chip, false)"
-    md-on-remove="removeValue($chip)"
+  <!-- NON Free tags -->
+  <div class="tag-autocomplete-input"
+    style="margin-bottom: 32px;"
+    ng-if="tagCat != 'FREETAGS'"
   >
-    <md-autocomplete
-      ng-if="!(undefinedValues == 0)"
-      md-selected-item="selectedItem"
-      md-search-text="searchText"
-      md-items="tag in autoComplete(searchText, tagCat)"
-      md-item-text="tag"
-      placeholder="Set undefined values to..."
-      md-min-length=0
+    <md-chips
+      flex
+      class="category-{{tagCat | slugify}}"
+      ng-model="values"
+      readonly="undefinedValues == 0"
+      md-removable="true"
+      md-transform-chip="transformChip($chip)"
+      md-on-add="addValue($chip, false)"
+      md-on-remove="removeValue($chip)"
     >
-      <span md-highlight-text="searchText">{{tag}}</span>
-    </md-autocomplete>
-    <md-chip-template>
-      {{$chip.value}}
-      <em md-colors="{'color':'default-primary'}" style="margin: 0px 4px">{{$chip.count}}</em>
-    </md-chip-template>
-  </md-chips>
+      <md-autocomplete
+        ng-if="!(undefinedValues == 0)"
+        md-selected-item="selectedItem"
+        md-search-text="searchText"
+        md-items="tag in autoComplete(searchText, tagCat)"
+        md-item-text="tag"
+        placeholder="Set undefined values to..."
+        md-min-length=0
+      >
+        <span md-highlight-text="searchText">{{tag}}</span>
+      </md-autocomplete>
+      <md-chip-template>
+        {{$chip.value}}
+        <em md-colors="{'color':'default-primary'}" style="margin: 0px 4px">{{$chip.count}}</em>
+      </md-chip-template>
+    </md-chips>
+    <md-button class="md-primary" ng-click="saveTag(tagCat)" ng-show="!values.length">Add</md-button>
+  </div>
 </div>
