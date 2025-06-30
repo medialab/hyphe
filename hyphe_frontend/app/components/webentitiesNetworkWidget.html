@@ -304,19 +304,29 @@
         </p>
       </div>
 
-      <div layout="column" style="margin: 8px">
-        <div>
-          <md-icon style="transform: rotate(-30deg); color: #FAA; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-          &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINK{{inDegree | PLURAL}}
+      <div layout="row">
+        <div layout="column">
+          <div>
+            <md-icon style="transform: rotate(-30deg); color: #FAA; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+            &nbsp; &nbsp; <span>{{inDegree}}</span> IN LINK{{inDegree | PLURAL}}
+          </div>
+          <div>
+            <md-icon style="transform: rotate(-30deg); color: #93BDE0; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+            &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINK{{outDegree | PLURAL}}
+          </div>
+          <div>
+            <md-icon style="transform: rotate(-30deg); color: #d4a1dd; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
+            &nbsp; &nbsp; <span>{{bothDegree}}</span> MUTUAL LINK{{bothDegree | PLURAL}}
+          </div>
         </div>
-        <div>
-          <md-icon style="transform: rotate(-30deg); color: #93BDE0; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-          &nbsp; &nbsp; <span>{{outDegree}}</span> OUT LINK{{outDegree | PLURAL}}
-        </div>
-        <div>
-          <md-icon style="transform: rotate(-30deg); color: #d4a1dd; font-size: 40px" role="img" aria-label="remove">remove</md-icon>
-          &nbsp; &nbsp; <span>{{bothDegree}}</span> MUTUAL LINK{{bothDegree | PLURAL}}
-        </div>
+        <md-button
+          class="md-raised md-secondary icon-to-right"
+          style="top: 190px!important"
+          ng-if="selectedItemStatus == 'UNDECIDED' || selectedItemStatus == 'DISCOVERED' || !selectedItemCrawlStatus"
+          ng-click="crawlNode()"
+        >
+          CRAWL
+        </md-button>
       </div>
 
     </div>
@@ -410,6 +420,14 @@
 
         <div class="network-key-text" ng-if="nodeSizeMode == 'outdegree'" style="padding-bottom: 16px">
           <em>The OUTDEGREE of a web entity is the number of other web entities it cites.</em>
+        </div>
+
+        <div class="network-key-text" ng-if="nodeSizeMode == 'pages_total'" style="padding-bottom: 16px">
+          <em>KNOWN PAGES of a web entity is the number of URLs of web pages matching the entity's prefixes which were visited or seen as targets of HTML links within other web pages by the crawler.</em>
+        </div>
+
+        <div class="network-key-text" ng-if="nodeSizeMode == 'pages_crawled'" style="padding-bottom: 16px">
+          <em>CRAWLED PAGES of a web entity is the number of web pages matching the entity's prefixes which were actually visited by the crawler.</em>
         </div>
 
         <div layout="row" style="padding-bottom: 16px" ng-repeat="item in nodeSizeMap">

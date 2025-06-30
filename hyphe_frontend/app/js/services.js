@@ -96,16 +96,16 @@ angular.module('hyphe.services', [])
   }])
 
   .factory('store', [function(){
-    var savedData = {}
+    var storage = localStorage
     
     function set(key, data){
-      savedData[key] = data
+      storage.setItem(key, JSON.stringify(data))
     }
     function get(key){
-      return savedData[key]
+      return JSON.parse(storage.getItem(key))
     }
     function remove(key){
-      return delete savedData[key]
+      return storage.removeItem(key)
     }
 
     return {

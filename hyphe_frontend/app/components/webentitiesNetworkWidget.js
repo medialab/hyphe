@@ -9,7 +9,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
     autocompletion,
     corpus,
     $timeout,
-    $window
+    $window,
+    store
   ){
     return {
       restrict: 'E'
@@ -97,6 +98,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           }
           $scope.loading = true
           $scope.tagCategories = {}
+          $scope.webentitiesIndex = {}
         }
 
         $scope.initData()
@@ -140,6 +142,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           var n = g.getNodeAttributes(nid);
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
+          $scope.selectedItemStatus = n.status;
+          $scope.selectedItemCrawlStatus = n.pages_crawled;
           $scope.WEHomepage = n.homepage;
           $scope.archives_WEHomepage = utils.getArchivesPermalinks(n.homepage, $scope.webarchives_permalinks);
 
@@ -181,6 +185,13 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         $scope.networkStageClick = function(){
           $scope.selectedItem = null;
+        }
+
+        $scope.crawlNode = function(){
+          if (!$scope.selectedItem) return;
+          var obj = {webentity: $scope.webentitiesIndex[$scope.WEId]}
+          store.set('webentities_toCrawl', [obj])
+          $window.open('#/project/'+$scope.corpusId+'/prepareCrawls')
         }
 
         function resetInfos(){
@@ -555,6 +566,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
                       $scope.data[status].loaded = true
                       $scope.status = {}
                     }
+                    result.webentities.forEach(we => $scope.webentitiesIndex[we.id] = we)
                     checkLoadAndUpdate(thisToken)
                   }
                   ,function(data, status, headers, config){
