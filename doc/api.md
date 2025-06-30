@@ -386,7 +386,7 @@ The API will always answer as such:
 - __`cancel_all`:__
   + _`corpus`_ (optional, default: `"--hyphe--"`)
 
- Stops all "running" and "pending" crawl jobs for a `corpus`.
+ Stops all "running" and "pending" crawl jobs for a `corpus`. Returns a list of all canceled crawljobs ids.
 
  Cancels all current crawl jobs running or planned for a `corpus` and empty related mongo data.
 
