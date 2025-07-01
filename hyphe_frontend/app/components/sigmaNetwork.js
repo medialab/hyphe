@@ -27,7 +27,6 @@ angular.module('hyphe.sigmaNetworkComponent', [])
         $scope.tooBig = false
         $scope.loaded = false
         $scope.layout
-        $scope.layoutDuration = 30000
         $scope.layoutExtinction = null
 
         $scope.stateOnSuspendLayout = ($scope.startLayoutOnLoad === undefined || $scope.startLayoutOnLoad)
@@ -78,7 +77,7 @@ angular.module('hyphe.sigmaNetworkComponent', [])
           $scope.layout.start()
           $scope.layoutExtinction = $timeout(function(){
             $scope.stopLayout();
-          }, $scope.layoutDuration);
+          }, 5000*(1 + Math.log10($scope.nodesCount)));
         }
 
         // These functions will be initialized at Sigma creation
