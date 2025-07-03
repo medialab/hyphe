@@ -464,7 +464,7 @@
               >
                 <h3 style="padding: 4px 8px; margin: 0px" ng-if="webentity.pages_total<=0">No known page</h3>
                 <h3 style="padding: 4px 8px; margin: 0px" ng-if="webentity.pages_total>=1">
-                  {{webentity.pages_total|number}} Page{{webentity.pages_total|plural}}
+                  {{webentity.pages_total|number}} page{{webentity.pages_total|plural}}
                   <small ng-if="webentity.pages_crawled>0">({{webentity.pages_crawled|number}} crawled)</small>
                 </h3>
                 <div flex></div>
@@ -519,16 +519,22 @@
                     >
                       <div class="md-primary">
                         <a href="{{ page.url }}" target="_blank">
-                          <md-tooltip md-direction="left">Open in a new tab</md-tooltip>
+                          <md-tooltip md-direction="left">Open in a new tab{{page.archive_permalink && " the page on the live web"}}</md-tooltip>
                           <md-icon>link</md-icon>
                         </a>
-                        <a href="{{ page.archive_permalink || page.archive_url }}" target="_blank" ng-if="page.archive_url && page.archive_date_obtained">
-                          <md-tooltip md-direction="left">Open in a new tab archived page from {{ page.archive_date_obtained }}</md-tooltip>
+                        <a href="{{ page.archive_url || page.archive_permalink }}" target="_blank" ng-if="page.archive_url && page.archive_date_obtained">
+                          <md-tooltip md-direction="left">Open in a new tab the archived page from {{ page.archive_date_obtained }}</md-tooltip>
                           <md-icon>history</md-icon>
                         </a>
-                        <span ng-if="page.archive_date_requested && !page.archive_date_obtained">
-                          <md-tooltip md-direction="left">This page could not be found in web archives around {{ page.archive_date_requested }}</md-tooltip>
-                          <md-icon style="opacity: 0.2">history</md-icon>
+                        <a href="{{ page.archive_permalink }}" target="_blank" ng-if="page.archive_permalink && !page.archive_date_obtained">
+                          <span ng-if="page.archive_date_requested && !page.archive_date_obtained">
+                            <md-tooltip md-direction="left">This page could not be found in web archives around {{ page.archive_date_requested }}</md-tooltip>
+                            <md-icon style="opacity: 0.5; color: red">history</md-icon>
+                          </span>
+                          <span ng-if="!page.archive_date_requested">
+                            <md-tooltip md-direction="left">Try to open in a new tab the page on the web archives</md-tooltip>
+                            <md-icon style="opacity: 0.2">history</md-icon>
+                          </span>
                         </a>
                       </div>
                       <div ng-if="page.url === webentity.homepage">
@@ -546,8 +552,8 @@
                         <md-tooltip md-direction="left">Set as StartPage</md-tooltip>
                       </div>
                       <div class="md-secondary" ng-if="page.crawled">
-                        <md-tooltip md-direction="left">Crawled</md-tooltip>
-                        <md-icon>opacity</md-icon>
+                        <md-tooltip md-direction="left">Crawled (HTTP status: {{page.status}})</md-tooltip>
+                        <md-icon style="{{page.status != 200 && 'color: red; opacity: 0.5'}}">opacity</md-icon>
                       </div>
                       <div class="md-secondary" ng-if="!page.crawled">
                         <md-tooltip md-direction="left">Not crawled</md-tooltip>
