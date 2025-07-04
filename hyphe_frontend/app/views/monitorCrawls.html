@@ -349,7 +349,7 @@
                         <div class="md-secondary crawljobs-col-revw crawl-list-action">
                           &nbsp;&nbsp;&nbsp;&nbsp;<md-icon
                             style="margin-top: -4px"
-                            ng-if="job.crawling_status == 'CANCELED' || job.indexing_status == 'FINISHED' || job.indexing_status == 'CANCELED'"
+                            ng-if="job.globalStatus == 'CANCELED' || job.globalStatus == 'CRASHED' || job.globalStatus == 'UNSUCCESSFUL' || job.globalStatus == 'SUSPICIOUS'"
                             ng-class="{'md-warn': !job.reviewed, 'md-primary': job.reviewed}"
                             ng-click="review(job)"
                           >{{ !!job.reviewed ? 'check' : 'check_box_outline_blank' }}</md-icon>
@@ -436,7 +436,7 @@
                   </md-button>
 
                   <md-button
-                    ng-if="crawljobsIndex[focusedJobId].crawling_status == 'CANCELED' || crawljobsIndex[focusedJobId].indexing_status == 'FINISHED' || crawljobsIndex[focusedJobId].indexing_status == 'CANCELED'"
+                    ng-if="crawljobsIndex[focusedJobId].globalStatus == 'CANCELED' || crawljobsIndex[focusedJobId].globalStatus == 'CRASHED' || crawljobsIndex[focusedJobId].globalStatus == 'UNSUCCESSFUL' || crawljobsIndex[focusedJobId].globalStatus == 'SUSPICIOUS'"
                     class="md-raised"
                     ng-click="review(crawljobsIndex[focusedJobId])"
                     ng-class="{'md-warn': !crawljobsIndex[focusedJobId].reviewed}"

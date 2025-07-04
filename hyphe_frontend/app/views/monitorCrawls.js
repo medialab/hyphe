@@ -431,7 +431,7 @@ angular.module('hyphe.monitorcrawlsController', [])
         else job.webentity_name = we.name + (job.previous_webentity_name && job.previous_webentity_name != we.name ? ' (previously '+job.previous_webentity_name+')' : '')
       })
       updateCrawlJobsIndex()
-      if ($scope.focusedJobId !== "all" && $scope.focusedJobId !== "last" && (!$scope.crawljobsIndex[$scope.focusedJobId].log || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "CRAWLING" || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "PENDING")) {
+      if ($scope.focusedJobId !== "all" && $scope.focusedJobId !== "last" && $scope.crawljobsIndex[$scope.focusedJobId] && (!$scope.crawljobsIndex[$scope.focusedJobId].log || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "CRAWLING" || $scope.crawljobsIndex[$scope.focusedJobId].globalStatus === "PENDING")) {
         $scope.grabJobLog($scope.crawljobsIndex[$scope.focusedJobId])
       }
     }
