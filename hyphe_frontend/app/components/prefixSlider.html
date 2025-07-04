@@ -32,6 +32,7 @@
 	<div flex layout="row" class="stem-container">
 		<span
       class="stem"
+      ng-show="stem !== 'www.' || $index > 4"
       ng-repeat="stem in obj.pretty_lru track by $index"
       ng-class="{
         pointable: clickableStem($index)
