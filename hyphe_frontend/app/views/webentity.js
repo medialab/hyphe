@@ -237,7 +237,7 @@ angular.module('hyphe.webentityController', [])
         ,function(result){
           $scope.rawPages = $scope.rawPages.concat(result.pages)
           var pagesBatch = []
-          var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested", "archive_permalink"]
+          var required_fields = ["crawled", "archive_url", "archive_date_obtained", "archive_date_requested", "archive_permalink", "content_type", "depth", "encoding", "error", "status", "size", "crawl_timestamp"]
           result.pages.forEach(function(page){
             page.archive_permalink = utils.getArchivesPermalinks(page.url, $scope.webarchives_permalinks)
             if (page.archive_date_requested) {
