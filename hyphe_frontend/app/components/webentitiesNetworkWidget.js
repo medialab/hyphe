@@ -183,6 +183,10 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
         };
 
+        $scope.networkNodeCtrlClick = function(nid) {
+          console.log("CTRL CLICK!", nid);
+        }
+
         $scope.networkStageClick = function(){
           $scope.selectedItem = null;
         }
