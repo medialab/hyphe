@@ -17,8 +17,9 @@
               TAGS
             </h1>
             <span class="md-subhead">
-              Filter <span hyphe-glossary="web entities"></span> (status <em>IN</em> only). Tag one or a selection of web entities.
+              Filter <span hyphe-glossary="web entities"></span> (only status <em>IN</em> and optionally <em>UNDECIDED</em>). Tag one or a selection of web entities.
             </span>
+            <small><md-checkbox ng-if="!loading" ng-model="include_undecided" ng-change="toggleUndecided()" style="float:right">Include UNDECIDED</md-checkbox></small>
           </div>
 
           <div flex layout="column" layout-align="center center" ng-if="loading">
@@ -77,8 +78,8 @@
                   <span md-colors="{'color': 'default-primary'}">
                     {{displayedEntities.length|number}}
                   </span>
-                  <span ng-if="displayedEntities.length < data.in.total" style="opacity: 0.5">
-                    / {{data.in.total|number}}
+                  <span ng-if="displayedEntities.length < data.webentities.length" style="opacity: 0.5">
+                    / {{data.webentities.length|number}}
                   </span>
                 </div>
                 <div style="opacity: 0.5">
@@ -237,7 +238,10 @@
                               <md-tooltip md-direction="left">{{webentity.homepage}}</md-tooltip>
                               <md-icon>link</md-icon>
                             </a>
-                            <span md-truncate flex>
+                            <span md-truncate flex ng-if="webentity.status == 'IN'">
+                              {{webentity.name}}
+                            </span>
+                            <span md-truncate flex ng-if="webentity.status == 'UNDECIDED'" style="color: #ADA299">
                               {{webentity.name}}
                             </span>
                           </p>
@@ -280,8 +284,8 @@
                       <div md-colors="{'color':'default-primary'}" ng-if="displayedEntities.length > 0">
                         {{displayedEntities.length|number}} filtered
                       </div>
-                      <div md-colors="{'color':'default-background-300'}" ng-if="data.in.webentities.length - displayedEntities.length > 0">
-                        {{(data.in.webentities.length - displayedEntities.length)|number}} left aside
+                      <div md-colors="{'color':'default-background-300'}" ng-if="data.webentities.length - displayedEntities.length > 0">
+                        {{(data.webentities.length - displayedEntities.length)|number}} left aside
                       </div>
                     </div>
                   </div>
@@ -317,7 +321,8 @@
                       md-item-size="48"
                       md-colors="{'background': 'default-background-100'}"
                     >
-                      <span md-truncate>{{webentity.name}}</span>
+                      <span md-truncate ng-if="webentity.status == 'IN'">{{webentity.name}}</span>
+                      <span md-truncate ng-if="webentity.status == 'UNDECIDED'" style="color: #ADA299">{{webentity.name}}</span>
                       <md-button class="md-icon-button md-secondary" ng-click="webentity.selected = false">
                         <md-icon>close</md-icon>
                       </md-button>

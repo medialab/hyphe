@@ -23,6 +23,8 @@ angular.module('hyphe.manageTagsController', [])
 
     $scope.webarchives_permalinks = null
 
+    $scope.include_undecided = false
+
     $scope.data = {
       in: {
         loading: false,
@@ -33,6 +35,16 @@ angular.module('hyphe.manageTagsController', [])
         retry: 0,
         webentities: []
       },
+      undecided: {
+        loading: false,
+        loaded: false,
+        token: undefined,
+        page: 0,
+        total: 0,
+        retry: 0,
+        webentities: []
+      },
+      webentities: [],
       links: {
         loading: false,
         loaded: false,
@@ -124,7 +136,7 @@ angular.module('hyphe.manageTagsController', [])
     }
 
     $scope.uncheckAll = function() {
-      $scope.data.in.webentities.forEach(function(webentity){
+      $scope.data.webentities.forEach(function(webentity){
         webentity.selected = false
       })
     }
@@ -192,20 +204,32 @@ angular.module('hyphe.manageTagsController', [])
       })
     }
 
+    $scope.toggleUndecided = function(){
+      $scope.include_undecided = !$scope.include_undecided
+      $scope.resetInterface()
+    }
+
+    $scope.resetInterface = function(){
+      $scope.data.webentities = $scope.data.in.webentities.concat($scope.include_undecided ? $scope.data.undecided.webentities : [])
+      if (!$scope.data.links.loaded) loadLinks()
+      else buildNetwork()
+      buildTagData()
+    }
+
     // Watchers
 
     // Watch selected to keep checked data up to date
-    $scope.$watch('data.in.webentities', function(){
+    $scope.$watch('data.webentities', function(){
       // Displayed entities
       updateDisplayedEntities()
 
       // Checked entities
       $scope.checkedList
-      if ($scope.data.in.webentities) {
+      if ($scope.data.webentities) {
         $scope.checkedList = []
         var someChecked
         var someUnchecked
-        $scope.data.in.webentities.forEach(function(webentity){
+        $scope.data.webentities.forEach(function(webentity){
           if (webentity.selected) {
             someChecked = true
             $scope.checkedList.push(webentity)
@@ -264,14 +288,14 @@ angular.module('hyphe.manageTagsController', [])
       $scope.webarchives_permalinks = (status.hyphe.available_archives.filter(function(a){ return a.id === status.corpus.options.webarchives_option })[0].permalinks_prefix || "")
         .replace("DATETIME", webarchives_date)
         .replace("DATE:TIME", webarchives_date.replace(/^(....)(..)(..)(..)(..)(..)$/, "$1-$2-$3T$4:$5:$6"))
-      loadInWebentities()
+      loadWebentities('in')
     })
 
     // Functions
     function updateDisplayedEntities() {
       $scope.displayedEntities = $filter('tagFilter')(
         $filter('filter')(
-          $scope.data.in.webentities,
+          $scope.data.in.webentities.concat($scope.include_undecided ? $scope.data.undecided.webentities : []),
           $scope.searchQuery, false, 'name'
         ),
         $scope.filters, $scope.tagCategories
@@ -392,7 +416,7 @@ angular.module('hyphe.manageTagsController', [])
       $scope.tagCategoriesUntagged = {}
 
       var tagCat
-      $scope.data.in.webentities
+      $scope.data.webentities
         .map(function(d){return d.tags.USER || {}})
         .forEach(function(d){
           for (tagCat in d) {
@@ -413,37 +437,38 @@ angular.module('hyphe.manageTagsController', [])
 
     }
 
-    function loadInWebentities(thisToken) {
+    function loadWebentities(status, thisToken) {
       $scope.loading = true
-      if ($scope.data.in.loading && $scope.data.in.token) {
+      if ($scope.data[status].loading && $scope.data[status].token) {
         // Retrieve from query token
-        $scope.status = {message:'Loading IN web entities', progress: Math.round(100 * $scope.data.in.webentities.length/$scope.data.in.total)}
+        $scope.status = {message:'Loading ' + status.toUpperCase() + ' web entities', progress: Math.round(100 * $scope.data[status].webentities.length/$scope.data[status].total)}
         api.getResultsPage(
           {
-            token: $scope.data.in.token
-            ,page: ++$scope.data.in.page
+            token: $scope.data[status].token
+            ,page: ++$scope.data[status].page
           }
           ,function(result){
             // Stop if this function was called in the meanwhile
-            if ($scope.data.in.token != thisToken) { return }
-            $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
-            if ($scope.data.in.webentities.length >= $scope.data.in.total) {
-              $scope.data.in.loading = false
-              $scope.data.in.loaded = true
+            if ($scope.data[status].token != thisToken) { return }
+            $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
+            if ($scope.data[status].webentities.length >= $scope.data[status].total) {
+              $scope.data[status].loading = false
+              $scope.data[status].loaded = true
               $scope.status = {}
-              loadLinks()
-              buildTagData()
+              if (status == 'in')
+                loadWebentities('undecided')
+              else $scope.resetInterface()
             } else {
-              loadInWebentities(thisToken)
+              loadWebentities(status, thisToken)
             }
           }
           ,function(data, status, headers, config){
             // Stop if this function was called in the meanwhile
-            if ($scope.data.in.token != thisToken) { return }
+            if ($scope.data[status].token != thisToken) { return }
 
-            if ($scope.data.in.retry++ < 3){
-              console.warn('Error loading results page: Retry', $scope.data.in.retry)
-              loadInWebentities(thisToken)
+            if ($scope.data[status].retry++ < 3){
+              console.warn('Error loading results page: Retry', $scope.data[status].retry)
+              loadWebentities(status, thisToken)
             } else {
               console.log('Error loading results page:', data, headers, config)
               $scope.status = {message: 'Error loading results page', background: 'danger'}
@@ -452,42 +477,43 @@ angular.module('hyphe.manageTagsController', [])
         )
       } else {
         // Initial query
-        $scope.status = {message:'Loading IN web entities'}
-        $scope.data.in.loading = true
-        $scope.data.in.loaded = false
-        $scope.data.in.token = undefined
-        $scope.data.in.page = 0
-        $scope.data.in.retry = 0
+        $scope.status = {message:'Loading ' + status.toUpperCase() + ' web entities'}
+        $scope.data[status].loading = true
+        $scope.data[status].loaded = false
+        $scope.data[status].token = undefined
+        $scope.data[status].page = 0
+        $scope.data[status].retry = 0
         api.getWebentities_byStatus(
           {
-            status: 'IN'
+            status: status.toUpperCase()
             ,count: pageSize
             ,semiLight: true
             ,page: 0
           }
           ,function(result){
 
-            $scope.data.in.total = result.total_results
-            $scope.data.in.token = result.token
+            $scope.data[status].total = result.total_results
+            $scope.data[status].token = result.token
 
-            $scope.data.in.webentities = $scope.data.in.webentities.concat(result.webentities)
-            if ($scope.data.in.webentities.length >= $scope.data.in.total) {
-              $scope.data.in.loading = false
-              $scope.data.in.loaded = true
+            $scope.data[status].webentities = $scope.data[status].webentities.concat(result.webentities)
+            if ($scope.data[status].webentities.length >= $scope.data[status].total) {
+              $scope.data[status].loading = false
+              $scope.data[status].loaded = true
               $scope.status = {}
-              loadLinks()
-              buildTagData()
+              if (status == 'in')
+                loadWebentities('undecided')
+              else $scope.resetInterface()
             } else {
-              loadInWebentities(result.token)
+              loadWebentities(status, result.token)
             }
           }
           ,function(data, headers, config){
             // Stop if this function was called in the meanwhile
-            if (data.in.token != thisToken) { return }
+            if (data[status].token != thisToken) { return }
 
-            if ($scope.data.in.retry++ < 3){
-              console.warn('Error loading web entities: Retry', $scope.data.in.retry)
-              loadInWebentities(thisToken)
+            if ($scope.data[status].retry++ < 3){
+              console.warn('Error loading web entities: Retry', $scope.data[status].retry)
+              loadWebentities(status, thisToken)
             } else {
               $scope.status = {message: 'Error loading web entities', background: 'danger'}
             }
@@ -523,7 +549,7 @@ angular.module('hyphe.manageTagsController', [])
 
     function buildNetwork() {
       var weIndex = {}
-      $scope.data.in.webentities.forEach(function(we){
+      $scope.data.webentities.forEach(function(we){
         weIndex[we.id] = we
       })
       var validLinks = $scope.data.links.links
@@ -594,14 +620,16 @@ angular.module('hyphe.manageTagsController', [])
 
       // Build webentity index
       var webentityIndex = {}
-      $scope.data.in.webentities.forEach(function(we){
+      $scope.data.webentities.forEach(function(we){
         webentityIndex[we.id] = {selected:false, displayed: false}
       })
       $scope.displayedEntities.forEach(function(we){
-        webentityIndex[we.id].displayed = true
+        if (webentityIndex[we.id])
+          webentityIndex[we.id].displayed = true
       })
       $scope.checkedList.forEach(function(we){
-        webentityIndex[we.id].selected = true
+        if (webentityIndex[we.id])
+          webentityIndex[we.id].selected = true
       })
 
       // Color network
