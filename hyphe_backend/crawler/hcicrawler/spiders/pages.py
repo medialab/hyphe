@@ -272,6 +272,7 @@ class PagesCrawler(Spider):
                 if self.archiveprefix:
                     real_url = self.archiveregexp.sub("", redir_url)
                     orig_url = self.archiveregexp.sub("", response.url)
+
                     match = self.archiveregexp.search(redir_url)
                     if match:
                         # Check date obtained fits into a user defined timerange and return 404 otherwise
@@ -287,7 +288,11 @@ class PagesCrawler(Spider):
                         elif "arquivo.pt" in self.webarchives["url_prefix"]:
                             return self._request(real_url)
             if response.status >= 400:
-                return self._make_raw_page(response)
+                archive_fail_url = None
+                if self.webarchives["option"] == "dlweb.ina.fr":
+                    archive_datetime = re.sub(r"^(....)(..)(..)(..)(..)(..)$", r"\1-\2-\3T\4:\5:\6", self.archivedate)
+                    archive_fail_url = ARCHIVES_OPTIONS[self.webarchives["option"]]["permalinks_prefix"].replace("DATE:TIME", archive_datetime).replace("SOURCEURL", response.url)
+                return self._make_raw_page(response, archive_fail_url=archive_fail_url)
 
         if 300 <= response.status < 400 or isinstance(response, HtmlResponse):
             return self.parse_html(response)
@@ -354,7 +359,10 @@ class PagesCrawler(Spider):
                 if not archive_timestamp:
                     self.log("Skipping archive page (%s) for which archive date could not be found within response's headers (%s)." % (response.url, dict(response.headers)), logging.ERROR)
                     return
+                archive_datetime = datetime.strftime((datetime(1970, 1, 1) + timedelta(seconds=int(archive_timestamp))), "%Y-%m-%dT%H:%M:%S")
                 archive_timestamp = datetime.strftime((datetime(1970, 1, 1) + timedelta(seconds=int(archive_timestamp))), "%Y%m%d%H%M%S")
+                if not "dlweb.ina.fr" in archive_url:
+                    archive_url = ARCHIVES_OPTIONS[self.webarchives["option"]]["permalinks_prefix"].replace("DATE:TIME", archive_datetime).replace("SOURCEURL", archive_url)
                 if not (self.archivemindate <= archive_timestamp <= self.archivemaxdate):
                     self.log("Skipping archive page (%s) with date (%s) outside desired range (%s/%s)" % (response.url, archive_timestamp, self.archivemindate, self.archivemaxdate), logging.WARNING)
                     skip_page = archive_url
