@@ -2,7 +2,6 @@ bin/hyphe-phantomjs*
 config/apache2.conf
 config/config.json*
 config/salt
-VERSION
 .env
 .python-version
 config-backend.env
