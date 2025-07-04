@@ -47,6 +47,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.nodeSizeMode = 'indegree'
         $scope.nodeSizeBaseRatio = 1
         $scope.selectedItem = null
+        $scope.multiSelectedItems = {}
+        $scope.multiSelectedItemsLength = 0
 
         $scope.initData = function() {
           $scope.initPage = true
@@ -105,10 +107,15 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
 
         $scope.findNode = function(name){
-          g.forEachNode(function(node){
-            var n = g.getNodeAttributes(node)
+          if (!name) return;
+          g.forEachNode(function(node_id){
+            var n = g.getNodeAttributes(node_id)
             if (n.name === name){
-              $scope.networkNodeClick(node);
+              if ($scope.multiSelectedItemsLength) {
+                $scope.selectedItem = null;
+                document.querySelector("input[type='search']").blur()
+                $scope.networkNodeCtrlClick(node_id);
+              } else $scope.networkNodeClick(node_id);
             }
           });
         }
@@ -138,6 +145,8 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         });
 
         $scope.networkNodeClick = function(nid) {
+          $scope.multiSelectedItems = {};
+          $scope.multiSelectedItemsLength = 0;
           unselectNode();
           var n = g.getNodeAttributes(nid);
           $scope.WEId = nid;
@@ -169,8 +178,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               if (g.hasEdge(target, source)) {
                 g.setEdgeAttribute(edge, 'color', '#d4a1dd');
                 $scope.bothDegree++;
-              }
-              else{
+              } else {
                 g.setEdgeAttribute(edge, 'color', '#FAA');
                 $scope.inDegree++;
               }
@@ -184,17 +192,64 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         };
 
         $scope.networkNodeCtrlClick = function(nid) {
-          console.log("CTRL CLICK!", nid);
+          if ($scope.selectedItem) {
+            $scope.multiSelectedItems = {}
+            $scope.multiSelectedItems[$scope.WEId] = {
+              id: $scope.WEId,
+              name: $scope.selectedItem,
+              status: $scope.selectedItemStatus,
+              crawl_status: $scope.selectedItemCrawlStatus,
+              homepage: $scope.WEHomepage,
+              archives_homepage: $scope.archives_WEHomepage
+            }
+            $scope.multiSelectedItemsLength = 1
+            $scope.selectedItem = null;
+          } else if (!$scope.multiSelectedItemsLength)
+            return $scope.networkNodeClick(nid);
+
+          if ($scope.multiSelectedItems[nid]) {
+            delete $scope.multiSelectedItems[nid];
+            $scope.multiSelectedItemsLength -= 1
+            if ($scope.multiSelectedItemsLength == 1)
+              $scope.networkNodeClick(Object.keys($scope.multiSelectedItems)[0]);
+          } else {
+            var n = g.getNodeAttributes(nid);
+            $scope.multiSelectedItems[nid] = {
+              id: nid,
+              name: n.name,
+              status: n.status,
+              crawl_status: n.pages_crawled,
+              homepage: n.homepage,
+              archives_homepage: utils.getArchivesPermalinks(n.homepage, $scope.webarchives_permalinks)
+            }
+            $scope.multiSelectedItemsLength += 1
+          }
+          // TODO: 
+          // - handle cross icon to remove from list
+          // - update graph edges
+          // - display info on already crawled
+          // - handle whether to crawl all or only not already crawled ones
+          // - add legend somewhere about ctrl+click
+          //
         }
 
         $scope.networkStageClick = function(){
           $scope.selectedItem = null;
+          $scope.multiSelectedItems = {};
+          $scope.multiSelectedItemsLength = 0;
         }
 
         $scope.crawlNode = function(){
           if (!$scope.selectedItem) return;
           var obj = {webentity: $scope.webentitiesIndex[$scope.WEId]}
           store.set('webentities_toCrawl', [obj])
+          $window.open('#/project/'+$scope.corpusId+'/prepareCrawls')
+        }
+
+        $scope.crawlNodes = function(){
+          if (!$scope.multiSelectedItemsLength) return;
+          var nodes = Object.keys($scope.multiSelectedItems).map(function(nid){ return {webentity: $scope.webentitiesIndex[nid]} })
+          store.set('webentities_toCrawl', nodes)
           $window.open('#/project/'+$scope.corpusId+'/prepareCrawls')
         }
 

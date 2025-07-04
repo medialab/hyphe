@@ -203,15 +203,15 @@
     <div layout="row" md-colors="{'background': 'default-background-200-0.5'}">
       <md-icon style="margin-left:10px; margin-right:10px">search</md-icon>
       <md-autocomplete
-              md-item-text="WE"
-              md-items="WE in autoComplete(query)"
-              md-min-length=0
-              md-search-text="query"
-              md-selected-item="selectedItem"
-              md-floating-label="Search a WebEntity"
-              md-selected-item-change="findNode(selectedItem)"
-              md-clear-button="true"
-              class="network-search"
+        md-item-text="WE"
+        md-items="WE in autoComplete(query)"
+        md-min-length=0
+        md-search-text="query"
+        md-selected-item="selectedItem"
+        md-floating-label="Search a WebEntity"
+        md-selected-item-change="findNode(selectedItem)"
+        md-clear-button="true"
+        class="network-search"
       >
         <md-item-template>
           <span md-highlight-text="query">{{WE}}</span>
@@ -223,7 +223,7 @@
       layout="column"
       md-colors="{'background': 'default-background-200'}"
       style="padding: 8px"
-      ng-show="!selectedItem"
+      ng-show="!selectedItem && !multiSelectedItemsLength"
     >
       <p class="md-title">Filtering</p>
       <hyphe-status-box
@@ -280,17 +280,17 @@
     </div>
 
     <div
-            layout="column"
-            md-colors="{'background': 'default-background-200'}"
-            style="padding: 12px"
-            ng-show="selectedItem"
+      layout="column"
+      md-colors="{'background': 'default-background-200'}"
+      style="padding: 12px"
+      ng-show="selectedItem"
     >
       <p class="md-title">Selected Web Entity:</p>
 
       <div layout="row">
         <p class="webentity-link" flex layout="row">
           <a
-            ng-show="WEHomepage"
+            ng-show="archives_WEHomepage || WEHomepage"
             href="{{archives_WEHomepage || WEHomepage}}"
             target="_blank"
             ng-click="$event.stopPropagation();"
@@ -300,7 +300,7 @@
             <md-icon>link</md-icon>
             <span md-truncate flex>{{selectedItem}}</span>
           </a>
-          <span style="height: 25px" ng-show="!WEHomepage" md-truncate flex>{{selectedItem}}</span>
+          <span style="height: 25px" ng-show="!WEHomepage && !archives_WEHomepage" md-truncate flex>{{selectedItem}}</span>
           <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="WEId" style="margin-top: -7px; position: fixed; right: 0px"></webentity-link>
         </p>
       </div>
@@ -329,8 +329,45 @@
           CRAWL
         </md-button>
       </div>
-
     </div>
+
+    <div
+      layout="column"
+      md-colors="{'background': 'default-background-200'}"
+      style="padding: 12px"
+      ng-show="multiSelectedItemsLength"
+    >
+      <p class="md-title">Selected Web Entities:</p>
+
+      <div layout="row" ng-repeat="(node_id, node) in multiSelectedItems">
+        <p class="webentity-link" flex layout="row">
+          <a
+            ng-show="node.archives_homepage || node.homepage"
+            href="{{node.archives_homepage || node.homepage}}"
+            target="_blank"
+            ng-click="$event.stopPropagation();"
+            style="margin-right: 2px"
+          >
+            <md-tooltip md-direction="left">{{node.homepage}}</md-tooltip>
+            <md-icon>link</md-icon>
+            <span md-truncate flex>{{node.name}}</span>
+          </a>
+          <span style="height: 25px" ng-show="!node.homepage && !node.archives_homepage" md-truncate flex>{{node.name}}</span>
+          <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="node_id" style="margin-top: -7px; position: fixed; right: 0px"></webentity-link>
+          <span style="color:red; font-weight: bold" ng-click="networkNodeCtrlClick(node_id)">TODO ADD remove icon</span>
+        </p>
+      </div>
+
+      <div layout="row">
+        <md-button
+          class="md-raised md-secondary"
+          ng-click="crawlNodes()"
+        >
+          CRAWL {{multiSelectedItemsLength}} SELECTED ENTITIES
+        </md-button>
+      </div>
+    </div>
+
     <div
       style="padding: 8px"
       layout="column"

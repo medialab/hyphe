@@ -170,6 +170,8 @@ angular.module('hyphe.sigmaNetworkComponent', [])
 
           if ($scope.onStageClick !== undefined) {
             renderer.on('clickStage', function(e){
+              if ((e.event.original.ctrlKey || e.event.original.metaKey) && $scope.onNodeCtrlClick !== undefined)
+                return
               $timeout($scope.onStageClick)
             })
           }
