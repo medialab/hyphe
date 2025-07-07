@@ -329,6 +329,9 @@
           CRAWL
         </md-button>
       </div>
+      <div layout="row" style="margin: 15px 0 -10px 10px">
+        <small>HINT: {{ CmdOrCtrl }}+Click nodes to crawl multiple ones</small>
+      </div>
     </div>
 
     <div
@@ -359,7 +362,10 @@
             ng-class="{'md-warn': node.crawl_status, 'md-icon-button': true}"
             ng-click="networkNodeCtrlClick(node_id)"
             style="position: relative; top: -7px; right: -20px"
-          ><md-icon>close</md-icon></md-button>
+          >
+            <md-tooltip md-direction="left">Remove from selection</md-tooltip>
+            <md-icon style="font-weight: {{ node.crawl_status && 'bold' || 'normal' }}">close</md-icon>
+          </md-button>
         </p>
       </div>
 

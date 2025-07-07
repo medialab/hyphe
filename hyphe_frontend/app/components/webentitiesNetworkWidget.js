@@ -50,6 +50,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.multiSelectedItems = {}
         $scope.multiSelectedItemsLength = 0
         $scope.multiSelectedItemsCrawled = 0
+        $scope.CmdOrCtrl = ~$window.navigator.userAgent.toLowerCase().search(/\bmac\s*os/i) && 'Cmd' || 'Ctrl'
 
         $scope.initData = function() {
           $scope.initPage = true
@@ -232,10 +233,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             if (n.pages_crawled)
               $scope.multiSelectedItemsCrawled += 1
           }
-          // TODO: 
-          // - update graph edges
-          // - add legend somewhere about ctrl+click
-          //
+          // TODO: update graph edges
         }
 
         $scope.networkStageClick = function(){
