@@ -123,7 +123,6 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         }
 
         function setEdgesToGrey(){
-          unselectNode();
           // Default color for edges
           $scope.network.edges().forEach(function(eid) {
             $scope.network.setEdgeAttribute(eid, 'color', '#DDD');
@@ -133,24 +132,18 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         }
 
         function unselectNode(){
+          $scope.selectedItem = null
+          resetInfos();
           if ($scope.WEId)
             $scope.network.setNodeAttribute($scope.WEId, "highlighted", false);
         }
-
-        $scope.$watch('selectedItem', function(newVal, oldVal){
-          if ($scope.data.links.loaded && $scope.network){
-            setEdgesToGrey();
-            if (!newVal){
-              resetInfos();
-            }
-          }
-        });
 
         $scope.networkNodeClick = function(nid) {
           $scope.multiSelectedItems = {};
           $scope.multiSelectedItemsLength = 0;
           $scope.multiSelectedItemsCrawled = 0;
-          unselectNode();
+          unselectNode()
+          setEdgesToGrey();
           var n = g.getNodeAttributes(nid);
           $scope.WEId = nid;
           $scope.selectedItem = n.name;
@@ -195,7 +188,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         };
 
         $scope.networkNodeCtrlClick = function(nid) {
-          if ($scope.selectedItem) {
+          if ($scope.selectedItem && nid !== $scope.WEId) {
             $scope.multiSelectedItems = {}
             $scope.multiSelectedItems[$scope.WEId] = {
               id: $scope.WEId,
@@ -213,6 +206,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             return $scope.networkNodeClick(nid);
 
           if ($scope.multiSelectedItems[nid]) {
+            g.setNodeAttribute(nid, 'highlighted', false);
             $scope.multiSelectedItemsLength -= 1
             if ($scope.multiSelectedItems[nid].crawl_status)
               $scope.multiSelectedItemsCrawled -= 1
@@ -233,14 +227,22 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
             if (n.pages_crawled)
               $scope.multiSelectedItemsCrawled += 1
           }
-          // TODO: update graph edges
+          Object.keys($scope.multiSelectedItems).forEach(function(itemid){
+            g.setNodeAttribute(itemid, 'highlighted', true);
+          })
+          $scope.highlightGroup(true, true)
         }
 
         $scope.networkStageClick = function(){
+          Object.keys($scope.multiSelectedItems).forEach(function(itemid){
+            g.setNodeAttribute(itemid, 'highlighted', false);
+          })
+          unselectNode();
           $scope.selectedItem = null;
           $scope.multiSelectedItems = {};
           $scope.multiSelectedItemsLength = 0;
           $scope.multiSelectedItemsCrawled = 0;
+          $scope.resetHighlight();
         }
 
         $scope.crawlNode = function(){
@@ -383,26 +385,33 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.$watch('nodeSizeMode', updateNodeSizes)
         $scope.$watch('nodeSizeBaseRatio', updateNodeSizes)
 
-        $scope.highlightGroup = function(selection) {
+        $scope.highlightGroup = function(selection, highlighted) {
           if ($scope.nodeColorMode === '')
             return
           
           var keptNodes = {};
           g.forEachNode(function(nid, attrs){
             var val = attrs.status
-            if ($scope.nodeColorMode !== '_webentitystatus')
+            if (highlighted) val = attrs.highlighted
+            else if ($scope.nodeColorMode !== '_webentitystatus')
               val = (((attrs.tags || {}).USER || {})[$scope.nodeColorMode] || [""])[0];
             if (val === selection) keptNodes[nid] = true;
-            g.setNodeAttribute(nid, 'color', val === selection ? attrs.color : "#E9E9E9")
+            if (!highlighted)
+              g.setNodeAttribute(nid, 'color', val === selection ? attrs.color : "#E9E9E9")
           })
           g.forEachEdge(function(e, attrs, n1, n2) {
-            g.setEdgeAttribute(e, 'color', keptNodes[n1] || keptNodes[n2] ? attrs.color : "#F9F9F9");
+            g.setEdgeAttribute(e, 'size', keptNodes[n1] || keptNodes[n2] ? 3.5 : 1);
+            g.setEdgeAttribute(e, 'color', keptNodes[n1] || keptNodes[n2] ? (highlighted ? "#DDD" : attrs.color) : (highlighted ? "#DDD" : "#F9F9F9"));
           })
         }
 
         $scope.resetHighlight = function() {
           updateNodeColors();
-          setEdgesToGrey();
+          if ($scope.selectedItem)
+            $scope.networkNodeClick($scope.WEId)
+          else if ($scope.multiSelectedItemsLength > 1)
+            $scope.highlightGroup(true, true)
+          else setEdgesToGrey();
         }
 
         // Init
