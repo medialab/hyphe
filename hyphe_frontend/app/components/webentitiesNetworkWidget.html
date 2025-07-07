@@ -321,15 +321,15 @@
           </div>
         </div>
         <md-button
-          class="md-raised md-secondary icon-to-right"
+          ng-class="{'md-raised': !selectedItemCrawlStatus, 'md-secondary': true, 'icon-to-right': true, 'md-warn': selectedItemCrawlStatus}"
           style="top: 190px!important"
-          ng-if="selectedItemStatus == 'UNDECIDED' || selectedItemStatus == 'DISCOVERED' || !selectedItemCrawlStatus"
           ng-click="crawlNode()"
         >
-          CRAWL
+          <span ng-if="selectedItemCrawlStatus">RE</span>CRAWL
         </md-button>
       </div>
-      <div layout="row" style="margin: 15px 0 -10px 10px">
+      <div layout="column" style="margin: 15px 0 -10px 10px">
+        <small ng-if="selectedItemCrawlStatus" ng-click="rickrollNode()" style="padding-left: 36px">More on the dangers of <a style="cursor: pointer; color: rgb(233,30,99)!important">recrawling</a></small>
         <small>HINT: {{ CmdOrCtrl }}+Click nodes to crawl multiple ones</small>
       </div>
     </div>
@@ -378,8 +378,9 @@
           CRAWL {{multiSelectedItemsLength}} SELECTED ENTITIES
         </md-button>
       </div>
-      <div layout="row" ng-show="multiSelectedItemsCrawled">
+      <div layout="column" ng-show="multiSelectedItemsCrawled">
         <small style="color: rgb(233,30,99); padding-left: 55px;">WARNING: {{multiSelectedItemsCrawled}} already crawled</small>
+        <small ng-click="rickrollNode()" style="padding-left: 36px; margin-bottom: -10px">More on the dangers of <a style="cursor: pointer; color: rgb(233,30,99)!important">recrawling</a></small>
       </div>
     </div>
 

@@ -109,13 +109,18 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
 
 
         $scope.findNode = function(name){
-          if (!name) return;
+          document.querySelector("input[type='search']").blur()
+          if (!name) {
+            if (!$scope.multiSelectedItemsLength)
+              unselectNode()
+            $scope.resetHighlight()
+            return;
+          }
           g.forEachNode(function(node_id){
             var n = g.getNodeAttributes(node_id)
             if (n.name === name){
               if ($scope.multiSelectedItemsLength) {
                 $scope.selectedItem = null;
-                document.querySelector("input[type='search']").blur()
                 $scope.networkNodeCtrlClick(node_id);
               } else $scope.networkNodeClick(node_id);
             }
@@ -245,18 +250,25 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           $scope.resetHighlight();
         }
 
+        $scope.rickrollNode = function(){
+          var w = window.open('https://youtube.com/watch?v=dQw4w9WgXcQ?autoplay=1', 'RickRoll')
+          w.focus();
+        }
+
         $scope.crawlNode = function(){
           if (!$scope.selectedItem) return;
           var obj = {webentity: $scope.webentitiesIndex[$scope.WEId]}
           store.set('webentities_toCrawl', [obj])
-          $window.open('#/project/'+$scope.corpusId+'/prepareCrawls')
+          var w = window.open('#/project/'+$scope.corpusId+'/prepareCrawls', 'crawl').focus()
+          w.focus();
         }
 
         $scope.crawlNodes = function(){
           if (!$scope.multiSelectedItemsLength) return;
           var nodes = Object.keys($scope.multiSelectedItems).map(function(nid){ return {webentity: $scope.webentitiesIndex[nid]} })
           store.set('webentities_toCrawl', nodes)
-          $window.open('#/project/'+$scope.corpusId+'/prepareCrawls')
+          var w = window.open('#/project/'+$scope.corpusId+'/prepareCrawls', 'crawl').focus()
+          w.focus();
         }
 
         function resetInfos(){
