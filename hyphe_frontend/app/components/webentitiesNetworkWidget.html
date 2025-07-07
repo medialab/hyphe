@@ -340,31 +340,40 @@
       <p class="md-title">Selected Web Entities:</p>
 
       <div layout="row" ng-repeat="(node_id, node) in multiSelectedItems">
-        <p class="webentity-link" flex layout="row">
+        <p class="webentity-link" flex layout="row" style="margin-bottom: 0">
           <a
             ng-show="node.archives_homepage || node.homepage"
             href="{{node.archives_homepage || node.homepage}}"
             target="_blank"
             ng-click="$event.stopPropagation();"
             style="margin-right: 2px"
+            md-truncate flex
           >
             <md-tooltip md-direction="left">{{node.homepage}}</md-tooltip>
             <md-icon>link</md-icon>
             <span md-truncate flex>{{node.name}}</span>
           </a>
           <span style="height: 25px" ng-show="!node.homepage && !node.archives_homepage" md-truncate flex>{{node.name}}</span>
-          <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="node_id" style="margin-top: -7px; position: fixed; right: 0px"></webentity-link>
-          <span style="color:red; font-weight: bold" ng-click="networkNodeCtrlClick(node_id)">TODO ADD remove icon</span>
+          <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="node_id" style="margin-top: -7px; position: fixed; right: 20px"></webentity-link>
+          <md-button
+            ng-class="{'md-warn': node.crawl_status, 'md-icon-button': true}"
+            ng-click="networkNodeCtrlClick(node_id)"
+            style="position: relative; top: -7px; right: -20px"
+          ><md-icon>close</md-icon></md-button>
         </p>
       </div>
 
       <div layout="row">
         <md-button
+          style="margin-left: 16px; margin-top: 0; padding: 0px 32px"
           class="md-raised md-secondary"
           ng-click="crawlNodes()"
         >
           CRAWL {{multiSelectedItemsLength}} SELECTED ENTITIES
         </md-button>
+      </div>
+      <div layout="row" ng-show="multiSelectedItemsCrawled">
+        <small style="color: rgb(233,30,99); padding-left: 55px;">WARNING: {{multiSelectedItemsCrawled}} already crawled</small>
       </div>
     </div>
 

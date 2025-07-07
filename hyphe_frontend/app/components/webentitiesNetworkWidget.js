@@ -49,6 +49,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.selectedItem = null
         $scope.multiSelectedItems = {}
         $scope.multiSelectedItemsLength = 0
+        $scope.multiSelectedItemsCrawled = 0
 
         $scope.initData = function() {
           $scope.initPage = true
@@ -147,6 +148,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
         $scope.networkNodeClick = function(nid) {
           $scope.multiSelectedItems = {};
           $scope.multiSelectedItemsLength = 0;
+          $scope.multiSelectedItemsCrawled = 0;
           unselectNode();
           var n = g.getNodeAttributes(nid);
           $scope.WEId = nid;
@@ -203,13 +205,17 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               archives_homepage: $scope.archives_WEHomepage
             }
             $scope.multiSelectedItemsLength = 1
+            if ($scope.selectedItemCrawlStatus)
+              $scope.multiSelectedItemsCrawled += 1
             $scope.selectedItem = null;
           } else if (!$scope.multiSelectedItemsLength)
             return $scope.networkNodeClick(nid);
 
           if ($scope.multiSelectedItems[nid]) {
-            delete $scope.multiSelectedItems[nid];
             $scope.multiSelectedItemsLength -= 1
+            if ($scope.multiSelectedItems[nid].crawl_status)
+              $scope.multiSelectedItemsCrawled -= 1
+            delete $scope.multiSelectedItems[nid];
             if ($scope.multiSelectedItemsLength == 1)
               $scope.networkNodeClick(Object.keys($scope.multiSelectedItems)[0]);
           } else {
@@ -223,12 +229,11 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
               archives_homepage: utils.getArchivesPermalinks(n.homepage, $scope.webarchives_permalinks)
             }
             $scope.multiSelectedItemsLength += 1
+            if (n.pages_crawled)
+              $scope.multiSelectedItemsCrawled += 1
           }
           // TODO: 
-          // - handle cross icon to remove from list
           // - update graph edges
-          // - display info on already crawled
-          // - handle whether to crawl all or only not already crawled ones
           // - add legend somewhere about ctrl+click
           //
         }
@@ -237,6 +242,7 @@ angular.module('hyphe.webentitiesNetworkWidgetComponent', [])
           $scope.selectedItem = null;
           $scope.multiSelectedItems = {};
           $scope.multiSelectedItemsLength = 0;
+          $scope.multiSelectedItemsCrawled = 0;
         }
 
         $scope.crawlNode = function(){
