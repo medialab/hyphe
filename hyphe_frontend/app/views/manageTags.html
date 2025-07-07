@@ -19,7 +19,7 @@
             <span class="md-subhead">
               Filter <span hyphe-glossary="web entities"></span> (only status <em>IN</em> and optionally <em>UNDECIDED</em>). Tag one or a selection of web entities.
             </span>
-            <small><md-checkbox ng-if="!loading" ng-model="include_undecided" ng-change="toggleUndecided()" style="float:right">Include UNDECIDED</md-checkbox></small>
+            <small><md-checkbox ng-if="!loading && data.undecided.total" ng-model="include_undecided" ng-change="toggleUndecided()" style="float:right">Include UNDECIDED</md-checkbox></small>
           </div>
 
           <div flex layout="column" layout-align="center center" ng-if="loading">
