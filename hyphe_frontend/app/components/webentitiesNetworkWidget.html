@@ -328,7 +328,7 @@
           <span ng-if="selectedItemCrawlStatus">RE</span>CRAWL
         </md-button>
       </div>
-      <div layout="column" style="margin: 15px 0 -10px 10px">
+      <div layout="column" style="margin: 15px 0 -5px 10px">
         <small ng-if="selectedItemCrawlStatus" ng-click="rickrollNode()" style="padding-left: 36px">More on the dangers of <a style="cursor: pointer; color: rgb(233,30,99)!important">recrawling</a></small>
         <small>HINT: {{ CmdOrCtrl }}+Click nodes to crawl multiple ones</small>
       </div>
@@ -349,22 +349,22 @@
             href="{{node.archives_homepage || node.homepage}}"
             target="_blank"
             ng-click="$event.stopPropagation();"
-            style="margin-right: 2px"
+            style="margin-right: 2px; color: {{ node.crawl_status ? 'rgb(233,30,99)' : 'black' }}"
             md-truncate flex
           >
             <md-tooltip md-direction="left">{{node.homepage}}</md-tooltip>
             <md-icon>link</md-icon>
             <span md-truncate flex>{{node.name}}</span>
           </a>
-          <span style="height: 25px" ng-show="!node.homepage && !node.archives_homepage" md-truncate flex>{{node.name}}</span>
+          <span style="height: 25px; color: {{ node.crawl_status ? 'rgb(233,30,99)' : 'black' }}" ng-show="!node.homepage && !node.archives_homepage" md-truncate flex>{{node.name}}</span>
           <webentity-link class="md-secondary" corpus-id="corpusId" webentity-id="node_id" style="margin-top: -7px; position: fixed; right: 20px"></webentity-link>
           <md-button
-            ng-class="{'md-warn': node.crawl_status, 'md-icon-button': true}"
+            class="md-icon-button"
             ng-click="networkNodeCtrlClick(node_id)"
             style="position: relative; top: -7px; right: -20px"
           >
             <md-tooltip md-direction="left">Remove from selection</md-tooltip>
-            <md-icon style="font-weight: {{ node.crawl_status && 'bold' || 'normal' }}">close</md-icon>
+            <md-icon>close</md-icon>
           </md-button>
         </p>
       </div>
@@ -380,7 +380,7 @@
       </div>
       <div layout="column" ng-show="multiSelectedItemsCrawled">
         <small style="color: rgb(233,30,99); padding-left: 55px;">WARNING: {{multiSelectedItemsCrawled}} already crawled</small>
-        <small ng-click="rickrollNode()" style="padding-left: 36px; margin-bottom: -10px">More on the dangers of <a style="cursor: pointer; color: rgb(233,30,99)!important">recrawling</a></small>
+        <small ng-click="rickrollNode()" style="padding-left: 36px; margin-bottom: -5px">More on the dangers of <a style="cursor: pointer; color: rgb(233,30,99)!important">recrawling</a></small>
       </div>
     </div>
 
