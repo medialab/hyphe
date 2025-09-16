@@ -2,11 +2,10 @@ FROM python:2.7-slim
 
 WORKDIR /app
 
-ENV PYTHONPATH $PYTHONPATH:/app
-
 COPY requirements.txt /app/requirements.txt
 
 RUN buildDeps='gcc libffi-dev libxml2-dev libxslt-dev' \
+    && sed -i 's#http://\(security\|deb\)\.debian#http://archive.debian#' /etc/apt/sources.list \
     && apt-get update && apt-get install -y $buildDeps \
     && pip install --cache-dir=/tmp/pipcache --upgrade setuptools pip \
     && cat /app/requirements.txt | xargs -n 1 -L 1 pip install --cache-dir=/tmp/pipcache \
