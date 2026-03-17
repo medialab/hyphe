@@ -279,6 +279,8 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
+* BERMES, Emmanuelle (2025) ["À la rencontre des premiers Skyblogs archivés"](https://webcorpora.hypotheses.org/7348) Web Corpora. https://doi.org/10.58079/14akm
+
 * HERASIMOVICH, Volha, ALZUA-SORZABAL, Aurkene, GUERENO-OMIL, Basagaitz, THIEL-ELLUL, Daniela. (2024). ["Varying Roles of Destination Management Organizations in the Digital Business Ecosystem of Tourist Destinations"](https://link.springer.com/chapter/10.1007/978-3-031-58839-6_7). In: Berezina, K., Nixon, L., Tuomi, A. (eds) Information and Communication Technologies in Tourism 2024. ENTER 2024. Springer Proceedings in Business and Economics. Springer, Cham. https://doi.org/10.1007/978-3-031-58839-6_7
 
 * HERASIMOVICH, Volha, ALZUA-SORZABAL Aurkene, GUERENO-OMIL Basagaitz, ["Online networking behaviour of tourism stakeholders in a multi-destination region: A hyperlink network analysis"](https://www.sciencedirect.com/science/article/pii/S2212571X23000835), Journal of Destination Marketing & Management, Volume 31, 2024, 100844, ISSN 2212-571X, https://doi.org/10.1016/j.jdmm.2023.100844
