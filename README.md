@@ -279,6 +279,8 @@ See our [roadmap](doc/roadmap.md)!
 
 ### Publications using Hyphe
 
+* ALZUA-SORZABAL, Aurkene, HERASIMOVICH, Volha, GUERENO-OMIL Basagaitz, THIEL-ELLUL, Daniela. (2025). ["Extended destination ecosystems in smart tourism: networking behaviours and leadership"](https://www.emerald.com/jhti/article/8/11/276/1311781/Extended-destination-ecosystems-in-smart-tourism). Journal of Hospitality and Tourism Insights, Vol. 8 No. 11 pp. 276–293, doi: https://doi.org/10.1108/JHTI-02-2025-0326
+
 * BERMES, Emmanuelle (2025) ["À la rencontre des premiers Skyblogs archivés"](https://webcorpora.hypotheses.org/7348) Web Corpora. https://doi.org/10.58079/14akm
 
 * HERASIMOVICH, Volha, ALZUA-SORZABAL, Aurkene, GUERENO-OMIL, Basagaitz, THIEL-ELLUL, Daniela. (2024). ["Varying Roles of Destination Management Organizations in the Digital Business Ecosystem of Tourist Destinations"](https://link.springer.com/chapter/10.1007/978-3-031-58839-6_7). In: Berezina, K., Nixon, L., Tuomi, A. (eds) Information and Communication Technologies in Tourism 2024. ENTER 2024. Springer Proceedings in Business and Economics. Springer, Cham. https://doi.org/10.1007/978-3-031-58839-6_7
